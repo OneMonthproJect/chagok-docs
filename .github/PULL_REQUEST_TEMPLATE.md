@@ -19,4 +19,4 @@ Closes #
 ## AI 사용
 - [ ] 없음
 - [ ] 있음 → `docs/etc/AI_USAGE`에 기록함 (사용한 스킬·에이전트: )
-- [ ] 커밋·본문에 AI 공동 작성자 표기가 없다 (`Co-authored-by: Claude` 등)
+- [ ] 커밋·본문에 AI 공동 작성자 표기가 없다 (AI 이름을 넣은 Co-authored-by 트레일러, AI 메일 주소, AI 생성 안내 문구 — CONTRIBUTING 4장)
