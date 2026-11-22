@@ -20,27 +20,30 @@
 
 ```
 이슈 생성(해당 레포) → develop에서 브랜치 → 커밋 → develop으로 PR (Closes #n, 명세가 바뀌면 문서 PR 링크)
-→ 자동 검사(❌면 머지하지 않음) + 팀원 확인 → Squash merge → 이슈 자동 클로즈
+→ 자동 검사(❌면 머지하지 않음) + 팀원 확인 → `done-verified` 라벨 → Squash merge → 이슈 자동 클로즈(issue-close)
                          ↓ (중간 점검 · MVP 점검 · 관문 2 · 발표)
-     형상관리자: 세 레포 각각 develop → main 릴리스 PR → (코드 레포) CodeRabbit 점검 → Merge commit + 같은 태그
+     형상관리자: 세 레포 각각 develop → main 릴리스 PR(이슈는 Refs #n으로 연결만) → (코드 레포) CodeRabbit 점검 → Merge commit + 같은 태그
 ```
+
+GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `develop`이다(D-49). 그래서 develop 머지에서는 GitHub의 `Closes #` 자동 클로즈가 동작하지 않고, 대신 `issue-close` 워크플로가 이슈를 닫는다(5장).
 
 ## 2. 브랜치 (세 레포 같음)
 
 | 브랜치 | 용도 | 누가 머지 | 머지 방식 |
 |---|---|---|---|
-| `main` | 중간 점검·MVP 점검·관문 2·발표 시점의 안정 버전 | 형상관리자 | Merge commit |
-| `develop` | **기본 브랜치 · 통합 브랜치** | PR을 확인한 팀원 | Squash |
+| `main` | **GitHub 기본 브랜치**. 중간 점검·MVP 점검·관문 2·발표 시점의 안정 버전 | 형상관리자 | Merge commit |
+| `develop` | **통합 브랜치** (팀원 PR의 대상) | PR을 확인한 팀원 | Squash (커밋 메시지 = PR 제목) |
 | `feature/#번호-이름` | 기능 | | |
 | `fix/#번호-이름` | 버그 수정 | | |
 | `docs/#번호-이름` | 문서만 | | |
 | `chore/#번호-이름` | 설정·빌드·CI·AI 설정 | | |
 
 - 이름은 영문 소문자·숫자·하이픈. 예: `feature/#12-cycle-calc`. 번호는 **그 레포의** 이슈 번호.
-- 작업 브랜치는 항상 최신 `develop`에서 만든다.
+- 작업 브랜치는 항상 최신 `develop`에서 만든다. clone 직후에는 기본 브랜치인 `main`에 있으므로 `git switch develop`부터 한다.
+- **팀원 PR의 대상은 반드시 `develop`이다.** GitHub 화면과 `gh pr create`는 기본 브랜치(`main`)를 대상으로 잡으므로, 화면에서는 base를 `develop`으로 고르고 CLI는 `gh pr create --base develop`을 쓴다. `develop`이 아닌 브랜치에서 `main`으로 올린 PR은 pr-check가 ❌로 표시한다.
 - 이슈 하나 = 브랜치 하나 = PR 하나. 하루 안에 머지할 크기로 쪼갠다.
 - `main`·`develop`에 직접 push하지 않는다. GitHub Free 기준으로 설정이 막아 주지 않으므로 **팀원이 지키는 규칙**이다(아래 「GitHub Free 운영」).
-- 머지된 브랜치는 원격에서 자동 삭제된다. 로컬은 직접 정리: `git pull --prune` 후 `git branch -D <브랜치>` (Squash merge라 `-d`는 거부됨).
+- **브랜치 자동 삭제는 쓰지 않는다**(D-49). 켜 두면 릴리스 PR(develop → main) 머지 때 `develop`이 지워진다. 팀원 PR이 머지되면 PR 화면의 **Delete branch** 버튼으로 작업 브랜치를 지운다. **릴리스 PR에서는 누르지 않는다.** 로컬은 직접 정리: `git pull --prune` 후 `git branch -D <브랜치>` (Squash merge라 `-d`는 거부됨).
 
 ## 3. 이슈
 
@@ -76,13 +79,20 @@
 - 제목은 한국어 50자 이내, 마침표 없음.
 - 비밀번호·DB 접속 정보·`.env`는 커밋하지 않는다.
 - **AI를 공동 작성자로 올리지 않는다.** 커밋·PR 본문에 `Co-authored-by: Claude`, `noreply@anthropic.com`, "Generated with Claude Code"를 넣지 않는다. 커밋 작성자는 항상 본인 계정이다. AI 사용 사실은 PR 템플릿 「AI 사용」과 `chagok-docs/docs/etc/AI_USAGE`에 사람이 적는다. (pr-check가 막음)
-- Squash merge라 develop에는 PR 제목이 커밋으로 남는다. 작업 중 커밋은 자유롭게 하되 PR 제목은 규칙대로.
+- Squash merge라 develop에는 PR 제목만 커밋으로 남는다(레포 설정: Squash 커밋 메시지 = PR 제목, 본문 없음. D-49). 작업 중 커밋은 자유롭게 하되 PR 제목은 규칙대로.
+- 커밋 메시지에 `Closes #`·`Fixes #`·`Resolves #`를 쓰지 않는다. 기본 브랜치가 `main`이라 릴리스 때 이 키워드가 이슈를 닫을 수 있다. 이슈 번호는 `(#12)`처럼만 적는다.
 
 ## 5. PR (팀원 → develop)
 
-- 제목: `[#이슈번호] 이슈 제목`
-- 본문 첫 줄: `Closes #이슈번호` → develop(기본 브랜치)에 머지되면 이슈가 자동으로 닫힌다. 다른 레포 이슈를 닫을 때는 `Closes OneMonthproJect/chagok-docs#12`.
+- 대상(base): **`develop`** (2장).
+- 제목: `[#이슈번호] 이슈 제목`. 제목에는 `Closes #` 같은 닫는 키워드를 쓰지 않는다(Squash 커밋 제목이 되어 릴리스 때 이슈를 닫을 수 있음. pr-check가 막음).
+- 본문 첫 줄: `Closes #이슈번호` → 이슈를 PR에 연결한다. develop은 기본 브랜치가 아니라 GitHub이 이 키워드로 이슈를 닫지 않으므로, 아래 조건을 모두 만족하면 **`issue-close` 워크플로가 이슈를 닫는다**(D-49).
+  - develop 대상 PR이 실제로 **머지**됨 (머지 없이 닫힌 PR은 대상 아님)
+  - PR에 **`done-verified`** 라벨이 있음
+  - PR 마지막 커밋의 자동 검사가 모두 ✅ (실패·진행 중이면 닫지 않음)
+  - `Closes #번호` 중 **같은 레포** 이슈만. 다른 레포 이슈(`Closes OneMonthproJect/chagok-docs#12`)는 연결만 되고 닫히지 않으므로 그 레포에서 직접 닫는다
 - 본문은 PR 템플릿대로. 기능 PR은 완료 정의를 모두 체크한다.
+- **확인한 팀원이 완료 정의 체크리스트를 확인한 뒤 `done-verified` 라벨을 붙이고 머지한다.** 라벨 없이 머지했으면 머지 후에 라벨을 붙여도 그때 닫힌다. 이슈가 닫히지 않았으면 Actions의 `issue-close` 실행 기록(요약)에서 이유를 본다. 보드의 Done 이동은 Projects 기본 워크플로(이슈 닫힘 → Done)가 처리한다.
 - **코드 레포 PR은 「문서 PR」 칸을 채운다.** 명세(07·08·09)가 바뀌는 변경이면 `chagok-docs` 문서 PR 링크, 아니면 「문서 변경 없음」 체크(7장).
 - push 전 `git pull origin develop`. 충돌은 PR 올린 사람이 해결한다.
 - 승인 인원을 강제하지 않는다. 다만 머지 전에 팀원 1명이 확인하는 것을 기본으로 한다(작은 문서·오타 수정은 생략 가능). 확인하는 사람은 브랜치를 받아 **다른 코드 레포의 develop과 함께 띄워** 실제로 실행해 본다. 점검 순서와 코멘트 초안은 `chagok-pr-review` 스킬이나 `chagok-pr-reviewer` 에이전트로 만들 수 있다(승인·코멘트 게시는 사람이). 작성자도 PR을 올리기 전에 같은 에이전트로 스스로 점검한다.
@@ -92,7 +102,7 @@
 
 | 구분 | 내용 |
 |---|---|
-| GitHub가 실제로 하는 것 | 검사를 돌려 PR에 ✅/❌ 표시, 라벨 자동 부착, 이슈 자동 클로즈, 머지된 브랜치 삭제, CODEOWNERS 리뷰 요청 |
+| GitHub가 실제로 하는 것 | 검사를 돌려 PR에 ✅/❌ 표시, 라벨 자동 부착, 이슈 자동 클로즈(`issue-close`: develop 머지 + `done-verified` + 검사 ✅), CODEOWNERS 리뷰 요청. 머지된 브랜치는 자동 삭제하지 않는다(2장) |
 | GitHub가 막지 **않는** 것 (사람이 지킴) | ❌인 PR 머지, `main`·`develop` 직접 push, 확인 없는 머지, `feature/` PR의 동결 후 머지 |
 | 지키는 사람 | 머지하는 사람: ✅와 확인 여부를 보고 머지. 형상관리자: 매일 `develop` 커밋 목록과 Actions 결과를 보고, 규칙을 어긴 머지를 되돌리거나 수정 PR을 요청. `main`은 형상관리자만 머지 |
 | 선택 사항 | 공개 레포라 Free에서도 브랜치 보호·필수 검사를 켤 수 있다. 켜면 위의 일부가 자동으로 막힌다. 켜지 않아도 이 문서의 규칙은 같다 |
@@ -101,7 +111,8 @@
 
 | 무엇 | 레포 | 언제 |
 |---|---|---|
-| 브랜치명·PR 제목·`Closes #` 검사 | 세 레포 | PR 생성·수정 |
+| 브랜치명·PR 제목·`Closes #` 검사, PR 제목의 닫는 키워드 금지 | 세 레포 | PR 생성·수정 |
+| 릴리스 PR(develop → main): 제목·본문의 닫는 키워드 금지, 포함 커밋이 **열린 이슈**를 닫는 키워드를 담으면 차단 (D-49) | 세 레포 | 릴리스 PR 생성·수정 (❌) |
 | 커밋·PR 본문의 AI 공동 작성자 표기 차단 | 세 레포 | PR 생성·수정 |
 | 관문 2 이후 `feature/` 차단 (`FEATURE_FREEZE`) | 세 레포 | PR 생성·수정 |
 | **비밀값·민감 파일**(`.env`, 키 파일, 토큰 형태, 설정 파일의 평문 비밀번호) | 세 레포 | PR 생성·수정 (❌) |
@@ -116,13 +127,13 @@
 | 영역 라벨(`backend`/`frontend`/`db`/`docs`/`ci`), 유형 라벨(`feature`/`fix`) | 세 레포 | PR 생성 |
 | `review-me` 라벨 (표시용, 자동 리뷰 없음) | 코드 레포 | backend: cycle·global·마이그레이션, frontend: `src/app`·`src/shared/api` 변경 |
 | `release` 라벨 → CodeRabbit 자동 리뷰 1회 | 코드 레포 | develop → main PR |
-| 이슈 자동 클로즈 · 보드 완료 처리 | 세 레포 | develop 머지 |
+| 이슈 자동 클로즈(`issue-close`: develop 머지 + `done-verified` + 검사 ✅, 같은 레포 이슈만) → 보드 Done(Projects 기본 워크플로) | 세 레포 | develop 머지, 또는 머지 후 `done-verified` 부착 |
 
 (❌) = 실패로 표시되는 **차단 기준**. 나머지 경고는 리뷰 때 확인하는 **경고 기준**이다.
 
 | 차단 기준 (❌, 머지하지 않음) | 경고·리뷰 기준 (확인 후 판단) |
 |---|---|
-| 컴파일·빌드 실패, 필수 테스트 실패, ArchitectureTest 실패, 비밀값·민감 파일, DB·Flyway 규칙 위반, 형식 검사(브랜치·제목·`Closes #`·AI 표기·동결) | 08 명세 불일치 의심(문서 PR 링크 없음), 문서 갱신 누락, 테스트 부족, 네이밍·스타일, 중복 코드, 선택적 리팩터링 |
+| 컴파일·빌드 실패, 필수 테스트 실패, ArchitectureTest 실패, 비밀값·민감 파일, DB·Flyway 규칙 위반, 형식 검사(브랜치·제목·`Closes #`·AI 표기·동결), 릴리스 PR의 닫는 키워드 | 08 명세 불일치 의심(문서 PR 링크 없음), 문서 갱신 누락, 테스트 부족, 네이밍·스타일, 중복 코드, 선택적 리팩터링 |
 
 자동 검사로 찾을 수 있는 것만 차단한다. 검사가 통과해도 "보안 문제 없음", "명세와 일치"가 보장되지는 않는다(리뷰와 `chagok-contract-checker`로 확인).
 
@@ -137,9 +148,19 @@
 
 **세 레포에 같은 날 같은 태그를 단다.** 태그 이름이 같으면 "이 시점의 문서·백엔드·프론트"를 한 번에 맞춰 받을 수 있다.
 
+**이슈는 develop 통합과 main 릴리스를 나눠 관리한다(D-49).**
+
+| | develop 통합 (팀원 PR) | main 릴리스 (릴리스 PR) |
+|---|---|---|
+| 이슈 표기 | 본문 `Closes #번호` | 본문 `Refs #번호` 또는 링크. **`Closes`·`Fixes`·`Resolves` 금지** |
+| 이슈 닫힘 | `issue-close`가 닫음 (머지 + `done-verified` + 검사 ✅) | 닫지 않음. 연결(타임라인 표시)만 |
+| 검사 | pr-check 형식 검사 | pr-check가 제목·본문 키워드와, 포함 커밋이 열린 이슈를 닫는지 확인 (❌) |
+
+기본 브랜치가 `main`이라 릴리스 PR 제목·본문이나 포함 커밋에 닫는 키워드가 있으면 머지 때 GitHub이 이슈를 닫는다. `done-verified` 없이 열어 둔 이슈가 이렇게 닫히지 않도록 키워드를 쓰지 않고, pr-check가 확인한다.
+
 순서:
-1. `chagok-release-check` 스킬로 세 레포를 함께 점검한 보고서 작성 (완료 정의, 열린 P0·P1 이슈, 범위, 문서·코드 대조, 세 레포 develop을 함께 띄운 시연)
-2. `chagok-docs`부터 `develop → main` PR. 문서 릴리스 PR은 CodeRabbit 없이 형상관리자가 확인 후 머지
+1. `chagok-release-check` 스킬로 세 레포를 함께 점검한 보고서 작성 (완료 정의, 열린 P0·P1 이슈, 범위, 문서·코드 대조, 세 레포 develop을 함께 띄운 시연). **이번 릴리스에 포함된 PR의 `Closes` 이슈가 모두 닫혔는지** 확인하고, 열려 있으면 `done-verified` 누락인지 검사 실패인지 판단한다(완료면 원래 PR에 라벨을 붙여 develop 기준으로 닫고, 미완이면 릴리스 보고서에 미완으로 적는다)
+2. `chagok-docs`부터 `develop → main` PR. 본문에 포함 이슈를 `Refs #번호`로 나열한다. 문서 릴리스 PR은 CodeRabbit 없이 형상관리자가 확인 후 머지
 3. `chagok-backend`·`chagok-frontend` 릴리스 PR → `release` 라벨이 자동으로 붙고 CodeRabbit이 자동 리뷰 1회 (리뷰가 시작되지 않으면 PR에 `@coderabbitai full review` 댓글). 이후 push에는 자동 리뷰가 없다. 다시 보려면 `@coderabbitai review`
 4. CodeRabbit 지적을 분류한다 (아래 표)
 5. 수정할 것은 `fix/` 브랜치로 해당 레포 develop에 머지 → 릴리스 PR에 자동 반영
@@ -147,7 +168,7 @@
 7. 세 레포 main을 함께 받아 빈 DB에서 시나리오 A·B와 격리 시연 확인 후 **Merge commit**으로 머지
 8. 세 레포에 같은 태그 생성 → GitHub Release의 "Generate release notes"로 변경 목록 자동 작성
 
-CodeRabbit은 지적만 하고 머지하지 않는다. 브랜치 삭제와 이슈 close는 팀원 PR이 develop에 머지될 때 일어나고, 릴리스 PR에서는 둘 다 일어나지 않는다(develop은 기본 브랜치라 삭제되지 않음).
+CodeRabbit은 지적만 하고 머지하지 않는다. 이슈 close는 팀원 PR이 develop에 머지될 때 `issue-close`가 하고, 릴리스 PR에서는 일어나지 않는다(`issue-close`는 develop 대상 PR만 보고, 릴리스 PR에는 닫는 키워드가 없다). 브랜치 자동 삭제를 꺼 두었으므로 릴리스 PR을 머지해도 `develop`은 남는다. 릴리스 PR 화면의 Delete branch는 누르지 않는다.
 
 ### CodeRabbit 운영 — 릴리스 PR 중심
 
@@ -244,6 +265,7 @@ CodeRabbit은 지적만 하고 머지하지 않는다. 브랜치 삭제와 이�
 | PR 영역 | `backend` `frontend` `db` `docs` `ci` | 자동 |
 | PR 유형 | `feature` `fix` | 자동 (브랜치 이름) |
 | 리뷰 | `review-me` (중요 변경 표시, 필요하면 `@coderabbitai review`), `release` (릴리스 PR, CodeRabbit 자동 리뷰) | 자동, `review-me`는 손으로도 가능 |
+| 완료 확인 | `done-verified` (완료 정의 확인됨 → develop 머지 시 `issue-close`가 이슈를 닫음, D-49) | PR을 확인한 팀원이 손으로 |
 
 `bash scripts/setup-labels.sh OneMonthproJect`로 세 레포에 한 번에 만든다.
 
@@ -262,9 +284,12 @@ CodeRabbit은 지적만 하고 머지하지 않는다. 브랜치 삭제와 이�
 - [ ] CodeRabbit GitHub App 설치, `chagok-backend`·`chagok-frontend`만 허용
 
 **레포마다 (세 개 모두)**
-- [ ] `develop` 브랜치 생성 → 기본 브랜치 `develop`
+- [x] `develop` 브랜치 생성. **기본 브랜치는 `main` 유지** (D-49)
 - [ ] Pull Requests: Squash merge와 Merge commit만 허용, Rebase 끔
-- [ ] "Always suggest updating pull request branches" 켬, "Automatically delete head branches" 켬
+- [x] Squash merge 커밋 메시지: **Pull request title** (`squash_merge_commit_title=PR_TITLE`, `squash_merge_commit_message=BLANK`, D-49)
+- [ ] "Always suggest updating pull request branches" 켬
+- [x] "Automatically delete head branches" **끔** (D-49: 켜면 릴리스 PR 머지 때 `develop`이 지워짐)
+- [ ] `issue-close` 워크플로가 있는지 (`.github/workflows/issue-close.yml`, 세 레포 같은 내용)
 - [ ] (선택) 브랜치 보호·필수 상태 검사(`pr-check`, `backend-ci`, `frontend-ci`). 켜지 않아도 운영 규칙은 같다(5장 「GitHub Free 운영」)
 - [ ] `main` 머지는 형상관리자만 한다 (팀 규칙)
 - [ ] backend: Gradle Wrapper가 커밋돼 있는지 (`backend-ci`의 wrapper 작업이 확인)
@@ -272,5 +297,5 @@ CodeRabbit은 지적만 하고 머지하지 않는다. 브랜치 삭제와 이�
 - [ ] 결정 14 후 `.github/CODEOWNERS` 채우고 주석 해제 (리뷰 요청이 자동으로 간다. 승인 강제는 하지 않음)
 
 **그 밖**
-- [ ] `bash scripts/setup-labels.sh OneMonthproJect` (세 레포 라벨)
+- [x] `bash scripts/setup-labels.sh OneMonthproJect` (세 레포 라벨, `done-verified` 포함)
 - [ ] 코드 레포에 `.claude/settings.json`·`CLAUDE.md`가 커밋돼 있고, `.claude/rules·skills·agents`는 `.gitignore`로 빠져 있는지

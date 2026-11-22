@@ -44,9 +44,9 @@ Claude Code에서는 에이전트가 있는 일이면 Claude가 알아서 맡기
 2. 그 레포의 최신 `develop`에서 `feature/#이슈번호-이름` 브랜치를 만든다
 3. 작업하고 커밋한다: `feat: 무엇을 했는지 (#이슈번호)`
 4. 명세(07·08·09)가 바뀌면 `chagok-docs`에 문서 PR을 먼저 올린다
-5. `develop`으로 PR을 연다. 제목 `[#이슈번호] 제목`, 본문 첫 줄 `Closes #이슈번호`, 「문서 PR」 칸에 링크
-6. 자동 검사가 돌고(❌면 머지하지 않음), 팀원 1명이 다른 코드 레포와 함께 띄워 확인한다(승인 인원 강제 없음)
-7. Squash merge → 이슈가 자동으로 닫히고 브랜치가 자동으로 지워진다
+5. `develop`으로 PR을 연다(기본 브랜치가 `main`이라 base를 꼭 `develop`으로 고른다). 제목 `[#이슈번호] 제목`, 본문 첫 줄 `Closes #이슈번호`, 「문서 PR」 칸에 링크
+6. 자동 검사가 돌고(❌면 머지하지 않음), 팀원 1명이 다른 코드 레포와 함께 띄워 확인한다(승인 인원 강제 없음). 완료 정의를 확인했으면 `done-verified` 라벨을 붙인다
+7. Squash merge → `issue-close`가 이슈를 닫는다(`done-verified` + 검사 ✅일 때). 작업 브랜치는 PR 화면의 Delete branch로 지운다
 8. (형상관리자) 관문마다 세 레포 `develop → main` 릴리스 PR → (코드 레포) CodeRabbit 점검 → 같은 태그
 
 지금은 기획 · 설계 단계라 `chagok-docs` 작업이 중심입니다. 코드는 관문 1(주기표 · ERD · API 확정)을 통과한 뒤 `기반` 이슈로 시작합니다.
@@ -212,8 +212,8 @@ P1(MVP)과 MVP 점검 뒤의 P2를 더할 때도 대부분 "새 패키지를 만
 
 | 브랜치 | 용도 | 머지 |
 |---|---|---|
-| `main` | 중간 점검 · MVP 점검 · 관문 2 · 발표 시점의 안정 버전 | 형상관리자만, Merge commit |
-| `develop` | 기본 브랜치이자 통합 브랜치 | 팀원 확인 후 Squash (승인 인원 강제 없음) |
+| `main` | GitHub 기본 브랜치. 중간 점검 · MVP 점검 · 관문 2 · 발표 시점의 안정 버전 | 형상관리자만, Merge commit |
+| `develop` | 통합 브랜치 (팀원 PR의 대상) | 팀원 확인 후 Squash (승인 인원 강제 없음, 커밋 메시지 = PR 제목) |
 | `feature/#번호-이름` | 기능 | → develop |
 | `fix/#번호-이름` | 버그 수정 | → develop |
 | `docs/#번호-이름` | 문서만 | → develop |
@@ -230,10 +230,11 @@ P1(MVP)과 MVP 점검 뒤의 P2를 더할 때도 대부분 "새 패키지를 만
 - 개발 시작 후 범위 추가는 `결정` 이슈 + 전원 합의가 먼저입니다. 합의 전에 브랜치를 열지 않습니다.
 - 범위를 줄이면 기능을 통째로 빼고, 같은 날 `chagok-docs`에서 00 · 04 · 08에 "보류"로 표시합니다.
 - 커밋: `타입: 내용 (#번호)`. 타입은 `feat` `fix` `docs` `test` `refactor` `chore`.
-- PR: 제목 `[#번호] 제목`, 본문 첫 줄 `Closes #번호`. push 전 `git pull origin develop`, 충돌은 올린 사람이 해결.
+- PR: 대상은 `develop`(`gh pr create --base develop`). 제목 `[#번호] 제목`(제목에는 `Closes`를 쓰지 않음), 본문 첫 줄 `Closes #번호`. push 전 `git pull origin develop`, 충돌은 올린 사람이 해결.
+- 커밋 메시지에는 `Closes #`·`Fixes #`를 쓰지 않고 `(#번호)`로만 적습니다(릴리스 때 이슈가 닫힐 수 있음).
 - 확인하는 사람은 브랜치를 받아 **다른 코드 레포의 develop과 함께 띄워** 실제로 실행해 봅니다. 남의 패키지를 건드렸다면 그 패키지 주인에게 확인을 받습니다(CODEOWNERS가 자동으로 요청).
 
-머지된 브랜치는 GitHub에서 자동으로 지워집니다. Squash merge 뒤 같은 브랜치에서 이어 작업하면 충돌이 나기 때문에, 항상 새 브랜치에서 시작하도록 만든 장치입니다. 내 PC의 로컬 브랜치는 직접 정리합니다.
+브랜치 자동 삭제는 꺼 둡니다(켜면 릴리스 PR 머지 때 `develop`이 지워지기 때문, D-49). 팀원 PR이 머지되면 PR 화면의 **Delete branch**로 작업 브랜치를 지웁니다(릴리스 PR에서는 누르지 않음). Squash merge 뒤 같은 브랜치에서 이어 작업하면 충돌이 나므로 항상 새 브랜치에서 시작합니다. 내 PC의 로컬 브랜치는 직접 정리합니다.
 
 ```bash
 git switch develop
@@ -264,9 +265,10 @@ PR을 열면 형식·비밀값·DB 규칙·빌드를 GitHub Actions가 자동으
 | 패키지 주인에게 리뷰 요청 | 세 레포 | CODEOWNERS 기준 자동 |
 | 영역 라벨 `backend` `frontend` `db` `docs` `ci`, 유형 라벨 `feature` `fix` | 세 레포 | 자동 부착 |
 | `review-me` 라벨 | backend: cycle · global · 마이그레이션 / frontend: `src/app` · `src/shared/api` | 자동 부착(표시용). 필요하면 `@coderabbitai review` |
-| 이슈 자동 클로즈 · 브랜치 삭제 · 보드 이동 | 세 레포 | develop 머지 때 |
+| PR 제목의 닫는 키워드, 릴리스 PR 제목·본문의 닫는 키워드, 릴리스 커밋이 열린 이슈를 닫는 키워드 | 세 레포 | 머지 차단 (D-49) |
+| 이슈 자동 클로즈(`issue-close`) → 보드 Done 이동 | 세 레포 | develop 머지 + `done-verified` + 검사 ✅ (머지 후 라벨을 붙여도 동작) |
 
-이슈 자동 클로즈는 기본 브랜치에 머지될 때만 동작합니다. 그래서 세 레포 모두 기본 브랜치를 `develop`으로 둡니다. 브랜치 보호·필수 검사는 선택입니다. 켜면 ❌가 머지를 막지만, 켜지 않아도 운영 규칙은 같습니다.
+GitHub의 `Closes #` 자동 클로즈는 기본 브랜치에 머지될 때만 동작합니다. 세 레포의 기본 브랜치는 `main`이므로(D-49), develop 머지에서는 `issue-close` 워크플로가 대신 이슈를 닫습니다. 조건은 PR이 실제로 머지됐고, `done-verified` 라벨이 있고, 검사가 모두 ✅이며, 같은 레포 이슈일 때입니다. 다른 레포 이슈는 그 레포에서 직접 닫습니다. 브랜치 보호·필수 검사는 선택입니다. 켜면 ❌가 머지를 막지만, 켜지 않아도 운영 규칙은 같습니다.
 
 ## 릴리스와 CodeRabbit 점검
 
@@ -297,8 +299,9 @@ CodeRabbit은 코드 레포에만 설치하고, 모든 PR이 아니라 릴리스
 | 누가 머지 | 확인한 팀원 | 형상관리자만 |
 | CodeRabbit | 필요할 때 수동 요청 | 코드 레포는 자동 1회 (`release` 라벨) |
 | 머지 방식 | Squash | Merge commit |
-| 브랜치 삭제 | 자동 삭제 | 안 됨 (develop은 기본 브랜치) |
-| 이슈 close | `Closes #`의 이슈 자동 close | 없음 (develop 머지 때 이미 닫힘) |
+| 이슈 표기 | 본문 `Closes #번호` | 본문 `Refs #번호` 또는 링크 (`Closes`·`Fixes`·`Resolves` 금지, pr-check가 막음) |
+| 브랜치 삭제 | 머지 후 PR 화면 Delete branch (자동 삭제 꺼 둠) | 누르지 않음 (develop 유지) |
+| 이슈 close | `issue-close`가 닫음 (`done-verified` + 검사 ✅) | 없음 (develop 머지 때 닫힘. 열려 있으면 릴리스 점검에서 확인) |
 
 ### CodeRabbit 지적 처리 흐름
 
@@ -477,6 +480,7 @@ CodeRabbit 리뷰는 머지 차단 조건이 아닙니다. 모든 제안을 고�
 
 | 날짜 | 레포 | 바뀐 것 |
 |---|---|---|
+| 2026-11-22 | D-49 | GitHub 기본 브랜치 `main` 유지: 팀원 PR 대상 `develop` 명시, `issue-close` 워크플로(`done-verified` 라벨), 릴리스 PR은 `Refs #`만, 브랜치 자동 삭제 끔, Squash 커밋 = PR 제목 |
 | 2026-11-20 | v5 | 첫 판 |
 | 2026-11-20 | v6 | `.claude/rules/source-of-truth.md` 추가 반영 |
 | 2026-11-20 | v7 | 스킬 8개 v7 반영, 배포를 `git pull` 기준으로, claude.ai용 `.skill` 배포 |
