@@ -31,4 +31,6 @@ for repo in "${repos[@]}"; do
   # 리뷰
   L "review-me" C5DEF5 "CodeRabbit 리뷰 요청 (cycle·인증·보안·DB 변경 시 자동)"
   L "release"   000000 "develop → main 릴리스 PR"
+  # 완료 확인 (D-49)
+  L "done-verified" 2DA44E "완료 정의 확인됨 — develop 머지 시 issue-close가 이슈를 닫음"
 done

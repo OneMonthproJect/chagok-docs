@@ -41,4 +41,5 @@
 | 2026-11-22 | D-46 GitHub Free 운영 (브랜치 보호·승인 인원 강제 없음) | 무료 운영 기준 | CONTRIBUTING 2·5·6장·부록, GUIDE, 워크플로 주석 | 실수 머지가 반복되면 브랜치 보호 켜기 | — |
 | 2026-11-22 | D-47 CodeRabbit 릴리스 중심 (증분 리뷰 끔, `review-me`는 수동 요청 표시) | 반복 AI 리뷰 줄이기 | `.coderabbit.yaml`, CONTRIBUTING 6장 | — | — |
 | 2026-11-22 | D-48 AI 개발 절차 6단계(분석→계획→승인→구현→검증→보고) | 동작만 하는 코드가 아니라 유지보수 가능한 코드 | `.claude/rules/ai-rules.md`, CONVENTIONS 9·10장, issue-coder·bug-fix·pr-review 스킬, 에이전트 | — | — |
+| 2026-11-22 | D-49 기본 브랜치 `main` 유지에 따른 운영 보완: 팀원 PR 대상 `develop` 명시, `issue-close` 워크플로(develop 머지 + `done-verified` + 검사 ✅, 같은 레포 이슈만), 릴리스 PR은 `Refs #`만(제목·본문·커밋의 닫는 키워드를 pr-check가 검사), 브랜치 자동 삭제 끔, Squash 커밋 = PR 제목 | 기본 브랜치가 `main`이면 develop 머지에서 GitHub 자동 클로즈가 동작하지 않고, 자동 삭제가 `develop`을 지울 수 있음 | CONTRIBUTING 1·2·4·5·6·10장·부록, GUIDE, 세 레포 `issue-close.yml`·`pr-check.yml`·PR 템플릿, `chagok-release-check`·`chagok-pr-review`, `scripts/setup-labels.sh` | Projects 기본 워크플로가 Actions가 닫은 이슈를 Done으로 옮기지 않을 때, `done-verified` 부착이 지켜지지 않을 때 | chagok-docs#1 |
 | 2026-11-22 | CONVENTIONS 3장: reservation → item.api 허용 추가 | D-38 예약 목적(`reservation_item`)이 정비 항목을 참조 | CONVENTIONS 3장, ArchitectureTest | — | — |

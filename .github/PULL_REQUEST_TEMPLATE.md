@@ -1,6 +1,6 @@
 Closes #
 
-<!-- 제목: [#이슈번호] 이슈 제목 / 위 Closes 줄은 지우지 마세요 (develop 머지 시 이슈 자동 클로즈) -->
+<!-- 제목: [#이슈번호] 이슈 제목 (제목에는 Closes를 쓰지 않음) / 위 Closes 줄은 지우지 마세요: PR 대상은 develop. develop 머지 + done-verified 라벨 + 검사 ✅이면 issue-close가 이 레포 이슈를 닫습니다 (D-49) -->
 
 ## 바뀐 문서·설정
 -
@@ -19,4 +19,4 @@ Closes #
 ## AI 사용
 - [ ] 없음
 - [ ] 있음 → `docs/etc/AI_USAGE`에 기록함 (사용한 스킬·에이전트: )
-- [ ] 커밋·본문에 AI 공동 작성자 표기가 없다 (`Co-authored-by: Claude` 등)
+- [ ] 커밋·본문에 AI 공동 작성자 표기가 없다 (AI 이름을 넣은 Co-authored-by 트레일러, AI 메일 주소, AI 생성 안내 문구 — CONTRIBUTING 4장)
