@@ -17,6 +17,7 @@ DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
 - enum은 `VARCHAR` + `CHECK`로 둔다(값 추가가 쉬움) 💡. 값 이름은 08 API와 글자까지 같다.
 - 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준) 💡, 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
 - 모든 테이블에 `created_at`. 수정되는 표에만 `updated_at`.
+- **생성·수정 시각은 서버가 넣는다 (관문 1 확정).** `created_at`은 최초 생성 시각, `updated_at`은 생성 때도 같은 값으로 넣고 실제로 수정될 때 갱신한다. 값은 JPA Auditing이 넣고, Auditing의 시간 공급자(`DateTimeProvider`)는 주입한 `Clock` 빈(Asia/Seoul)을 쓴다. 두 칼럼은 `NOT NULL`이고 **DB `DEFAULT`·`CURRENT_TIMESTAMP`·`ON UPDATE`를 쓰지 않는다**(DB 세션 시간대와 서버 `Clock`이 어긋나지 않게). 시드는 시각을 직접 적는다(7장). 예약 `version`은 시각과 별개로 `@Version`이 관리한다.
 - **정비소 일치는 두 겹으로 지킨다 (관문 1 결정 A).** ① 서버가 저장 전 부모를 `getOwned(shopId, id)`로 찾는다(없거나 남의 것이면 404). ② DB는 핵심 부모·자식 관계를 **복합 FK** `(shop_id, 부모_id) → 부모(shop_id, id)`로 묶어, 서버 검증이 빠져도 다른 정비소 부모를 가리키는 행이 저장되지 않게 한다. 복합 FK의 부모 쪽에는 `UNIQUE(shop_id, id)`를 둔다(MySQL 8.4부터 FK는 UNIQUE·PK 키만 참조할 수 있다). 대상 관계와 이유는 5.1.
 - FK의 삭제·수정 동작은 모두 기본값(`RESTRICT`)이다. 삭제 기능이 없고(05 POL-39·58), `CASCADE`·`SET NULL`은 쓰지 않는다(`SET NULL`은 `shop_id NOT NULL`과 충돌).
 
@@ -174,7 +175,7 @@ erDiagram
 | purpose_other | BOOLEAN | NOT NULL, 기본 FALSE | 예약 목적 "기타" (D-38) |
 | purpose_memo | VARCHAR(200) | NULL | 예약 목적 메모 |
 | created_by_staff_id | BIGINT | NOT NULL, FK → staff.id | 토큰의 계정이라 단일 FK (5.1) |
-| version | INT | NOT NULL, 기본 0 | 동시 수정 확인(JPA `@Version`). 바뀔 때마다 1 증가 (D-42). 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 모두 이 값으로 충돌을 확인한다(관문 1 결정 B, 08 6장). 예약 목적 항목(`reservation_item`)만 바뀌어도 1 올린다 |
+| version | INT | NOT NULL, 기본 0 | 동시 수정 확인(JPA `@Version`). 바뀔 때마다 1 증가 (D-42). 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 모두 화면이 보낸 `version`을 이 값과 비교하고, 저장 때 `@Version`으로 다시 확인한다(관문 1 결정 B, 08 6장). 예약 목적 항목(`reservation_item`)만 바뀌어도 1 올린다. 실패한 요청은 이 값을 바꾸지 않는다 |
 | created_at | DATETIME | NOT NULL | |
 | updated_at | DATETIME | NOT NULL | |
 
@@ -273,7 +274,7 @@ erDiagram
 - FK 칼럼 순서는 부모 키와 같게 `(shop_id, 부모_id)`. 자식 쪽 인덱스는 같은 순서로 시작해야 한다(3장 표의 인덱스가 그 역할). 인덱스를 따로 적지 않으면 MySQL이 이름 없는 인덱스를 만들므로 3장대로 명시한다.
 - `staff.shop_id`, `shop.created_by_admin_id`, `maintenance_record.staff_id`, `reservation.created_by_staff_id`의 단일 FK 인덱스도 명시한다.
 - 시연 시드는 V1에 넣지 않는다(7장). 기본 기준표 6행도 시드가 정비소마다 넣는다.
-- ❓ `created_at`·`updated_at` 값을 누가 넣는지(관문 1 승인 때): 추천은 DB `DEFAULT` 없이 서버가 `Clock` 기준으로 넣고(JPA Auditing), 시드는 값을 직접 적는 것. DB `CURRENT_TIMESTAMP`는 세션 시간대를 따르므로 서버 `Clock`과 어긋날 수 있다.
+- 타임스탬프 칼럼(`created_at`·`updated_at`)은 `DATETIME NOT NULL`로만 만들고 `DEFAULT`를 붙이지 않는다(1장, 관문 1 확정). `version`·`consent`·`status` 등 타임스탬프가 아닌 칼럼의 기본값(3장)은 그대로 둔다.
 
 ### 6.2 JPA 매핑 확인 (`ddl-auto: validate`)
 
@@ -289,6 +290,7 @@ erDiagram
 | enum (`VARCHAR` + CHECK) | `@Enumerated(EnumType.STRING)`. validate가 MySQL `enum` 타입을 기대해 실패하면 `@JdbcTypeCode(SqlTypes.VARCHAR)`를 붙인다 (첫 dbTest에서 확인) |
 | `BOOLEAN` | `boolean`/`Boolean` (MySQL `TINYINT(1)`) |
 | reservation.version | `@Version Integer version` |
+| `created_at`·`updated_at` | `LocalDateTime` + `@CreatedDate`·`@LastModifiedDate` (`@EntityListeners(AuditingEntityListener.class)`), `@EnableJpaAuditing(dateTimeProviderRef = …)`로 `Clock` 기반 `DateTimeProvider` 지정. `created_at`은 `updatable = false`. `updated_at`이 없는 표(platform_admin·shop·staff·service_item·maintenance_record·reservation_item)는 `created_at`만 매핑 |
 
 ### 6.3 V1 검증 체크리스트 (DB 담당자, B-3 PR)
 
@@ -308,8 +310,9 @@ erDiagram
 | V1-10 | 같은 정비소 같은 `plate_number` 차량 2대 | 성공 (중복 허용, POL-32) |
 | V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용 | 성공, 07 7.5 기대값 |
 | V1-12 | V1에 P0-나머지·P1 칼럼·값(`inspect_result`, `NO_SHOW`, `customer.version`, `contact_log`)이 없음 | 없음 |
+| V1-13 | `created_at`(·`updated_at`)을 빼고 INSERT / `SHOW CREATE TABLE`의 타임스탬프 칼럼 | 실패(1364, 기본값 없음) / `DEFAULT`·`ON UPDATE` 없음 |
 
-V1-3~V1-10은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(TEST 명세서 6.1).
+V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(TEST 명세서 6.1).
 
 ## 7. 시드 구성 (시연·테스트)
 
@@ -323,6 +326,7 @@ V1-3~V1-10은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(
 | 다시 넣기 | 시드는 지우지 않는다(`DELETE`·`TRUNCATE`·`DROP`·`ALTER`·`CREATE`·`UPDATE` 금지). 시연 DB를 새로 만들고 Flyway 적용 → 시드 순서로 다시 한다 |
 | 작성 | ERD 확정과 `V1__init.sql` 뒤 DB 담당자 |
 | 날짜 | 모두 **오늘(D) 기준 상대값**. 경계에서 1주 이상 떨어뜨리고, 월말·윤년은 시드에 쓰지 않는다(T6·T7은 단위 테스트) |
+| 생성·수정 시각 | 모든 행에 `created_at`(있으면 `updated_at`)을 직접 적는다. DB 기본값이 없으므로 빠뜨리면 INSERT가 실패한다(V1-13). 값은 그 행의 날짜 칼럼과 어긋나지 않게 💡 |
 
 ### 7.1 정비소·계정
 

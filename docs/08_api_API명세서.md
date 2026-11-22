@@ -19,7 +19,7 @@
 | 인증 | `Authorization: Bearer {accessToken}`. 로그인 API(01·02)만 토큰 없이 |
 | 날짜 | `"2026-11-24"` (DATE) |
 | 일시 | `"2026-11-24T10:00:00"` (Asia/Seoul, 시간대 표기 없음) 💡 |
-| 목록 쪽 나누기 | `?page=0&size=20`. size 최대 50 (`PageLimit`) 💡. 생략하면 0·20, 50을 넘으면 50으로 줄인다, 음수·0(size)·숫자 아님은 400 `INVALID_INPUT` 💡. 쪽 나누기를 쓰는 API는 05·11뿐 (14는 전부, 15는 기간, 13은 배열) |
+| 목록 쪽 나누기 | `?page=0&size=20` (관문 1 확정). 생략하면 page 0·size 20. size 최대 50 — 50을 넘으면 서버가 50으로 줄인다(`PageLimit`, 응답 `size`도 50). page 음수, size 0 이하, 숫자가 아닌 값은 400 `INVALID_INPUT`. 쪽 나누기를 쓰는 API는 05·11뿐 (14는 전부, 15는 기간, 13은 배열) |
 | 정비소 | 요청에 `shopId`를 받지 않는다. 토큰의 `shop_id`만 쓴다 (I-3) |
 | 공통 오류 | 정비소 API(03~23, P1 정비소 API)는 모두 401 `AUTH_REQUIRED`(토큰 없음·만료)·403 `FORBIDDEN`(관리자 토큰)·500 `INTERNAL_ERROR`가 날 수 있다. 각 API의 "에러" 줄에는 그 밖의 것만 적는다 |
 | 요청 본문 안의 id | 경로 id와 본문 `vehicleId`(16)는 그 정비소 것이 아니면 404 `NOT_FOUND`. 본문의 정비 항목 id(`records[].itemId`, `purpose.itemIds`)는 없음·남의 것·쓰지 않는 항목 모두 400 `INVALID_INPUT` + `fieldErrors` (같은 응답이라 남의 것인지 드러나지 않음, X11) |
@@ -586,7 +586,7 @@ P0-나머지 요청 예시:
 |---|---|
 | reservationId, reservedAt, status | |
 | needsAction | `status = RESERVED`이고 `reservedAt`이 현재 시각보다 이전 → "처리 필요" (D-23). 오늘 시각이 지난 예약은 "처리 필요"이면서 진행 중(14·16 기준)이기도 하다 |
-| version | 동시 수정 확인용 번호. 변경(19) 요청에 그대로 보낸다 (D-42) |
+| version | 동시 수정 확인용 번호. 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 요청에 그대로 보낸다 (D-42, 관문 1 결정 B) |
 | vehicleId, plateNumber, customerId, customerName, phone | phone은 P0-나머지부터 마스킹 |
 | purposeSummary | 고른 항목 이름을 `·`로 잇고, 기타면 "기타". 없으면 null |
 
@@ -664,7 +664,7 @@ P0-나머지 요청 예시:
 
 | 응답 data | 설명 |
 |---|---|
-| reservation | `{ reservationId, reservedAt, status, needsAction, version, purpose: { items: [{ itemId, name }], other, memo } }` — `version`은 변경(19) 요청에 보낸다 |
+| reservation | `{ reservationId, reservedAt, status, needsAction, version, purpose: { items: [{ itemId, name }], other, memo } }` — `version`은 18~21 요청에 보낸다 |
 | customer | `{ customerId, name, phone, consent }` (phone 전체, D-40) |
 | vehicle | `{ vehicleId, plateNumber, model, modelYear, latestMileage }` |
 | recentVisits | 최근 방문 최대 3회 (11의 항목 모양) |
@@ -713,15 +713,34 @@ P0-나머지 요청 예시:
 
 ### 18 POST `/api/reservations/{reservationId}/complete` — 방문 완료
 
-요청 본문 없음. `RESERVED`만 가능(시각 전·후 모두).
+`RESERVED`만 가능(시각 전·후 모두). 화면이 읽은 예약의 `version`을 함께 보낸다(관문 1 결정 B 확정).
+
+| 요청 | 타입 | 필수 | 검증 |
+|---|---|---|---|
+| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·17 응답). 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
 
 ```json
-{ "success": true, "data": { "reservationId": 1, "status": "COMPLETED", "vehicleId": 4 }, "error": null }
+{ "version": 0 }
 ```
 
-에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION` (R5), `CONCURRENT_MODIFICATION` (R10)
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| reservationId | number | |
+| status | enum | `COMPLETED` |
+| vehicleId | number | 화면이 방문·정비 기록(S-08)을 열 때 쓴다 |
+| version | number | 바뀐 `version` (요청 값 + 1) |
 
-서버 처리 (관문 1 결정 B, 상태 변경 18·20·21 공통): 정비소 소유(`getOwned`, 아니면 404) → 지금 상태가 `RESERVED`인지(아니면 409 `INVALID_STATUS_TRANSITION`) → Entity 상태 전이 → `@Version` 조건으로 저장(`… WHERE id = ? AND version = ?`, 읽은 뒤 다른 요청이 먼저 바꿨으면 409 `CONCURRENT_MODIFICATION`). 실패하면 아무것도 바꾸지 않는다. 요청 본문이 없으므로 화면이 본 `version`은 보내지 않고, **서버가 이 요청 안에서 읽은 최신 상태**로 판단한다. 그래서 다른 직원이 이미 끝낸 예약이면 `INVALID_STATUS_TRANSITION`, 거의 동시에 바꾸면 `CONCURRENT_MODIFICATION`이 난다. 화면은 두 409 모두 패널을 다시 불러온다.
+```json
+{ "success": true, "data": { "reservationId": 1, "status": "COMPLETED", "vehicleId": 4, "version": 1 }, "error": null }
+```
+
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락·숫자 아님, R13), `INVALID_STATUS_TRANSITION` (R5·R10), `CONCURRENT_MODIFICATION` (R10·R12)
+
+서버 처리 (상태 변경 18·20·21 공통, 19와 같은 순서): 정비소 소유(`getOwned`, 아니면 404) → 지금 상태가 `RESERVED`인지(아니면 409 `INVALID_STATUS_TRANSITION`) → 요청 `version` = DB `version`인지 서버가 직접 비교(아니면 409 `CONCURRENT_MODIFICATION`) → (21만) 시각이 지났는지(아니면 409 `INVALID_STATUS_TRANSITION`) → Entity 상태 전이 → `@Version` 조건으로 저장(`… WHERE id = ? AND version = ?`, 비교한 뒤 저장 전에 다른 요청이 먼저 바꿨으면 409 `CONCURRENT_MODIFICATION`). 성공하면 `version`을 1 올리고 응답에 준다. 하나라도 어긋나면 상태·일시·예약 목적·`version` 모두 그대로다.
+
+- 다른 직원이 이미 끝낸 예약 → `INVALID_STATUS_TRANSITION` (상태 확인이 먼저).
+- 다른 직원이 일시·목적을 먼저 바꾼 예약(아직 `RESERVED`) → `CONCURRENT_MODIFICATION`. 바뀐 예약을 다시 보고 처리하게 한다.
+- **화면 처리**: 두 409 모두 예약 상세 패널을 다시 조회(17)해 최신 상태·`version`을 보여 주고, S-08로 이동하지 않는다. 자동으로 다시 보내지 않는다(05 POL-104·125).
 
 응답의 `vehicleId`로 화면이 방문·정비 기록(S-08)을 연다. 정비 기록 저장(12)은 별도 요청이며 이 예약과 데이터로 잇지 않는다. 기록 저장이 실패하거나 하지 않아도 예약은 `COMPLETED`로 남는다(05 POL-95).
 
@@ -731,11 +750,13 @@ P0-나머지 요청 예시:
 
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
-| version | number | ○ | 화면이 읽은 예약의 `version` (15·16·17 응답). 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·16·17 응답). 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
 | reservedAt | datetime | | 16과 같음: 30분 단위, 날짜 ≥ 오늘 |
 | purpose.itemIds | number[] | | 보내면 예약 목적 항목 전체를 이 목록으로 바꾼다 |
 | purpose.other | boolean | | |
 | purpose.memo | string | | ~200자 |
+
+`version` 밖에 바꿀 필드(`reservedAt`, `purpose.itemIds`·`other`·`memo`)가 하나도 없으면 400 `INVALID_INPUT`이고, 예약과 `version`을 바꾸지 않는다(R14, 관문 1 확정). 이 검사는 요청 형식 검증이라 소유 확인보다 먼저 한다.
 
 서버가 확인하는 것: 정비소 소유(`getOwned`, 아니면 404) → 상태가 `RESERVED`인지 → `version` 일치 → 시각·날짜 규칙 → 같은 차량 진행 중 1건(자기 자신 제외). 하나라도 어긋나면 아무것도 바꾸지 않는다.
 
@@ -751,27 +772,35 @@ P0-나머지 요청 예시:
 { "success": true, "data": { "reservationId": 3, "status": "RESERVED", "reservedAt": "2026-11-28T09:00:00", "vehicleId": 2, "version": 1 }, "error": null }
 ```
 
-에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락, 30분 단위 아님), `RESERVATION_PAST_DATE` (R7), `RESERVATION_ACTIVE_EXISTS`, `INVALID_STATUS_TRANSITION` (R9), `CONCURRENT_MODIFICATION` (R8)
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락, 바꿀 필드 없음 R14, 30분 단위 아님), `RESERVATION_PAST_DATE` (R7), `RESERVATION_ACTIVE_EXISTS`, `INVALID_STATUS_TRANSITION` (R9), `CONCURRENT_MODIFICATION` (R8·R11). 화면은 409 `CONCURRENT_MODIFICATION`이면 최신 예약을 다시 불러와 보여 주고 다시 수정하게 한다(09 M-02).
 
 ### 20 POST `/api/reservations/{reservationId}/cancel` — 취소 (P0-나머지)
 
-요청 본문 없음(취소 사유 없음, POL-100). `RESERVED`만, 시각 전·후 모두. 서버 처리·실패 처리는 18과 같다. 선행 DB 변경 없음(`CANCELED`는 V1에 있음).
+`RESERVED`만, 시각 전·후 모두. 요청 본문은 `version`만(취소 사유 없음, POL-100). 요청·서버 처리·실패 처리·화면 처리는 18과 같다. 선행 DB 변경 없음(`CANCELED`는 V1에 있음).
 
 ```json
-{ "success": true, "data": { "reservationId": 3, "status": "CANCELED", "vehicleId": 2 }, "error": null }
+{ "version": 0 }
 ```
 
-에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`. 취소하면 그 차량은 바로 다시 "진행 중 예약 없음"이 된다(재점검 대상의 "예약 있음"이 사라짐).
+```json
+{ "success": true, "data": { "reservationId": 3, "status": "CANCELED", "vehicleId": 2, "version": 1 }, "error": null }
+```
+
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락), `INVALID_STATUS_TRANSITION` (끝난 예약), `CONCURRENT_MODIFICATION` (R12). 취소하면 그 차량은 바로 다시 "진행 중 예약 없음"이 된다(재점검 대상의 "예약 있음"이 사라짐).
 
 ### 21 POST `/api/reservations/{reservationId}/no-show` — 노쇼 (P0-나머지)
 
-요청 본문 없음. `RESERVED`이고 `reservedAt`이 현재 시각보다 이전인 예약만 (R6). 서버 처리·실패 처리는 18과 같고, 시각 확인은 상태 확인 다음에 `Clock`으로 한다(`markNoShow(now)`). 선행 DB 변경: `V2`의 `reservation.status` CHECK에 `NO_SHOW` (07 6장).
+`RESERVED`이고 `reservedAt`이 현재 시각보다 이전인 예약만 (R6). 요청 본문은 `version`만. 요청·서버 처리·실패 처리·화면 처리는 18과 같고, 시각 확인은 `version` 비교 다음에 `Clock`으로 한다(`markNoShow(now)`). 선행 DB 변경: `V2`의 `reservation.status` CHECK에 `NO_SHOW` (07 6장).
 
 ```json
-{ "success": true, "data": { "reservationId": 4, "status": "NO_SHOW", "vehicleId": 10 }, "error": null }
+{ "version": 0 }
 ```
 
-에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION` (R6: 시각 전, 끝난 예약), `CONCURRENT_MODIFICATION`
+```json
+{ "success": true, "data": { "reservationId": 4, "status": "NO_SHOW", "vehicleId": 10, "version": 1 }, "error": null }
+```
+
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락), `INVALID_STATUS_TRANSITION` (R6: 시각 전, 끝난 예약), `CONCURRENT_MODIFICATION` (R12)
 
 ### 예약 상태 변경 요약
 
@@ -781,29 +810,30 @@ P0-나머지 요청 예시:
 | RESERVED, 시각 지남 (처리 필요) | ○ | ○ (오늘 이후로) | ○ | ○ |
 | COMPLETED · CANCELED · NO_SHOW | × | × | × | × |
 
-× = `INVALID_STATUS_TRANSITION`. 방문 완료·취소·노쇼도 다른 직원이 같은 예약을 먼저 바꿨으면 `CONCURRENT_MODIFICATION`(서버의 `version` 확인)이나 `INVALID_STATUS_TRANSITION`으로 실패하고, 상태를 덮어쓰지 않는다.
+× = `INVALID_STATUS_TRANSITION`. 18~21 모두 화면이 읽은 `version`을 보내고, 다른 직원이 같은 예약을 먼저 바꿨으면 `CONCURRENT_MODIFICATION`이나 `INVALID_STATUS_TRANSITION`으로 실패하며 덮어쓰지 않는다.
 
 | | 변경 (19) | 방문 완료·취소·노쇼 (18·20·21) |
 |---|---|---|
-| 화면이 보내는 `version` | 보냄 (필수) | 보내지 않음 (요청 본문 없음) |
-| 확인 순서 | 소유 → 상태 → 요청 `version` = DB `version` → 시각·날짜 → 진행 중 1건 → `@Version` 저장 | 소유 → 상태(21은 + 시각 지남) → `@Version` 저장 |
+| 요청 본문 | `version`(필수) + 바꿀 필드(하나 이상, 없으면 400) | `{ "version": n }` (필수) |
+| 확인 순서 | 형식 → 소유 → 상태 → 요청 `version` = DB `version` → 시각·날짜 → 진행 중 1건 → `@Version` 저장 | 형식 → 소유 → 상태 → 요청 `version` = DB `version` → (21만) 시각 지남 → `@Version` 저장 |
 | 다른 직원이 먼저 끝냄 | `INVALID_STATUS_TRANSITION` | `INVALID_STATUS_TRANSITION` |
-| 다른 직원이 먼저 일시·목적 변경 | `CONCURRENT_MODIFICATION` | 바뀐 예약 기준으로 처리 (상태는 여전히 `RESERVED`라 성공. 21은 바뀐 시각이 아직이면 `INVALID_STATUS_TRANSITION`) |
-| 거의 동시 (읽은 뒤 저장 전) | `CONCURRENT_MODIFICATION` | `CONCURRENT_MODIFICATION` |
-| 실패 시 | 예약·예약 목적 모두 그대로 | 예약 그대로 |
-| 성공 시 `version` | +1 (목적만 바뀌어도) | +1 (끝난 상태라 이후 쓰지 않음) |
+| 다른 직원이 먼저 일시·목적 변경 | `CONCURRENT_MODIFICATION` | `CONCURRENT_MODIFICATION` |
+| 거의 동시 (비교 뒤 저장 전) | `CONCURRENT_MODIFICATION` (`@Version`) | `CONCURRENT_MODIFICATION` (`@Version`) |
+| 실패 시 | 예약·예약 목적·`version` 그대로 | 예약·`version` 그대로 |
+| 성공 시 응답 `version` | 요청 값 + 1 (목적만 바뀌어도) | 요청 값 + 1 |
+| 화면 (409) | 최신 예약을 다시 불러와 다시 수정 | 예약 상세 패널 다시 조회, S-08 이동 없음 |
 | 단계 | P0-핵심 | 18 P0-핵심, 20·21 P0-나머지 |
 
 ## 7. P0-나머지 확정 범위와 고객·차량 수정
 
 ### 7.0 P0-나머지 확정 범위 (관문 1 결정 D)
 
-여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
+여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 20·21의 요청·응답은 18과 같은 모양으로 관문 1에서 확정했다(6장). 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
 
 | API | 메서드·경로 | 책임 | 역할·격리 | 상태 전환·동시 수정 | 선행 DB 변경 |
 |---|---|---|---|---|---|
-| 20 | POST `/api/reservations/{reservationId}/cancel` | 예약 취소 (F-RSV-07). 본문 없음 | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` → `CANCELED`, 시각 전·후. 6장 상태 변경 공통 | 없음 |
-| 21 | POST `/api/reservations/{reservationId}/no-show` | 노쇼 (F-RSV-08). 본문 없음 | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` + 시각 지남 → `NO_SHOW` (R6). 6장 공통 | V2: status CHECK `NO_SHOW` |
+| 20 | POST `/api/reservations/{reservationId}/cancel` | 예약 취소 (F-RSV-07). 본문 `{ version }` | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` → `CANCELED`, 시각 전·후. 6장 상태 변경 공통 | 없음 |
+| 21 | POST `/api/reservations/{reservationId}/no-show` | 노쇼 (F-RSV-08). 본문 `{ version }` | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` + 시각 지남 → `NO_SHOW` (R6). 6장 공통 | V2: status CHECK `NO_SHOW` |
 | 22 | PATCH `/api/customers/{customerId}` | 고객명·연락처·동의 수정 (F-CUS-06). 보낸 필드만 | 사장·정비사. 남의 고객 404 (X12) | 요청에 `version` 필수, 다르면 409 `CONCURRENT_MODIFICATION` (POL-124) | V2: `customer.version` |
 | 23 | PATCH `/api/vehicles/{vehicleId}` | 차량번호·차종·연식 수정 (F-CUS-06). 고객·최근 주행거리는 바꾸지 않음 | 사장·정비사. 남의 차량 404 (X12) | 22와 같음 | V2: `vehicle.version` |
 | 12 확장 | POST `/api/vehicles/{vehicleId}/visits` | 외부·거절·점검 결과 입력 (F-MNT-02·03) | 같음 | — (기록은 추가만) | V2: `inspect_result` |
@@ -880,5 +910,4 @@ X11·X12의 DB 쪽 방어(복합 FK)는 07 6.3 V1-3~V1-5로 따로 확인한다.
 
 | 번호 | 내용 | 영향 |
 |---|---|---|
-| 관문 1 승인 때 | ① 상태 변경(18·20·21)은 지금처럼 본문 없이 서버 최신 상태로 판단(추천)할지, 화면이 본 `version`을 보내 일시가 바뀐 예약도 409로 막을지 ② 19에 `version`만 오고 바꿀 필드가 없을 때 400 `INVALID_INPUT`(추천) / 변경 없이 성공 ③ 0.1 쪽 나누기 50 초과 시 줄임(💡) 확인 | 6장, 0.1 |
 | P1 착수 때 | 연락 결과 값, "연락함" 유지 기간, 알림 저장 위치, 재방문 정의, 새 항목 추가 | 8장 |

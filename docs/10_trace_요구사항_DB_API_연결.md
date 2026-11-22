@@ -27,14 +27,14 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-RSV-01 | P0-핵심 | REQ-11·12 | vehicle, service_item, reservation(진행 중 확인) / reservation, reservation_item | 16, 13 | M-02 | X4, X11, R1~R4 |
 | F-RSV-02 | P0-핵심 | REQ-13 | reservation, reservation_item, service_item, vehicle, customer / — | 15 | S-03 | X7 |
 | F-RSV-03 | P0-핵심 | REQ-14 | reservation, reservation_item, customer, vehicle, maintenance_record, service_item, staff / — | 17 | S-02, S-03 | X3 |
-| F-RSV-04 | P0-핵심 | REQ-15 | reservation / reservation (version) | 18 | S-03 | R5, R10, X12 |
+| F-RSV-04 | P0-핵심 | REQ-15 | reservation / reservation (version) | 18 | S-03 | R5, R10, R12, R13, X12 |
 | F-MNT-02 | P0-나머지 | REQ-16 | vehicle, service_item / maintenance_record | 12 | S-08 | T13, X11 |
 | F-MNT-03 | P0-나머지 | REQ-17 | vehicle, service_item / maintenance_record(inspect_result, V2) | 12 | S-08 | T15 |
 | F-CYC-02 | P0-나머지 | REQ-17 | maintenance_record / — | 10, 14, 17 | S-03, S-04, S-07, S-08 | T14, T15 |
 | F-RSV-05 | P0-나머지 | REQ-18 | reservation / — | 15 | S-03 | |
-| F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item / reservation, reservation_item (version) | 19 | M-02 | R7~R9, R11, X11, X12 |
-| F-RSV-07 | P0-나머지 | REQ-19 | reservation / reservation (version) | 20 | S-03 | R10, X12 |
-| F-RSV-08 | P0-나머지 | REQ-19 | reservation / reservation(NO_SHOW, V2) | 21 | S-03 | R6, R10, X12 |
+| F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item / reservation, reservation_item (version) | 19 | M-02 | R7~R9, R11, R14, X11, X12 |
+| F-RSV-07 | P0-나머지 | REQ-19 | reservation / reservation (version) | 20 | S-03 | R10, R12, R13, X12 |
+| F-RSV-08 | P0-나머지 | REQ-19 | reservation / reservation(NO_SHOW, V2) | 21 | S-03 | R6, R10, R12, R13, X12 |
 | F-CUS-06 | P0-나머지 | REQ-20 | customer, vehicle / customer, vehicle (version, V2) | 22, 23 | S-06, S-07 | X12 |
 | F-CUS-07 | P0-나머지 | (NFR) | customer / — | 04, 05, 14, 15 | S-02~S-05 | |
 | F-CYC-03 | P1 | REQ-21 | maintenance_record / — | 10, 14 | — | T16, T17 |
@@ -88,9 +88,10 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | 결정 | 05 정책 | 07 ERD | 08 API | 04·08 테스트 | 07 V1 검증 |
 |---|---|---|---|---|---|
 | A 정비소별 데이터 무결성 (9개 테이블 유지, 서비스 404 + 복합 FK) | POL-20·21·25 | 1장, 3.4~3.9, 5장 I-2, 5.1 | 0.1 요청 본문 안의 id, 0.3 DB 제약 위반 | X1~X8, X11, X12 | V1-2~V1-5 |
-| B 예약 상태 변경 충돌 (`version`, 409 두 가지, 실패 시 유지) | POL-102·104·124 | 3.8 `version` | 6장 18·19·20·21, 상태 변경 요약 | R5, R6, R8~R11 | — |
+| B 예약 상태 변경 충돌 (18~21 화면 `version` 필수, 409 두 가지, 실패 시 유지, 성공 응답 `version`) | POL-102·104·124 | 3.8 `version` | 6장 18·19·20·21, 상태 변경 요약 | R5, R6, R8~R14 | — |
 | C 예약 ↔ 방문 기록 (방문 테이블 없음, `visit_key`, 직접 FK 없음) | POL-50·95·97·101 | 3.7 `visit_key`, 3.8 | 11, 12, 18 | T12 (기록), 수동 확인(TEST 7장) | V1-12 |
-| D P0-나머지 API 확정 범위 | POL-96·100·124 | 4장, 6장 V2 | 7.0 | R6, R10, X12 | V1-8, V1-12 |
+| D P0-나머지 API 확정 범위 | POL-96·100·124 | 4장, 6장 V2 | 7.0 | R6, R10, R12, R13, X12 | V1-8, V1-12 |
+| 승인 항목 (쪽 나누기 기본 20·최대 50, 생성·수정 시각 서버 `Clock`) | 11장 입력 검증 | 1장, 6.1·6.2, 6.3 V1-13, 7장 | 0.1 | — | V1-13 |
 
 ## 5. 마이그레이션 버전 연결
 
