@@ -13,9 +13,9 @@ for repo in "${repos[@]}"; do
   L() { gh label create "$1" --repo "$ORG/$repo" --color "$2" --description "$3" --force; }
   # 단계
   L "P0-핵심"   B60205 "시나리오 A·B 재방문 순환 최소 경로"
-  L "P0-나머지" D93F0B "중간 점검 통과 후 착수"
+  L "P0-나머지" D93F0B "M2 통합 검증 통과 후 착수"
   L "P1"        FBCA04 "MVP 범위. P0-나머지 다음에 착수"
-  L "P2"        C2E0C6 "MVP 점검 통과 + 결정 이슈 합의 후에만"
+  L "P2"        C2E0C6 "M3 MVP 검증 통과 + 결정 이슈 합의 후에만"
   L "기반"      5319E7 "프로젝트 생성·공통 코드"
   # 이슈 유형
   L "bug"       D73A4A "명세와 다른 동작"

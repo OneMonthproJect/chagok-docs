@@ -22,7 +22,7 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 | `docs/13_changelog_*`, 닫힌 `결정` 이슈 | 범위·ID가 바뀐 결정 (본문보다 우선) |
 | `CONTRIBUTING.md` | 이슈 규칙(3장), 단계별 규칙(9장) |
 | `chagok-backend`·`chagok-frontend`의 `.github/ISSUE_TEMPLATE/feature.md` | 이슈 본문 칸 순서 (출력이 이 칸을 그대로 채운다. 백엔드·프론트 칸이 조금 다르다) |
-| `chagok-docs/README.md` 관문 표, 마일스톤 | 지금 단계, 마일스톤 이름 |
+| `chagok-docs/README.md` 마일스톤 표, 마일스톤 | 지금 단계, 마일스톤 이름 |
 | `CONVENTIONS.md` | 패키지 구조(2장), 의존 방향(3장), 변경 검증표(9장) |
 | 코드 레포의 `.github/CODEOWNERS` | 패키지 주인 = 담당 후보 |
 
@@ -36,11 +36,11 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 - 담당(Assignee)은 반드시 정한다(CONTRIBUTING 3장). CODEOWNERS의 패키지 주인이 1순위, 비어 있으면 `❓ 담당`으로 두고 마지막에 모아 묻는다.
 - **레포가 나뉘어 있으므로 API와 화면은 항상 다른 이슈다.** 백엔드 이슈는 `chagok-backend`에, 프론트 이슈는 `chagok-frontend`에 만들고, 서로 「짝 이슈」 칸에 링크한다. 화면 이슈의 선행에 API 이슈를 둔다(08 JSON 예시로 목업을 먼저 만들 수 있으면 선행 없이 병행 가능).
 - 담당 방식(같은 사람이 짝 이슈 둘을 맡을지, 나눠 맡을지)은 12 백로그(결정 14)를 따른다. 정해져 있지 않으면 사용자에게 묻는다.
-- 순서: `기반` → cycle → 고객·차량 → 정비 기록 → 재점검 대상·방문 중 안내 → 예약·날짜별 목록·방문 완료 → (중간 점검) → P0-나머지 → P1 → (MVP 점검) → P2.
-- MVP = P0 + P1. P1 이슈는 사용자가 "중간 점검 통과"를 확인해 주기 전에는 만들지 않는다.
-- P2 이슈는 "MVP 점검 통과"와 그 기능의 `chagok-docs` `결정` 이슈 합의를 사용자가 확인해 준 뒤, 한 기능씩만 만든다. 이슈 본문 「결정 이슈」 칸에 링크한다.
+- 순서: `기반` → cycle → 고객·차량 → 정비 기록 → 재점검 대상·방문 중 안내 → 예약·날짜별 목록·방문 완료 → (M2 통합 검증) → P0-나머지 → P1 → (M3 MVP 검증) → P2.
+- MVP = P0 + P1. P1 이슈는 사용자가 "M2 통합 검증 통과"를 확인해 주기 전에는 만들지 않는다.
+- P2 이슈는 "M3 MVP 검증 통과"와 그 기능의 `chagok-docs` `결정` 이슈 합의를 사용자가 확인해 준 뒤, 한 기능씩만 만든다. 이슈 본문 「결정 이슈」 칸에 링크한다.
 - 00의 Non-goal 기능은 이슈를 만들지 않는다. 요청받으면 이유를 말하고 멈춘다.
-- 기반 이슈 세트를 요청받으면 CONTRIBUTING 9장의 3개를 만든다(라벨 `기반`, 마일스톤 중간 점검):
+- 기반 이슈 세트를 요청받으면 CONTRIBUTING 9장의 3개를 만든다(라벨 `기반`, 마일스톤 M2 통합 검증):
   1. (`chagok-backend`) 백엔드 생성 + `global`(SecurityConfig 기본 거부, LoginStaff, ErrorCode·전역 처리기(표준 예외 포함), ApiResponse, Clock, RequestIdFilter, OSIV off) + `ArchitectureTest` + `EndpointGuardTest` (`chagok-backend/README.md`「지금 상태」)
   2. (`chagok-frontend`) 프론트 생성 + `shared`(client.ts, StatusBadge, Layout) + ESLint 경계 규칙 (`chagok-frontend/README.md`)
   3. (`chagok-backend`) Flyway `V1__init.sql`(07 기준) + 시연 시드 `db/seed/demo_seed.sql` (`chagok-seed-data`) — DB 담당자
@@ -61,8 +61,8 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 [F-XXX] 무엇을 한다
 
 ### 레포 / 라벨 / 마일스톤 / 담당
-chagok-backend · P0-핵심 · 중간 점검 · @담당 (모르면 ❓ 담당)
-(단계 라벨 하나는 필수, 마일스톤은 관문 1 / 중간 점검 / MVP 점검 / 관문 2 / 발표 중 하나. P0 → 중간 점검·MVP 점검, P1 → MVP 점검, P2 → 관문 2)
+chagok-backend · P0-핵심 · M2 통합 검증 · @담당 (모르면 ❓ 담당)
+(단계 라벨 하나는 필수, 마일스톤은 M1 설계 확정 / M2 통합 검증 / M3 MVP 검증 / M4 기능 동결 / M5 최종 시연 중 하나. P0 → M2 통합 검증·M3 MVP 검증, P1 → M3 MVP 검증, P2 → M4 기능 동결)
 
 ### 본문
 ## 기능 ID / 단계
@@ -121,7 +121,7 @@ chagok-backend · P0-핵심 · 중간 점검 · @담당 (모르면 ❓ 담당)
 사용자가 원하면 이슈마다 명령을 준다. 사용자 확인 없이 직접 실행하지 않는다.
 
 ```bash
-gh issue create --repo OneMonthproJect/chagok-backend --title "[F-XXX] …" --label "P0-핵심" --milestone "중간 점검" \
+gh issue create --repo OneMonthproJect/chagok-backend --title "[F-XXX] …" --label "P0-핵심" --milestone "M2 통합 검증" \
   --assignee <GitHub아이디> --body-file issue-F-XXX-be.md
 ```
 
