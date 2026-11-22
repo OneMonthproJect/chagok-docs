@@ -48,7 +48,7 @@
 | 8 | F-VIS-01·CUS-05 | BE | [F-VIS-01] 항목 상태·미리보기 (API 10) + X6 | screen/visit | 1, 7 |
 | 9 | F-CUS-05 | FE | [F-CUS-05] 차량 상세 S-07 | pages/S07 | 6 |
 | 10 | F-MNT-01·VIS-01 | FE | [F-MNT-01] 방문·정비 기록 S-08 (미리보기) | pages/S08, features/maintenance | 9 |
-| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19) + R1~R5·R7·R8 + X4 | domain/reservation | 4 |
+| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19) + R1~R5·R7~R14 + X4·X11·X12(18·19) | domain/reservation | 4 |
 | 12 | F-TGT-01·HOME-01 | BE | [F-TGT-01] 재점검 대상·홈 (API 14·04) + X7 | screen/target | 8, 11 |
 | 13 | F-RSV-03 | BE | [F-RSV-03] 예약 상세 패널 (API 17) + X3 | screen/booking | 8, 11 |
 | 14 | F-RSV-01·02·06 | FE | [F-RSV-02] 예약 S-03 날짜별 목록 + 등록·변경 M-02 (기존 예약 발견 → 패널, 409 처리) | pages/S03, features/reservation | 5 |
@@ -61,12 +61,13 @@
 
 | 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 선행 |
 |---|---|---|---|---|
-| 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] `V2`(inspect_result, NO_SHOW) + 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18 |
+| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 한 파일) — DB 담당자 | 18 |
+| 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 |
 | 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-03·04·07·08) | 19 |
-| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소·노쇼 (API 20·21) + R6 | 19 |
+| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소·노쇼 (API 20·21) + R6·R10·R12·R13 + X12 | V2 |
 | 22 | F-RSV-05 | FE | [F-RSV-05] 월·주·일 캘린더 | 18 |
 | 23 | F-RSV-07·08 | FE | [F-RSV-07] 패널 취소·노쇼 | 21 |
-| 24 | F-CUS-06·07 | BE | [F-CUS-06] `customer`·`vehicle` version + 고객·차량 수정 (API 22·23) + 목록 마스킹 | 18 |
+| 24 | F-CUS-06·07 | BE | [F-CUS-06] 고객·차량 수정 (API 22·23, `version` 확인) + 목록 마스킹 + X12 | 18, V2 |
 | 25 | F-CUS-06 | FE | [F-CUS-06] S-06·S-07 수정 | 24 |
 
 예약 변경은 P0-핵심으로 옮겼다(D-42). 취소·노쇼의 순서는 이 표를 정할 때 정한다.
