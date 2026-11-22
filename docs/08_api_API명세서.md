@@ -3,7 +3,8 @@
 > 엔드포인트·요청·응답·에러 코드·격리 테스트 — **API 번호, 요청·응답, 에러 코드, X-xx, JSON 예시의 원본**
 
 상태: 작성됨 (2026-11-22 · @하다) — 관문 1에서 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
-근거: 04 기능 명세, 07 ERD, 06 권한. 💡 = 제안값. ❓ = 결정 필요(문서 끝 목록)
+근거: 04 기능 명세, 07 ERD, 06 권한, 관문 1 결정 A~D (13 changelog, chagok-docs#12). 💡 = 제안값. ❓ = 결정 필요(문서 끝 목록)
+계약 수준 (관문 1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1** 은 8장 큰 모양만.
 
 ---
 
@@ -18,8 +19,10 @@
 | 인증 | `Authorization: Bearer {accessToken}`. 로그인 API(01·02)만 토큰 없이 |
 | 날짜 | `"2026-11-24"` (DATE) |
 | 일시 | `"2026-11-24T10:00:00"` (Asia/Seoul, 시간대 표기 없음) 💡 |
-| 목록 쪽 나누기 | `?page=0&size=20`. size 최대 50 (`PageLimit`) 💡 |
+| 목록 쪽 나누기 | `?page=0&size=20`. size 최대 50 (`PageLimit`) 💡. 생략하면 0·20, 50을 넘으면 50으로 줄인다, 음수·0(size)·숫자 아님은 400 `INVALID_INPUT` 💡. 쪽 나누기를 쓰는 API는 05·11뿐 (14는 전부, 15는 기간, 13은 배열) |
 | 정비소 | 요청에 `shopId`를 받지 않는다. 토큰의 `shop_id`만 쓴다 (I-3) |
+| 공통 오류 | 정비소 API(03~23, P1 정비소 API)는 모두 401 `AUTH_REQUIRED`(토큰 없음·만료)·403 `FORBIDDEN`(관리자 토큰)·500 `INTERNAL_ERROR`가 날 수 있다. 각 API의 "에러" 줄에는 그 밖의 것만 적는다 |
+| 요청 본문 안의 id | 경로 id와 본문 `vehicleId`(16)는 그 정비소 것이 아니면 404 `NOT_FOUND`. 본문의 정비 항목 id(`records[].itemId`, `purpose.itemIds`)는 없음·남의 것·쓰지 않는 항목 모두 400 `INVALID_INPUT` + `fieldErrors` (같은 응답이라 남의 것인지 드러나지 않음, X11) |
 | 예시 값 | 07 시드 구성의 값. 오늘(D)은 예시에서 `2026-11-24`로 둔다 |
 
 ### 0.2 공통 응답
@@ -97,6 +100,8 @@
 | `PASSWORD_CHANGE_REQUIRED` | 403 | 임시 비밀번호 상태에서 다른 API 호출 | P1 |
 
 `message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다.
+
+DB 제약 위반의 처리 (관문 1 결정 A): `CONFLICT`는 사용자가 고칠 수 있는 유일 제약 위반(P1 아이디 중복 등)에만 쓴다. 복합 FK·CHECK 위반은 서버 검증이 먼저 막아야 하는 것이므로, 실제로 나면 서버 버그로 보고 500 `INTERNAL_ERROR`(트랜잭션 롤백, 내부 정보 미노출)로 응답한다. `DataIntegrityViolationException`을 모두 `CONFLICT`로 바꾸지 않는다. JPA `@Version` 충돌(`OptimisticLockException`)은 `CONCURRENT_MODIFICATION`이다.
 
 ### 0.4 값 목록 (enum)
 
@@ -329,7 +334,7 @@ F-NTF-01(아침 알림)은 저장 위치에 따라 API가 없을 수 있다(P1 �
 }
 ```
 
-차량번호 중복은 막지 않는다(에러 없음).
+차량번호 중복은 막지 않는다(에러 없음). 고객과 첫 차량은 한 트랜잭션(둘 중 하나가 실패하면 둘 다 저장 안 됨). 에러: `INVALID_INPUT`
 
 ### 07 GET `/api/customers/{customerId}` — 고객 상세
 
@@ -429,7 +434,7 @@ F-NTF-01(아침 알림)은 저장 위치에 따라 API가 없을 수 있다(P1 �
 
 ### 11 GET `/api/vehicles/{vehicleId}/visits?page=&size=` — 방문 단위 정비 이력
 
-`visit_key`로 묶어 최신순. 기록마다 자기 날짜가 있다(외부는 고객이 말한 날짜).
+`visit_key`로 묶어 최신순(`visitDate` 내림차순, 같으면 나중에 저장한 방문 먼저). 쪽 나누기와 `totalElements`는 **방문 묶음 수** 기준이다(기록 행 수가 아님). 기록마다 자기 날짜가 있다(외부는 고객이 말한 날짜). 에러: `NOT_FOUND` (X2)
 
 ```json
 {
@@ -507,7 +512,7 @@ P0-나머지 요청 예시:
 }
 ```
 
-저장한 계정이 담당 정비사가 된다 💡. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 에러: `NOT_FOUND` (X5), `INVALID_INPUT`
+저장한 계정이 담당 정비사가 된다 💡. 주행거리가 차량의 최근 주행거리보다 크면 갱신. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`)
 
 ### 13 GET `/api/items` — 정비 항목·주기
 
@@ -537,7 +542,9 @@ P0-나머지 요청 예시:
 | customerId, customerName, phone | phone은 P0-나머지부터 마스킹 |
 | vehicleId, plateNumber | |
 | targetItems[] | 도래·임박 항목만 `{ itemId, name, status, nextDueDate, baseDate }`. P0-나머지부터 `lastDecline`·`lastCaution` |
-| activeReservation | 진행 중 예약 `{ reservationId, reservedAt }` 또는 null ("예약 있음") |
+| activeReservation | 진행 중 예약 `{ reservationId, reservedAt }` 또는 null ("예약 있음"). 진행 중 = `RESERVED` + 예약 날짜 ≥ 오늘 (D-22, 16의 R3과 같은 기준) |
+
+`targetItems[]`의 `status`·`nextDueDate`는 10을 주행거리 없이 부른 결과와 같고(`baseDate` = 10의 `baseRecord.date`), 대상 판정은 날짜 기준이다(F-CYC-01: P0에서 km만 넘은 차량은 뜨지 않음).
 
 ```json
 {
@@ -578,7 +585,7 @@ P0-나머지 요청 예시:
 | 응답 items[] | 설명 |
 |---|---|
 | reservationId, reservedAt, status | |
-| needsAction | `status = RESERVED`이고 시각이 지남 → "처리 필요" (D-23) |
+| needsAction | `status = RESERVED`이고 `reservedAt`이 현재 시각보다 이전 → "처리 필요" (D-23). 오늘 시각이 지난 예약은 "처리 필요"이면서 진행 중(14·16 기준)이기도 하다 |
 | version | 동시 수정 확인용 번호. 변경(19) 요청에 그대로 보낸다 (D-42) |
 | vehicleId, plateNumber, customerId, customerName, phone | phone은 P0-나머지부터 마스킹 |
 | purposeSummary | 고른 항목 이름을 `·`로 잇고, 기타면 "기타". 없으면 null |
@@ -606,6 +613,8 @@ P0-나머지 요청 예시:
 }
 ```
 
+에러: `INVALID_INPUT` (`from`·`to` 누락, `from` > `to`, 42일 초과)
+
 ### 16 POST `/api/reservations` — 예약 등록
 
 | 요청 | 타입 | 필수 | 검증 |
@@ -632,7 +641,9 @@ P0-나머지 요청 예시:
 }
 ```
 
-에러: `NOT_FOUND` (X4), `INVALID_INPUT`, `RESERVATION_PAST_DATE`, `RESERVATION_ACTIVE_EXISTS` (R3)
+서버가 확인하는 순서: 차량 소유(`getOwned`, 아니면 404) → 입력 검증(30분 단위·항목, 400) → 날짜 ≥ 오늘(400) → 같은 차량 진행 중 1건(`RESERVED` + 날짜 ≥ 오늘, 409). 예약 행과 예약 목적 행은 한 트랜잭션으로 저장하고 `version`은 0에서 시작한다.
+
+에러: `NOT_FOUND` (X4), `INVALID_INPUT` (R1, 항목 X11), `RESERVATION_PAST_DATE` (R2), `RESERVATION_ACTIVE_EXISTS` (R3)
 
 `RESERVATION_ACTIVE_EXISTS`는 기존 예약 번호를 함께 준다. 화면은 그 예약의 상세 패널을 열어 확인·변경하게 한다(전화 예약 중 기존 예약 발견, 02 2.2):
 
@@ -653,12 +664,12 @@ P0-나머지 요청 예시:
 
 | 응답 data | 설명 |
 |---|---|
-| reservation | `{ reservationId, reservedAt, status, needsAction, purpose: { items: [{ itemId, name }], other, memo } }` |
+| reservation | `{ reservationId, reservedAt, status, needsAction, version, purpose: { items: [{ itemId, name }], other, memo } }` — `version`은 변경(19) 요청에 보낸다 |
 | customer | `{ customerId, name, phone, consent }` (phone 전체, D-40) |
 | vehicle | `{ vehicleId, plateNumber, model, modelYear, latestMileage }` |
 | recentVisits | 최근 방문 최대 3회 (11의 항목 모양) |
 | hasMoreVisits | 더 있으면 true → 차량 상세로 |
-| itemStatuses | 10의 `items` 모양 + `highlighted`(예약 목적으로 고른 항목) |
+| itemStatuses | 10의 `items` 모양 + `highlighted`(예약 목적으로 고른 항목). 값은 10을 **주행거리 없이** 부른 결과와 같다(날짜 기준, `dueReason`은 `DATE`·null만). 같은 차량의 14 `targetItems`와 상태·다음 정비일이 같아야 한다 |
 
 ```json
 {
@@ -708,7 +719,11 @@ P0-나머지 요청 예시:
 { "success": true, "data": { "reservationId": 1, "status": "COMPLETED", "vehicleId": 4 }, "error": null }
 ```
 
-에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION` (R5)
+에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION` (R5), `CONCURRENT_MODIFICATION` (R10)
+
+서버 처리 (관문 1 결정 B, 상태 변경 18·20·21 공통): 정비소 소유(`getOwned`, 아니면 404) → 지금 상태가 `RESERVED`인지(아니면 409 `INVALID_STATUS_TRANSITION`) → Entity 상태 전이 → `@Version` 조건으로 저장(`… WHERE id = ? AND version = ?`, 읽은 뒤 다른 요청이 먼저 바꿨으면 409 `CONCURRENT_MODIFICATION`). 실패하면 아무것도 바꾸지 않는다. 요청 본문이 없으므로 화면이 본 `version`은 보내지 않고, **서버가 이 요청 안에서 읽은 최신 상태**로 판단한다. 그래서 다른 직원이 이미 끝낸 예약이면 `INVALID_STATUS_TRANSITION`, 거의 동시에 바꾸면 `CONCURRENT_MODIFICATION`이 난다. 화면은 두 409 모두 패널을 다시 불러온다.
+
+응답의 `vehicleId`로 화면이 방문·정비 기록(S-08)을 연다. 정비 기록 저장(12)은 별도 요청이며 이 예약과 데이터로 잇지 않는다. 기록 저장이 실패하거나 하지 않아도 예약은 `COMPLETED`로 남는다(05 POL-95).
 
 ### 19 PATCH `/api/reservations/{reservationId}` — 변경 (P0-핵심, D-42)
 
@@ -724,6 +739,10 @@ P0-나머지 요청 예시:
 
 서버가 확인하는 것: 정비소 소유(`getOwned`, 아니면 404) → 상태가 `RESERVED`인지 → `version` 일치 → 시각·날짜 규칙 → 같은 차량 진행 중 1건(자기 자신 제외). 하나라도 어긋나면 아무것도 바꾸지 않는다.
 
+- `version` 일치는 요청의 `version`과 DB에서 읽은 값을 서버가 직접 비교한다(JPA `@Version`은 읽은 뒤 저장 사이의 충돌만 잡으므로 둘 다 필요). 상태 확인이 먼저라, 다른 직원이 이미 끝낸 예약에 낡은 `version`으로 보내면 `INVALID_STATUS_TRANSITION`이 난다.
+- 성공하면 바꾼 필드와 상관없이 `version`을 1 올린다. **예약 목적 항목(`purpose.itemIds`)만 바뀌어 `reservation` 행의 칼럼이 그대로여도 올린다**(`OPTIMISTIC_FORCE_INCREMENT` 또는 `updated_at` 갱신). 그렇지 않으면 목적만 바꾼 두 요청이 서로를 덮어쓴다.
+- 예약 목적 항목은 기존 행을 지운 뒤 다시 넣는다(07 3.9). 항목 id는 16과 같은 검증(X11).
+
 ```json
 { "version": 0, "reservedAt": "2026-11-28T09:00:00", "purpose": { "itemIds": [1, 4], "other": false, "memo": null } }
 ```
@@ -732,21 +751,27 @@ P0-나머지 요청 예시:
 { "success": true, "data": { "reservationId": 3, "status": "RESERVED", "reservedAt": "2026-11-28T09:00:00", "vehicleId": 2, "version": 1 }, "error": null }
 ```
 
-에러: `NOT_FOUND`, `INVALID_INPUT`, `RESERVATION_PAST_DATE` (R7), `RESERVATION_ACTIVE_EXISTS`, `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION` (R8)
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락, 30분 단위 아님), `RESERVATION_PAST_DATE` (R7), `RESERVATION_ACTIVE_EXISTS`, `INVALID_STATUS_TRANSITION` (R9), `CONCURRENT_MODIFICATION` (R8)
 
 ### 20 POST `/api/reservations/{reservationId}/cancel` — 취소 (P0-나머지)
+
+요청 본문 없음(취소 사유 없음, POL-100). `RESERVED`만, 시각 전·후 모두. 서버 처리·실패 처리는 18과 같다. 선행 DB 변경 없음(`CANCELED`는 V1에 있음).
 
 ```json
 { "success": true, "data": { "reservationId": 3, "status": "CANCELED", "vehicleId": 2 }, "error": null }
 ```
 
+에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`. 취소하면 그 차량은 바로 다시 "진행 중 예약 없음"이 된다(재점검 대상의 "예약 있음"이 사라짐).
+
 ### 21 POST `/api/reservations/{reservationId}/no-show` — 노쇼 (P0-나머지)
 
-`RESERVED`이고 시각이 지난 예약만 (R6).
+요청 본문 없음. `RESERVED`이고 `reservedAt`이 현재 시각보다 이전인 예약만 (R6). 서버 처리·실패 처리는 18과 같고, 시각 확인은 상태 확인 다음에 `Clock`으로 한다(`markNoShow(now)`). 선행 DB 변경: `V2`의 `reservation.status` CHECK에 `NO_SHOW` (07 6장).
 
 ```json
 { "success": true, "data": { "reservationId": 4, "status": "NO_SHOW", "vehicleId": 10 }, "error": null }
 ```
+
+에러: `NOT_FOUND`, `INVALID_STATUS_TRANSITION` (R6: 시각 전, 끝난 예약), `CONCURRENT_MODIFICATION`
 
 ### 예약 상태 변경 요약
 
@@ -758,11 +783,37 @@ P0-나머지 요청 예시:
 
 × = `INVALID_STATUS_TRANSITION`. 방문 완료·취소·노쇼도 다른 직원이 같은 예약을 먼저 바꿨으면 `CONCURRENT_MODIFICATION`(서버의 `version` 확인)이나 `INVALID_STATUS_TRANSITION`으로 실패하고, 상태를 덮어쓰지 않는다.
 
-## 7. 고객·차량 수정 (P0-나머지)
+| | 변경 (19) | 방문 완료·취소·노쇼 (18·20·21) |
+|---|---|---|
+| 화면이 보내는 `version` | 보냄 (필수) | 보내지 않음 (요청 본문 없음) |
+| 확인 순서 | 소유 → 상태 → 요청 `version` = DB `version` → 시각·날짜 → 진행 중 1건 → `@Version` 저장 | 소유 → 상태(21은 + 시각 지남) → `@Version` 저장 |
+| 다른 직원이 먼저 끝냄 | `INVALID_STATUS_TRANSITION` | `INVALID_STATUS_TRANSITION` |
+| 다른 직원이 먼저 일시·목적 변경 | `CONCURRENT_MODIFICATION` | 바뀐 예약 기준으로 처리 (상태는 여전히 `RESERVED`라 성공. 21은 바뀐 시각이 아직이면 `INVALID_STATUS_TRANSITION`) |
+| 거의 동시 (읽은 뒤 저장 전) | `CONCURRENT_MODIFICATION` | `CONCURRENT_MODIFICATION` |
+| 실패 시 | 예약·예약 목적 모두 그대로 | 예약 그대로 |
+| 성공 시 `version` | +1 (목적만 바뀌어도) | +1 (끝난 상태라 이후 쓰지 않음) |
+| 단계 | P0-핵심 | 18 P0-핵심, 20·21 P0-나머지 |
+
+## 7. P0-나머지 확정 범위와 고객·차량 수정
+
+### 7.0 P0-나머지 확정 범위 (관문 1 결정 D)
+
+여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
+
+| API | 메서드·경로 | 책임 | 역할·격리 | 상태 전환·동시 수정 | 선행 DB 변경 |
+|---|---|---|---|---|---|
+| 20 | POST `/api/reservations/{reservationId}/cancel` | 예약 취소 (F-RSV-07). 본문 없음 | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` → `CANCELED`, 시각 전·후. 6장 상태 변경 공통 | 없음 |
+| 21 | POST `/api/reservations/{reservationId}/no-show` | 노쇼 (F-RSV-08). 본문 없음 | 사장·정비사. 남의 예약 404 (X12) | `RESERVED` + 시각 지남 → `NO_SHOW` (R6). 6장 공통 | V2: status CHECK `NO_SHOW` |
+| 22 | PATCH `/api/customers/{customerId}` | 고객명·연락처·동의 수정 (F-CUS-06). 보낸 필드만 | 사장·정비사. 남의 고객 404 (X12) | 요청에 `version` 필수, 다르면 409 `CONCURRENT_MODIFICATION` (POL-124) | V2: `customer.version` |
+| 23 | PATCH `/api/vehicles/{vehicleId}` | 차량번호·차종·연식 수정 (F-CUS-06). 고객·최근 주행거리는 바꾸지 않음 | 사장·정비사. 남의 차량 404 (X12) | 22와 같음 | V2: `vehicle.version` |
+| 12 확장 | POST `/api/vehicles/{vehicleId}/visits` | 외부·거절·점검 결과 입력 (F-MNT-02·03) | 같음 | — (기록은 추가만) | V2: `inspect_result` |
+| 10·11·14·17 확장 | 기존 경로 | `lastDecline`·`lastCaution`(10·14·17), `source`·`inspectResult`(11·17 `recentVisits`) (F-CYC-02) | 같음 | — | V2: `inspect_result` |
+| 04·05·14·15 확장 | 기존 경로 | 목록 `phone` 마스킹 (F-CUS-07) | 같음 | — | 없음 |
+| 15 (캘린더) | 기존 경로 | 월·주·일 보기는 같은 기간 조회 (F-RSV-05) | 같음 | — | 없음 |
 
 ### 22 PATCH `/api/customers/{customerId}`
 
-보낸 필드만. `name`·`phone`·`consent` (검증은 06과 같음).
+보낸 필드만. `name`·`phone`·`consent` (검증은 06과 같음). 요청에 `version`(필수)을 함께 보내고, 응답에 바뀐 `version`을 준다(7.0, 아래 예시에는 착수 PR에서 더한다). 에러: `NOT_FOUND`, `INVALID_INPUT`, `CONCURRENT_MODIFICATION`.
 
 ```json
 { "consent": false }
@@ -776,7 +827,7 @@ P0-나머지 요청 예시:
 
 ### 23 PATCH `/api/vehicles/{vehicleId}`
 
-`plateNumber`·`model`·`modelYear`. 고객은 바꾸지 않는다.
+`plateNumber`·`model`·`modelYear`. 고객은 바꾸지 않는다. 최근 주행거리는 방문 기록(12)으로만 바뀐다. `version`은 22와 같다. 에러: `NOT_FOUND`, `INVALID_INPUT`, `CONCURRENT_MODIFICATION`.
 
 ```json
 { "model": "K5 하이브리드" }
@@ -820,11 +871,14 @@ P0-나머지 요청 예시:
 | X8 | A 토큰 요청 본문·쿼리에 `shopId=2`를 넣음 | 무시하고 A 기준으로 처리 |
 | X9 | 관리자 토큰으로 05 고객 목록 | 403 `FORBIDDEN` |
 | X10 | 토큰 없이 / 만료 토큰으로 04 | 401 `AUTH_REQUIRED` |
+| X11 | A 토큰으로 12 `records[].itemId`, 16·19 `purpose.itemIds`에 B 정비소 항목 id | 400 `INVALID_INPUT` (없는 id와 같은 응답), 저장·변경 안 됨 (P0-핵심) |
+| X12 | A 토큰으로 18·19 `{B 예약}` (P0-핵심), 20·21 `{B 예약}`, 22 `{B 고객}`, 23 `{B 차량}` (P0-나머지) | 404, B 데이터 그대로 |
 
-19(P0-핵심)와 P0-나머지 이후 추가되는 API(20~23)도 같은 규칙으로 X1~X5에 사례를 더한다.
+X11·X12의 DB 쪽 방어(복합 FK)는 07 6.3 V1-3~V1-5로 따로 확인한다.
 
 ## 10. 결정 필요 (❓)
 
 | 번호 | 내용 | 영향 |
 |---|---|---|
+| 관문 1 승인 때 | ① 상태 변경(18·20·21)은 지금처럼 본문 없이 서버 최신 상태로 판단(추천)할지, 화면이 본 `version`을 보내 일시가 바뀐 예약도 409로 막을지 ② 19에 `version`만 오고 바꿀 필드가 없을 때 400 `INVALID_INPUT`(추천) / 변경 없이 성공 ③ 0.1 쪽 나누기 50 초과 시 줄임(💡) 확인 | 6장, 0.1 |
 | P1 착수 때 | 연락 결과 값, "연락함" 유지 기간, 알림 저장 위치, 재방문 정의, 새 항목 추가 | 8장 |
