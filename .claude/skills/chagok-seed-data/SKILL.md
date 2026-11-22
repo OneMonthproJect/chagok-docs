@@ -1,13 +1,13 @@
 ---
 name: chagok-seed-data
-description: 차곡 시연용 시드 데이터(chagok-backend/db/seed/demo_seed.sql, 시연 전용 DB 전용)를 07 시드표와 Flyway 마이그레이션에 맞춰 만들거나 고친다. 재점검 대상 목록(시나리오 A)과 방문 중 추가 점검 안내(시나리오 B)에서 미확인·여유·임박·도래가 시연 날 언제든 골고루 보이도록 날짜를 오늘 기준 상대값으로 넣고, 격리 시연용 정비소 2곳과 관리자 계정을 포함한다. "시드 만들어줘", "시드 파일", "data.sql", "시연 데이터", "대상 목록이 비어 보여", "발표용 데이터"이면 이 스킬을 사용한다.
+description: 차곡 시연용 시드 데이터(chagok-backend/db/seed/demo_seed.sql, 시연 전용 DB 전용)를 07 시드표와 Flyway 마이그레이션에 맞춰 만들거나 고친다. 재점검 대상 목록(시나리오 A)과 방문 중 추가 점검 안내(시나리오 B)에서 미확인·여유·임박·도래가 시연 날 언제든 골고루 보이도록 날짜를 오늘 기준 상대값으로 넣고, 격리 시연용 정비소 2곳과 관리자 계정을 포함한다. "시드 만들어줘", "시드 파일", "data.sql", "시연 데이터", "대상 목록이 비어 보여", "M5 최종 시연용 데이터", "발표용 데이터"이면 이 스킬을 사용한다.
 ---
 
 # 차곡 시드 데이터
 
 > 경로 표기: `docs/…`·`CONVENTIONS.md`·`CONTRIBUTING.md`는 `chagok-docs` 기준(코드 레포에서는 `../chagok-docs/…`), `chagok-backend/…`·`chagok-frontend/…`는 각 레포 루트 기준이다(`.claude/rules/ai-rules.md`「작업 폴더와 경로」). 필요한 레포가 작업 폴더에 없으면 지어내지 말고 읽지 못한 것으로 보고한다.
 
-시드는 시연의 무대다. 기능이 다 있어도 시드가 어긋나면 대상 목록이 비고, 발표 날 날짜가 바뀌면 "도래"가 "미확인"으로 무너진다. 이 스킬은 **07 시드표를 원본으로** 시드 파일을 만든다. 시드 파일은 `chagok-backend/db/seed/demo_seed.sql`이다(classpath 밖 — 서버·Flyway가 읽지 않는다, D-43). 시연 전용 DB(💡 `chagok_demo`)에만 `db/seed/run-demo-seed.sh`로 넣는다. 규칙의 원본은 `db/seed/README.md`와 07 7장이다.
+시드는 시연의 무대다. 기능이 다 있어도 시드가 어긋나면 대상 목록이 비고, M5 최종 시연 날 날짜가 바뀌면 "도래"가 "미확인"으로 무너진다. 이 스킬은 **07 시드표를 원본으로** 시드 파일을 만든다. 시드 파일은 `chagok-backend/db/seed/demo_seed.sql`이다(classpath 밖 — 서버·Flyway가 읽지 않는다, D-43). 시연 전용 DB(💡 `chagok_demo`)에만 `db/seed/run-demo-seed.sh`로 넣는다. 규칙의 원본은 `db/seed/README.md`와 07 7장이다.
 
 ## 1. 읽을 것
 

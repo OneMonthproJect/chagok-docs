@@ -1,6 +1,6 @@
 ---
 name: chagok-seed-builder
-description: 차곡 시연·테스트 시드 담당. chagok-docs의 07 시드표와 chagok-backend의 Flyway 마이그레이션을 읽고 chagok-backend의 시연 시드(db/seed/demo_seed.sql)만 만들거나 고친 뒤, 시드가 만들어야 할 기대 상태표(미확인·여유·임박·도래, 격리용 정비소 2곳, 시나리오 B 차량)를 돌려준다. 시드를 만들거나 고칠 때, 대상 목록이 비어 보일 때, 중간 점검·MVP 점검·발표 전에 사용한다. chagok-backend 레포에서 실행한다.
+description: 차곡 시연·테스트 시드 담당. chagok-docs의 07 시드표와 chagok-backend의 Flyway 마이그레이션을 읽고 chagok-backend의 시연 시드(db/seed/demo_seed.sql)만 만들거나 고친 뒤, 시드가 만들어야 할 기대 상태표(미확인·여유·임박·도래, 격리용 정비소 2곳, 시나리오 B 차량)를 돌려준다. 시드를 만들거나 고칠 때, 대상 목록이 비어 보일 때, M2 통합 검증·M3 MVP 검증·M5 최종 시연 전에 사용한다. chagok-backend 레포에서 실행한다.
 tools: Read, Grep, Glob, Edit, Write, Bash
 skills:
   - chagok-seed-data

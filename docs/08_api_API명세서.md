@@ -2,9 +2,9 @@
 
 > 엔드포인트·요청·응답·에러 코드·격리 테스트 — **API 번호, 요청·응답, 에러 코드, X-xx, JSON 예시의 원본**
 
-상태: 작성됨 (2026-11-22 · @하다) — 관문 1에서 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
-근거: 04 기능 명세, 07 ERD, 06 권한, 관문 1 결정 A~D (13 changelog, chagok-docs#12). 💡 = 제안값. ❓ = 결정 필요(문서 끝 목록)
-계약 수준 (관문 1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1** 은 8장 큰 모양만.
+상태: 작성됨 (2026-11-22 · @하다) — M1 설계 확정 때 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
+근거: 04 기능 명세, 07 ERD, 06 권한, M1 결정 A~D (13 changelog, chagok-docs#12). 💡 = 제안값. ❓ = 결정 필요(문서 끝 목록)
+계약 수준 (M1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1** 은 8장 큰 모양만.
 
 ---
 
@@ -19,7 +19,7 @@
 | 인증 | `Authorization: Bearer {accessToken}`. 로그인 API(01·02)만 토큰 없이 |
 | 날짜 | `"2026-11-24"` (DATE) |
 | 일시 | `"2026-11-24T10:00:00"` (Asia/Seoul, 시간대 표기 없음) 💡 |
-| 목록 쪽 나누기 | `?page=0&size=20` (관문 1 확정). 생략하면 page 0·size 20. size 최대 50 — 50을 넘으면 서버가 50으로 줄인다(`PageLimit`, 응답 `size`도 50). page 음수, size 0 이하, 숫자가 아닌 값은 400 `INVALID_INPUT`. 쪽 나누기를 쓰는 API는 05·11뿐 (14는 전부, 15는 기간, 13은 배열) |
+| 목록 쪽 나누기 | `?page=0&size=20` (M1 설계 확정). 생략하면 page 0·size 20. size 최대 50 — 50을 넘으면 서버가 50으로 줄인다(`PageLimit`, 응답 `size`도 50). page 음수, size 0 이하, 숫자가 아닌 값은 400 `INVALID_INPUT`. 쪽 나누기를 쓰는 API는 05·11뿐 (14는 전부, 15는 기간, 13은 배열) |
 | 정비소 | 요청에 `shopId`를 받지 않는다. 토큰의 `shop_id`만 쓴다 (I-3) |
 | 공통 오류 | 정비소 API(03~23, P1 정비소 API)는 모두 401 `AUTH_REQUIRED`(토큰 없음·만료)·403 `FORBIDDEN`(관리자 토큰)·500 `INTERNAL_ERROR`가 날 수 있다. 각 API의 "에러" 줄에는 그 밖의 것만 적는다 |
 | 요청 본문 안의 id | 경로 id와 본문 `vehicleId`(16)는 그 정비소 것이 아니면 404 `NOT_FOUND`. 본문의 정비 항목 id(`records[].itemId`, `purpose.itemIds`)는 없음·남의 것·쓰지 않는 항목 모두 400 `INVALID_INPUT` + `fieldErrors` (같은 응답이라 남의 것인지 드러나지 않음, X11) |
@@ -101,7 +101,7 @@
 
 `message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다.
 
-DB 제약 위반의 처리 (관문 1 결정 A): `CONFLICT`는 사용자가 고칠 수 있는 유일 제약 위반(P1 아이디 중복 등)에만 쓴다. 복합 FK·CHECK 위반은 서버 검증이 먼저 막아야 하는 것이므로, 실제로 나면 서버 버그로 보고 500 `INTERNAL_ERROR`(트랜잭션 롤백, 내부 정보 미노출)로 응답한다. `DataIntegrityViolationException`을 모두 `CONFLICT`로 바꾸지 않는다. JPA `@Version` 충돌(`OptimisticLockException`)은 `CONCURRENT_MODIFICATION`이다.
+DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 있는 유일 제약 위반(P1 아이디 중복 등)에만 쓴다. 복합 FK·CHECK 위반은 서버 검증이 먼저 막아야 하는 것이므로, 실제로 나면 서버 버그로 보고 500 `INTERNAL_ERROR`(트랜잭션 롤백, 내부 정보 미노출)로 응답한다. `DataIntegrityViolationException`을 모두 `CONFLICT`로 바꾸지 않는다. JPA `@Version` 충돌(`OptimisticLockException`)은 `CONCURRENT_MODIFICATION`이다.
 
 ### 0.4 값 목록 (enum)
 
@@ -586,7 +586,7 @@ P0-나머지 요청 예시:
 |---|---|
 | reservationId, reservedAt, status | |
 | needsAction | `status = RESERVED`이고 `reservedAt`이 현재 시각보다 이전 → "처리 필요" (D-23). 오늘 시각이 지난 예약은 "처리 필요"이면서 진행 중(14·16 기준)이기도 하다 |
-| version | 동시 수정 확인용 번호. 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 요청에 그대로 보낸다 (D-42, 관문 1 결정 B) |
+| version | 동시 수정 확인용 번호. 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 요청에 그대로 보낸다 (D-42, M1 결정 B) |
 | vehicleId, plateNumber, customerId, customerName, phone | phone은 P0-나머지부터 마스킹 |
 | purposeSummary | 고른 항목 이름을 `·`로 잇고, 기타면 "기타". 없으면 null |
 
@@ -713,7 +713,7 @@ P0-나머지 요청 예시:
 
 ### 18 POST `/api/reservations/{reservationId}/complete` — 방문 완료
 
-`RESERVED`만 가능(시각 전·후 모두). 화면이 읽은 예약의 `version`을 함께 보낸다(관문 1 결정 B 확정).
+`RESERVED`만 가능(시각 전·후 모두). 화면이 읽은 예약의 `version`을 함께 보낸다(M1 결정 B 확정).
 
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
@@ -756,7 +756,7 @@ P0-나머지 요청 예시:
 | purpose.other | boolean | | |
 | purpose.memo | string | | ~200자 |
 
-`version` 밖에 바꿀 필드(`reservedAt`, `purpose.itemIds`·`other`·`memo`)가 하나도 없으면 400 `INVALID_INPUT`이고, 예약과 `version`을 바꾸지 않는다(R14, 관문 1 확정). 이 검사는 요청 형식 검증이라 소유 확인보다 먼저 한다.
+`version` 밖에 바꿀 필드(`reservedAt`, `purpose.itemIds`·`other`·`memo`)가 하나도 없으면 400 `INVALID_INPUT`이고, 예약과 `version`을 바꾸지 않는다(R14, M1 설계 확정). 이 검사는 요청 형식 검증이라 소유 확인보다 먼저 한다.
 
 서버가 확인하는 것: 정비소 소유(`getOwned`, 아니면 404) → 상태가 `RESERVED`인지 → `version` 일치 → 시각·날짜 규칙 → 같은 차량 진행 중 1건(자기 자신 제외). 하나라도 어긋나면 아무것도 바꾸지 않는다.
 
@@ -826,9 +826,9 @@ P0-나머지 요청 예시:
 
 ## 7. P0-나머지 확정 범위와 고객·차량 수정
 
-### 7.0 P0-나머지 확정 범위 (관문 1 결정 D)
+### 7.0 P0-나머지 확정 범위 (M1 결정 D)
 
-여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 20·21의 요청·응답은 18과 같은 모양으로 관문 1에서 확정했다(6장). 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
+여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 20·21의 요청·응답은 18과 같은 모양으로 M1 설계 확정 때 확정했다(6장). 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
 
 | API | 메서드·경로 | 책임 | 역할·격리 | 상태 전환·동시 수정 | 선행 DB 변경 |
 |---|---|---|---|---|---|

@@ -2,8 +2,8 @@
 
 > 테이블·관계·제약조건·격리 규칙·시드 구성 — **테이블·컬럼·제약·격리 I-xx·시드표의 원본**
 
-상태: 작성됨 (2026-11-22 · @하다) — 관문 1에서 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서 + 13 changelog → 새 Flyway 버전 파일
-근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, 관문 1 결정 A~D (13 changelog, chagok-docs#12)
+상태: 작성됨 (2026-11-22 · @하다) — M1 설계 확정 때 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서 + 13 changelog → 새 Flyway 버전 파일
+근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, M1 결정 A~D (13 changelog, chagok-docs#12)
 DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
 
 ---
@@ -17,8 +17,8 @@ DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
 - enum은 `VARCHAR` + `CHECK`로 둔다(값 추가가 쉬움) 💡. 값 이름은 08 API와 글자까지 같다.
 - 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준) 💡, 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
 - 모든 테이블에 `created_at`. 수정되는 표에만 `updated_at`.
-- **생성·수정 시각은 서버가 넣는다 (관문 1 확정).** `created_at`은 최초 생성 시각, `updated_at`은 생성 때도 같은 값으로 넣고 실제로 수정될 때 갱신한다. 값은 JPA Auditing이 넣고, Auditing의 시간 공급자(`DateTimeProvider`)는 주입한 `Clock` 빈(Asia/Seoul)을 쓴다. 두 칼럼은 `NOT NULL`이고 **DB `DEFAULT`·`CURRENT_TIMESTAMP`·`ON UPDATE`를 쓰지 않는다**(DB 세션 시간대와 서버 `Clock`이 어긋나지 않게). 시드는 시각을 직접 적는다(7장). 예약 `version`은 시각과 별개로 `@Version`이 관리한다.
-- **정비소 일치는 두 겹으로 지킨다 (관문 1 결정 A).** ① 서버가 저장 전 부모를 `getOwned(shopId, id)`로 찾는다(없거나 남의 것이면 404). ② DB는 핵심 부모·자식 관계를 **복합 FK** `(shop_id, 부모_id) → 부모(shop_id, id)`로 묶어, 서버 검증이 빠져도 다른 정비소 부모를 가리키는 행이 저장되지 않게 한다. 복합 FK의 부모 쪽에는 `UNIQUE(shop_id, id)`를 둔다(MySQL 8.4부터 FK는 UNIQUE·PK 키만 참조할 수 있다). 대상 관계와 이유는 5.1.
+- **생성·수정 시각은 서버가 넣는다 (M1 설계 확정).** `created_at`은 최초 생성 시각, `updated_at`은 생성 때도 같은 값으로 넣고 실제로 수정될 때 갱신한다. 값은 JPA Auditing이 넣고, Auditing의 시간 공급자(`DateTimeProvider`)는 주입한 `Clock` 빈(Asia/Seoul)을 쓴다. 두 칼럼은 `NOT NULL`이고 **DB `DEFAULT`·`CURRENT_TIMESTAMP`·`ON UPDATE`를 쓰지 않는다**(DB 세션 시간대와 서버 `Clock`이 어긋나지 않게). 시드는 시각을 직접 적는다(7장). 예약 `version`은 시각과 별개로 `@Version`이 관리한다.
+- **정비소 일치는 두 겹으로 지킨다 (M1 결정 A).** ① 서버가 저장 전 부모를 `getOwned(shopId, id)`로 찾는다(없거나 남의 것이면 404). ② DB는 핵심 부모·자식 관계를 **복합 FK** `(shop_id, 부모_id) → 부모(shop_id, id)`로 묶어, 서버 검증이 빠져도 다른 정비소 부모를 가리키는 행이 저장되지 않게 한다. 복합 FK의 부모 쪽에는 `UNIQUE(shop_id, id)`를 둔다(MySQL 8.4부터 FK는 UNIQUE·PK 키만 참조할 수 있다). 대상 관계와 이유는 5.1.
 - FK의 삭제·수정 동작은 모두 기본값(`RESTRICT`)이다. 삭제 기능이 없고(05 POL-39·58), `CASCADE`·`SET NULL`은 쓰지 않는다(`SET NULL`은 `shop_id NOT NULL`과 충돌).
 
 ## 2. ERD
@@ -125,7 +125,7 @@ erDiagram
 | cycle_km | INT | NOT NULL, CHECK > 0 | |
 | active | BOOLEAN | NOT NULL, 기본 TRUE | 끄기·켜기는 P1(F-ITEM-01) |
 | sort_order | SMALLINT | NOT NULL | 표시 순서, 도면 위치와 연결 |
-| created_at | DATETIME | NOT NULL | 1장 원칙 "모든 테이블에 `created_at`" 반영 (관문 1). 수정(P1 F-ITEM-01) 때의 `updated_at`은 P1 착수 때 더한다 |
+| created_at | DATETIME | NOT NULL | 1장 원칙 "모든 테이블에 `created_at`" 반영 (M1 설계 확정). 수정(P1 F-ITEM-01) 때의 `updated_at`은 P1 착수 때 더한다 |
 
 - UNIQUE(shop_id, code), UNIQUE(shop_id, id): 뒤의 것은 복합 FK 부모 키 (maintenance_record·reservation_item이 참조)
 
@@ -175,14 +175,14 @@ erDiagram
 | purpose_other | BOOLEAN | NOT NULL, 기본 FALSE | 예약 목적 "기타" (D-38) |
 | purpose_memo | VARCHAR(200) | NULL | 예약 목적 메모 |
 | created_by_staff_id | BIGINT | NOT NULL, FK → staff.id | 토큰의 계정이라 단일 FK (5.1) |
-| version | INT | NOT NULL, 기본 0 | 동시 수정 확인(JPA `@Version`). 바뀔 때마다 1 증가 (D-42). 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 모두 화면이 보낸 `version`을 이 값과 비교하고, 저장 때 `@Version`으로 다시 확인한다(관문 1 결정 B, 08 6장). 예약 목적 항목(`reservation_item`)만 바뀌어도 1 올린다. 실패한 요청은 이 값을 바꾸지 않는다 |
+| version | INT | NOT NULL, 기본 0 | 동시 수정 확인(JPA `@Version`). 바뀔 때마다 1 증가 (D-42). 변경(19)·방문 완료(18)·취소(20)·노쇼(21) 모두 화면이 보낸 `version`을 이 값과 비교하고, 저장 때 `@Version`으로 다시 확인한다(M1 결정 B, 08 6장). 예약 목적 항목(`reservation_item`)만 바뀌어도 1 올린다. 실패한 요청은 이 값을 바꾸지 않는다 |
 | created_at | DATETIME | NOT NULL | |
 | updated_at | DATETIME | NOT NULL | |
 
 - UNIQUE(shop_id, id): 복합 FK 부모 키 (reservation_item이 참조)
 - 인덱스: (shop_id, reserved_at), (shop_id, vehicle_id, status, reserved_at) — 진행 중 예약 확인이자 vehicle 복합 FK 인덱스 (이전 `(vehicle_id, status, reserved_at)` 앞에 `shop_id`를 붙임)
 - "같은 차량 진행 중 1건"(D-22)은 서버에서 확인한다. 진행 중 = 상태 `RESERVED` + 예약 **날짜** ≥ 오늘. 날짜 조건이 들어가 DB 유일 제약으로 막지 않는다. 동시 등록까지 막는 것은 P2.
-- 정비 기록과 잇는 컬럼은 없다(관문 1 결정 C). 방문 완료 → 정비 기록은 화면 이동이고, 저장 순서·실패 처리는 05 POL-95.
+- 정비 기록과 잇는 컬럼은 없다(M1 결정 C). 방문 완료 → 정비 기록은 화면 이동이고, 저장 순서·실패 처리는 05 POL-95.
 
 ### 3.9 `reservation_item` — 예약 목적으로 고른 항목 (D-38)
 
@@ -192,7 +192,7 @@ erDiagram
 | shop_id | BIGINT | NOT NULL, FK → shop.id | |
 | reservation_id | BIGINT | NOT NULL, FK (shop_id, reservation_id) → reservation(shop_id, id) | 복합 FK (5.1) |
 | service_item_id | BIGINT | NOT NULL, FK (shop_id, service_item_id) → service_item(shop_id, id) | 복합 FK (5.1) |
-| created_at | DATETIME | NOT NULL | 1장 원칙 반영 (관문 1) |
+| created_at | DATETIME | NOT NULL | 1장 원칙 반영 (M1 설계 확정) |
 
 - UNIQUE(reservation_id, service_item_id)
 - 인덱스: (shop_id, reservation_id), (shop_id, service_item_id) — 복합 FK 인덱스
@@ -219,7 +219,7 @@ erDiagram
 | I-4 | 없거나 남의 것이면 같은 404 | `getOwned`, X1~X6 |
 | I-5 | `platform_admin`에는 `shop_id`가 없고, 관리자 토큰으로는 정비소 테이블을 조회할 경로가 없다 | SecurityConfig, X9 |
 
-### 5.1 정비소 간 참조 분석 (관문 1 결정 A)
+### 5.1 정비소 간 참조 분석 (M1 결정 A)
 
 자식 행이 다른 정비소의 부모를 가리킬 수 있는지 관계마다 본 결과다. "요청 값"이면 화면이 보낸 id라 남의 id가 들어올 수 있고, "토큰"이면 서버가 로그인 정보에서 넣으므로 들어올 수 없다.
 
@@ -248,7 +248,7 @@ erDiagram
 | 버전 💡 | 단계 | 내용 |
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3) |
-| `V2__…` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `NO_SHOW`, `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`). **4건을 한 파일로**, DB 담당자가 P0-나머지 착수 때(중간 점검 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
+| `V2__…` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `NO_SHOW`, `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`). **4건을 한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | 이후 | P1 | 연락 기록 등 |
 
 마이그레이션은 `chagok-backend/src/main/resources/db/migration/`에만 두고 DB 담당자가 작성한다. 시연 데이터는 마이그레이션이 아니다(7장). 운영용 기본 기준표는 정비소를 만들 때 서버가 넣는다(P1, F-ADM-01).
@@ -274,7 +274,7 @@ erDiagram
 - FK 칼럼 순서는 부모 키와 같게 `(shop_id, 부모_id)`. 자식 쪽 인덱스는 같은 순서로 시작해야 한다(3장 표의 인덱스가 그 역할). 인덱스를 따로 적지 않으면 MySQL이 이름 없는 인덱스를 만들므로 3장대로 명시한다.
 - `staff.shop_id`, `shop.created_by_admin_id`, `maintenance_record.staff_id`, `reservation.created_by_staff_id`의 단일 FK 인덱스도 명시한다.
 - 시연 시드는 V1에 넣지 않는다(7장). 기본 기준표 6행도 시드가 정비소마다 넣는다.
-- 타임스탬프 칼럼(`created_at`·`updated_at`)은 `DATETIME NOT NULL`로만 만들고 `DEFAULT`를 붙이지 않는다(1장, 관문 1 확정). `version`·`consent`·`status` 등 타임스탬프가 아닌 칼럼의 기본값(3장)은 그대로 둔다.
+- 타임스탬프 칼럼(`created_at`·`updated_at`)은 `DATETIME NOT NULL`로만 만들고 `DEFAULT`를 붙이지 않는다(1장, M1 설계 확정). `version`·`consent`·`status` 등 타임스탬프가 아닌 칼럼의 기본값(3장)은 그대로 둔다.
 
 ### 6.2 JPA 매핑 확인 (`ddl-auto: validate`)
 
