@@ -2,7 +2,7 @@
 
 > D-49 반영 직후 세 레포의 GitHub Actions·로컬 검사 결과와 협업 자동화 상태. 이후 CI 결과를 비교하는 기준점
 
-상태: 작성됨 (2026-11-22) — 이 날짜의 실제 실행 결과만 적는다. 이후 결과는 새 보고서나 `TEST_테스트명세서.md`에 남긴다
+상태: 작성됨 (2026-11-22), 같은 날 초기 릴리스(develop → main) 결과 반영(H장) — 이 날짜의 실제 실행 결과만 적는다. 이후 결과는 새 보고서나 `TEST_테스트명세서.md`에 남긴다
 근거: GitHub Actions 실행 기록(아래 URL), 로컬 실행 로그, D-46·D-47·D-49(00 결정표), CONTRIBUTING 5장·부록
 
 **이 문서의 PASS는 "그 검사가 실제로 실행되어 성공했다"는 뜻이다. 기능 완성이나 관문 1 통과를 뜻하지 않는다.**
@@ -31,7 +31,7 @@
 | 기본 브랜치 | 세 레포 모두 `main` (D-49) |
 | 통합 브랜치 | 세 레포 모두 `develop` |
 
-| 레포 | develop 최신 커밋 | main 커밋 (변경 없음) |
+| 레포 | develop 최신 커밋 (D-49 머지 시점) | main 커밋 (릴리스 전, 릴리스 후는 H장) |
 |---|---|---|
 | chagok-docs | `4917e9d350fac52cb7afbb8ee19ac196b36838d5` — [#1] D-49 … (#2) | `a892001` 초기 커밋 |
 | chagok-backend | `00b360488660b803f3d99b520ff12640dcb2403d` — [#1] D-49 … (#2) | `c7706c6` 초기 커밋 |
@@ -159,11 +159,11 @@
 | issue-close: 라벨 없이 머지 → 열어 둠 | NOT VERIFIED | 이번 PR은 라벨을 먼저 붙여 이 경로가 실행되지 않음 (로컬 시뮬레이션만) |
 | issue-close: 머지 후 라벨 부착 → 그때 닫음 | NOT VERIFIED | 위와 같음 |
 | issue-close: 검사 실패 시 닫지 않음 | NOT VERIFIED | 실패한 PR 없음 |
-| issue-close: 릴리스 PR(→ main)에서 실행 안 함 | NOT VERIFIED | 릴리스 PR 없음. `branches: [develop]` 필터로 설계 |
-| pr-check: 릴리스 PR 닫는 키워드·커밋 검사 | NOT VERIFIED | 릴리스 PR 없음 |
+| issue-close: 릴리스 PR(→ main)에서 실행 안 함 | **PASS** (H장) | 릴리스 PR 3건의 열기·머지에서 issue-close 실행 없음. 열린 docs Issue #3도 그대로 열림 |
+| pr-check: 릴리스 PR 닫는 키워드·커밋 검사 | **PASS** (H장) | 릴리스 PR 3건에서 `릴리스 PR: 나머지 형식 검사 생략`, `릴리스 커밋: 열린 이슈를 닫는 키워드 없음` 출력. 위반 시 ❌ 경로는 NOT VERIFIED |
 | PR 템플릿 AI 표기 문구 오탐 수정 | PASS | 수정된 템플릿으로 쓴 PR #2 3건과 docs PR #4의 pr-check PASS |
 | CodeRabbit 설치 | NOT VERIFIED | 코드 레포에 `.coderabbit.yaml` 있음(docs는 없음, D-47). 조직 앱 설치 목록은 현재 토큰 권한(`admin:org` 없음)으로 조회 불가 |
-| CodeRabbit 릴리스 리뷰 | NOT VERIFIED | 릴리스 PR 없음 (D-47: 릴리스 PR만 자동 리뷰) |
+| CodeRabbit 릴리스 리뷰 | **NOT RUN** (H장) | 코드 레포 릴리스 PR 2건에 `release` 라벨이 자동으로 붙었으나 10분 넘게 CodeRabbit 리뷰·댓글·check-run 없음. 설치·연결 여부는 위 항목대로 확인 불가 |
 | Projects 보드·Done 자동 이동 | NOT VERIFIED | 토큰에 `read:project` 없음, 보드 유무 미확인. D-49 「이 결정이 깨지는 상황」 항목 |
 | 브랜치 보호·필수 검사 | 없음 (의도) | D-46. ❌ PR은 사람이 머지하지 않음 |
 | 마일스톤 | 없음 | 세 레포 0개. 부록 체크리스트는 5개(관문 1 / 중간 점검 / MVP 점검 / 관문 2 / 발표) |
@@ -181,8 +181,8 @@
 | 4 | Rebase merge가 켜져 있음 (부록과 다름) | 세 레포 머지 방식 | 낮음~중간 (Squash 외 방식으로 머지하는 실수 가능) | `allow_rebase_merge=true` | 지금 (설정만 바꿈) | 형상관리 | 불필요 — 부록 체크리스트대로 설정 |
 | 5 | ArchitectureTest 18/19 SKIPPED | 구조 규칙 대부분 검증 안 됨 | 중간 (현재는 코드가 없어 정상) | B-2·C 표 | 관문 1 이후, 기반 이슈마다 SKIPPED 수 감소 확인 | 형상관리·백엔드 | 불필요 — `TEST_테스트명세서.md`에서 추적 |
 | 6 | Flyway V1 없음 → 스키마 검증 BLOCKED | db-test는 빈 스키마 기동만 확인 | 중간 | `No migrations found` | 관문 1 이후 (07 확정 뒤, D-41) | DB관리 | 기존 계획 — `기반` 이슈 「V1 마이그레이션/시연 시드」 |
-| 7 | issue-close 미검증 경로 4개 (라벨 없이 머지, 머지 후 라벨, 검사 실패, 릴리스 PR) | 이슈 종료 자동화 | 낮음 (핵심 경로·중복 실행은 PASS) | E 표 | 관문 1 이후 첫 기능 PR·첫 릴리스에서 실제로 확인. 테스트용 PR은 만들지 않음 | 형상관리 | 불필요 — 확인 결과를 이 문서 다음 판이나 13에 |
-| 8 | CodeRabbit 설치·릴리스 리뷰 미확인 | 릴리스 리뷰 (D-47) | 낮음 | 권한 부족 | 관문 1 전 (조직 관리자가 설치 확인), 리뷰는 첫 릴리스에서 | 형상관리 (조직 관리자) | 불필요 |
+| 7 | issue-close 미검증 경로 3개 (라벨 없이 머지, 머지 후 라벨, 검사 실패). 릴리스 PR 미실행은 H장에서 PASS | 이슈 종료 자동화 | 낮음 (핵심 경로·중복 실행·릴리스 미실행은 PASS) | E 표 | 관문 1 이후 첫 기능 PR에서 실제로 확인. 테스트용 PR은 만들지 않음 | 형상관리 | 불필요 — 확인 결과를 이 문서 다음 판이나 13에 |
+| 8 | CodeRabbit 릴리스 리뷰 미실행, 설치·연결 미확인 | 릴리스 리뷰 (D-47, 머지 차단 조건 아님) | 중간 (초기 릴리스는 CodeRabbit 없이 사람 검토로 머지됨) | 릴리스 PR 2건에 리뷰 없음 (H장) | 관문 1 전 (조직 관리자가 앱 설치·저장소 연결 확인 후 다음 릴리스에서 확인) | 형상관리 (조직 관리자) | 불필요 — `DEV_REVIEW_CodeRabbit.md`에 "초기 릴리스: 리뷰 미실행" 기록 권장 |
 | 9 | Projects 보드·Done 이동 미확인 | 보드 운영 | 낮음 | 토큰 `read:project` 없음 | 보드를 만든 뒤 첫 issue-close에서 | PM·형상관리 | 불필요 |
 | 10 | 마일스톤 0개 | 이슈 분류 (CONTRIBUTING 3장) | 낮음 | 세 레포 milestones 없음 | 관문 1 전 | PM·형상관리 | 불필요 |
 | 11 | Actions 런타임 경고: Node.js 20 대상 액션(`checkout@v4`·`setup-node@v4`·`setup-java@v4`·`gradle/actions@v4`)이 Node 24로 강제 실행, `setup-java@v4` deprecated | CI 워크플로 | 낮음 (지금은 동작함) | backend-ci·frontend-ci 로그 `##[warning]` | 관문 1 이후 | 형상관리 | 필요 시 `chore` 이슈 (세 레포) |
@@ -196,4 +196,29 @@
 CI 결과는 관문 1 통과 조건이 아니다. 관문 1은 00 「관문」 표와 12 백로그 2장 기준이다.
 
 - 00·04·07·08 확정 (12 백로그 0-1), 💡 제안값 확인 (0-2), D-20 패키지 구조 (0-3), 결정 14·15 담당·관문 날짜 (0-4), 와이어프레임 → 09 (0-5)
-- 이 보고서에서 관문 1 회의에 올릴 것: F-1~3 처리 시점(관문 1 직후 권장), F-4 Rebase 끔, F-8 CodeRabbit 설치 확인, F-10 마일스톤 생성, 결정 14 후 CODEOWNERS(부록), docs PR #4 사람 확인
+- 이 보고서에서 관문 1 회의에 올릴 것: F-1~3 처리 시점(관문 1 직후 권장), F-4 Rebase 끔, F-8 CodeRabbit 설치 확인, F-10 마일스톤 생성, 결정 14 후 CODEOWNERS(부록), docs PR #4 사람 확인, 태그 정책(H장: 초기 릴리스 태그 보류, 첫 태그를 `v0.1-gate1`로 둘지)
+
+---
+
+## H. 초기 릴리스 (develop → main, 같은 날)
+
+D-49와 이 보고서가 develop에 들어간 뒤 형상관리자 지시로 세 레포 `develop → main` 릴리스를 진행했다. CONTRIBUTING 2장대로 **Merge commit**을 썼다. CONTRIBUTING의 릴리스 시점(중간 점검·MVP 점검·관문 2·발표)에 들어 있지 않은 초기 기준판이다. 기능 코드·Flyway V1·DB 변경·ERD/API 수정안은 포함하지 않았다.
+
+| 레포 | 릴리스 PR | PR 검사 | main 머지 커밋 | main CI (push) |
+|---|---|---|---|---|
+| docs | https://github.com/OneMonthproJect/chagok-docs/pull/7 | label·pr-check PASS | `646f047` | push 워크플로 없음 |
+| backend | https://github.com/OneMonthproJect/chagok-backend/pull/3 | wrapper·build·db-test·label·pr-check PASS | `b095b4d` | PASS (wrapper·build·db-test) https://github.com/OneMonthproJect/chagok-backend/actions/runs/44983672961 |
+| frontend | https://github.com/OneMonthproJect/chagok-frontend/pull/3 | build·label·pr-check PASS | `aa0bb4c` | PASS https://github.com/OneMonthproJect/chagok-frontend/actions/runs/44983678774 |
+
+| 확인 항목 | 결과 | 근거 |
+|---|---|---|
+| `release` 라벨 자동 부착 (labeler) | PASS | 세 릴리스 PR에 자동 부착 |
+| pr-check 릴리스 경로 | PASS | 세 레포 `릴리스 PR: 나머지 형식 검사 생략`, `릴리스 커밋: 열린 이슈를 닫는 키워드 없음` |
+| 릴리스 PR에서 issue-close 미실행 | PASS | 세 레포 issue-close 실행 기록 없음, docs Issue #3 열림 유지 |
+| 머지 커밋 메시지에 닫는 키워드 없음 | PASS | `Merge pull request #N from OneMonthproJect/develop` + PR 제목 |
+| main 머지 후 브랜치 | PASS | `develop` 유지, 기본 브랜치 `main`, 자동 삭제 끔 유지. main 직접 push·강제 push 없음 |
+| main ↔ develop 내용 | 같음 | 파일 차이 0. develop이 머지 커밋 1개 뒤(Merge commit 방식이라 정상) |
+| CodeRabbit 릴리스 리뷰 | NOT RUN | 코드 레포 2건 모두 리뷰·댓글·check-run 없음. `@coderabbitai full review` 수동 요청은 하지 않음 |
+| 사람 검토 | 진행됨 | 형상관리자가 포함 PR(세 레포 #2, docs #6)의 완료 정의·내용을 확인하고 Merge commit 방식과 main 머지를 지시 |
+| 릴리스 태그 | 보류 | 이 릴리스용 태그 이름이 CONTRIBUTING에 없음. 첫 태그를 관문 1 `v0.1-gate1`로 둘지 형상관리자가 결정 |
+| 포함 안 됨 | — | docs PR #4 / Issue #3 (AI_USAGE, 사람 확인 대기) |

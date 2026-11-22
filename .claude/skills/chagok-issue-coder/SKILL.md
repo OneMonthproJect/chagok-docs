@@ -14,7 +14,7 @@ description: 차곡 GitHub 이슈 번호나 이슈 본문을 받아, CONVENTIONS
 **곧바로 코드를 쓰지 않는다.** 1~2단계를 끝내고 3단계 승인을 받은 뒤에 코드를 쓴다.
 
 **1단계 — 분석**
-1. **이슈**: `gh issue view <번호>`(지금 레포 기준) 또는 사용자가 준 본문. 지금 레포가 `chagok-backend`인지 `chagok-frontend`인지 확인하고 그 레포 코드만 쓴다. 기능 ID·단계, 건드리는 패키지, 연결(S/API/테이블, 짝 이슈), 할 일, 완료 정의, 선행 이슈를 뽑는다. 선행 이슈가 열려 있으면 알린다. 단계가 P2인데 `chagok-docs` 결정 이슈 링크가 없거나 MVP 점검 전이면 멈추고 `chagok-scope-guard`를 권한다.
+1. **이슈**: `gh issue view <번호>`(지금 레포 기준) 또는 사용자가 준 본문. 지금 레포가 `chagok-backend`인지 `chagok-frontend`인지 확인하고 그 레포 코드만 쓴다. 기능 ID·단계, 건드리는 패키지, 연결(S/API/테이블, 짝 이슈), 할 일, 완료 정의, 선행 이슈를 뽑는다. 선행 이슈가 열려 있으면 알린다. 단계가 P2인데 `chagok-docs` 결정 이슈 링크가 없거나 M3 MVP 검증 전이면 멈추고 `chagok-scope-guard`를 권한다.
 2. **규칙**: `CONVENTIONS.md` 전체(짧다), 이 레포의 `CLAUDE.md`, `.claude/rules/ai-rules.md`. 규칙은 이 스킬에 복사하지 않고 항상 거기서 읽는다.
 3. **문서**: 03 요구사항, 04 규칙·테스트 ID, 05 정책(공통 오류 처리 10장 포함), 06 권한, 07 테이블·제약, 08 요청·응답(JSON 예시)·에러 코드, 09 화면. 이 기능의 `13_changelog` 줄·닫힌 `결정` 이슈를 먼저 본다. 문서끼리 다르면 `source-of-truth.md` 순서, 기준 문서끼리 다르면 고르지 말고 ❓로 멈춘다.
 4. **기존 코드·테스트**: 이미 있는 `api` 계약, `getOwned`, `ErrorCode`, `cycle`, Entity 메서드, `shared/api/client.ts`, `StatusBadge`, 관련 테스트를 먼저 찾는다. CONVENTIONS 11장 7문항에 답한다.
