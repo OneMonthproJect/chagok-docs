@@ -1,0 +1,11 @@
+# actions/labeler v5 설정 — PR에 라벨 자동 부착 (chagok-docs)
+docs:
+  - changed-files:
+      - any-glob-to-any-file: ["docs/**", "CONTRIBUTING.md", "CONVENTIONS.md", "README.md"]
+ci:
+  - changed-files:
+      - any-glob-to-any-file: [".github/**", ".claude/**", "scripts/**", "CLAUDE.md"]
+fix:
+  - head-branch: ["^fix/"]
+release:
+  - base-branch: ["^main$"]

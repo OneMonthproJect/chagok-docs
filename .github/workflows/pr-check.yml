@@ -1,0 +1,99 @@
+# 모든 PR의 형식·비밀값을 검사한다. 세 레포 공통 부분은 같게 유지한다.
+# 실패(❌)해도 GitHub Free·브랜치 보호 없이 운영하므로 머지가 자동으로 막히지 않는다.
+# ❌인 PR은 머지하지 않는다 (CONTRIBUTING 5장). error = 차단 기준, warning = 리뷰 때 확인.
+name: pr-check
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  pr-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 형식 검사
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          FREEZE: ${{ vars.FEATURE_FREEZE }}
+        run: |
+          fail=0
+          if [ "$BASE" = "main" ]; then
+            if [ "$HEAD" != "develop" ]; then
+              echo "::error::main에는 develop만 머지합니다 (릴리스 PR)."; exit 1
+            fi
+            echo "릴리스 PR: 형식 검사 생략"; exit 0
+          fi
+
+          branch_re='^(feature|fix|docs|chore)/#[0-9]+-[a-z0-9-]+$'
+          if ! [[ "$HEAD" =~ $branch_re ]]; then
+            echo "::error::브랜치 이름은 feature|fix|docs|chore/#이슈번호-영문-이름 형식이어야 합니다. 현재: $HEAD"; fail=1
+          fi
+
+          title_re='^\[#[0-9]+\] .+'
+          if ! [[ "$TITLE" =~ $title_re ]]; then
+            echo "::error::PR 제목은 [#이슈번호] 제목 형식이어야 합니다."; fail=1
+          fi
+
+          # 같은 레포 이슈(#12) 또는 다른 레포 이슈(OneMonthproJect/chagok-docs#12)
+          if ! printf '%s' "$BODY" | grep -Eiq '(close[sd]?|fix(e[sd])?|resolve[sd]?) ([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)?#[0-9]+'; then
+            echo "::error::PR 본문에 'Closes #이슈번호'가 필요합니다 (머지 시 이슈 자동 클로즈)."; fail=1
+          fi
+
+          if [ "$FREEZE" = "true" ] && [[ "$HEAD" == feature/* ]]; then
+            echo "::error::관문 2 기능 동결 중입니다. feature/ 브랜치 PR은 머지하지 않습니다 (fix/·docs/만 가능)."; fail=1
+          fi
+          exit $fail
+
+      - name: 비밀값·민감 파일 검사 (차단)
+        if: github.base_ref != 'main'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash .github/scripts/secret-scan.sh "$BASE_SHA" "$HEAD_SHA"
+
+      - name: AI 공동 작성자 표기 검사
+        if: github.base_ref != 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # PR 본문 + 모든 커밋 메시지·작성자. Squash merge 때 커밋 트레일러가 develop 커밋에 그대로 남기 때문에 커밋까지 본다.
+          text=$(gh pr view "$PR" --repo "$REPO" --json body,commits -q '
+            (.body // ""),
+            (.commits[] | (.messageHeadline // ""), (.messageBody // ""),
+              (.authors[]? | ((.name // "") + " <" + (.email // "") + ">")))')
+          pattern='co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com|generated with \[?claude'
+          if printf '%s\n' "$text" | grep -Eiq "$pattern"; then
+            printf '%s\n' "$text" | grep -Ein "$pattern" | head -5
+            echo "::error::커밋 또는 PR 본문에 AI 공동 작성자 표기가 있습니다. 해당 줄을 지우고 다시 push해 주세요 (CONTRIBUTING 4장). 마지막 커밋이면: git commit --amend 로 메시지 수정 후 git push --force-with-lease"
+            exit 1
+          fi
+          echo "AI 표기 없음"
+
+      - name: 문서 동기화 검사 (chagok-docs)
+        if: github.base_ref != 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          files=$(gh pr view "$PR" --repo "$REPO" --json files -q '.files[].path')
+          has() { printf '%s\n' "$files" | grep -Eq "$1"; }
+          if has '^docs/(00|04|07|08)_' && ! has '^docs/13_'; then
+            echo "::warning::기준 문서(00·04·07·08)가 바뀌었습니다. 기획 변경이면 13 changelog에 한 줄 남겨 주세요."
+          fi
+          if has '^\.claude/(rules|skills|agents)/'; then
+            echo "::warning::공용 AI 설정이 바뀝니다. 머지 후 팀에 'chagok-docs pull → sync-claude.sh 다시 실행'을 공지하고 claude.ai용 .skill도 다시 배포해 주세요."
+          fi
+          if has '^(CONTRIBUTING|CONVENTIONS)\.md$'; then
+            echo "::warning::세 레포 공통 규칙이 바뀝니다. 코드 레포의 pr-check·CODEOWNERS·.coderabbit.yaml과 어긋나지 않는지 확인해 주세요."
+          fi
+          exit 0
