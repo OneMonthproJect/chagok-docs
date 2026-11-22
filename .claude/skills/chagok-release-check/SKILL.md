@@ -42,6 +42,8 @@ gh issue list --repo OneMonthproJect/chagok-backend --state open --label "P1" --
 
 **A. 완료 정의** — 머지된 기능 PR마다 PR 본문의 완료 정의 체크박스를 읽는다. 체크 안 된 항목이 있는 PR을 표로 모은다. 백엔드 이슈와 프론트 「짝 이슈」가 둘 다 머지돼야 그 기능이 완료다. 한쪽만 머지된 기능을 모은다. 코드 PR의 「문서 PR」 링크가 가리키는 `chagok-docs` PR이 머지됐는지도 본다.
 
+**A-2. 이슈 닫힘 (D-49)** — 기본 브랜치가 `main`이라 이슈는 develop 머지 때 `issue-close`가 닫는다. 이번 릴리스에 포함된 PR마다 본문 `Closes #번호`의 같은 레포 이슈가 닫혔는지 본다(`gh issue view <번호> --repo OneMonthproJect/<레포> --json state`). 열려 있으면 PR에 `done-verified` 라벨이 없는지, 검사가 실패했는지 확인해 표로 모은다. 완료가 맞으면 원래 PR에 `done-verified`를 붙여 develop 기준으로 닫으라고 안내하고, 미완이면 "확인 필요"에 적는다. 다른 레포 이슈를 가리킨 `Closes`는 자동으로 닫히지 않으므로 그 레포에서 닫혔는지 따로 본다. 포함 커밋 메시지(`git log origin/main..origin/develop`)에 `Closes`·`Fixes`·`Resolves #번호`가 있으면 릴리스 PR의 pr-check가 열린 이슈에 대해 ❌를 내므로 미리 표시한다.
+
 **B. 범위**
 - 중간 점검: 열린 `P0-핵심` 이슈가 있으면 미달. P1·P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시.
 - MVP 점검: 열린 `P0-핵심`·`P0-나머지`·`P1` 이슈가 있으면 미달. P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시.
@@ -137,7 +139,7 @@ git -C chagok-backend push origin v0.5-midcheck
 gh release create v0.5-midcheck --repo OneMonthproJect/chagok-backend --generate-notes --title "v0.5 중간 점검"
 ```
 
-릴리스 PR 본문에는 판정, 포함 PR 목록, 해결한 막는 항목, 미룬 CodeRabbit 지적과 사유, 다른 두 레포의 릴리스 PR 링크를 넣는다. 코드 레포는 `release` 라벨이 자동으로 붙고 CodeRabbit이 리뷰를 시작한다(`chagok-docs`는 CodeRabbit 없음). 시작하지 않으면 `@coderabbitai full review` 댓글을 안내한다.
+릴리스 PR 본문에는 판정, 포함 PR 목록, 포함 이슈(`Refs #12`처럼. **`Closes`·`Fixes`·`Resolves`는 쓰지 않는다** — 기본 브랜치가 `main`이라 머지 때 이슈가 닫히고, pr-check가 ❌로 막는다. D-49), 해결한 막는 항목, 미룬 CodeRabbit 지적과 사유, 다른 두 레포의 릴리스 PR 링크를 넣는다. 제목에도 닫는 키워드를 넣지 않는다. 릴리스 PR을 머지한 뒤 화면의 Delete branch는 누르지 않는다(`develop` 유지). 코드 레포는 `release` 라벨이 자동으로 붙고 CodeRabbit이 리뷰를 시작한다(`chagok-docs`는 CodeRabbit 없음). 시작하지 않으면 `@coderabbitai full review` 댓글을 안내한다.
 
 명령은 모두 사람이 실행한다. `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻고, `main`으로의 직접 push는 막혀 있다.
 
