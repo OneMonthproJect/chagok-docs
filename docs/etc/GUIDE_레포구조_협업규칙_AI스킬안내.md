@@ -342,7 +342,7 @@ M1 설계 확정 이후 명세를 바꾸는 순서:
 | 07 ERD | backend `src/main/resources/db/migration/V*.sql`, `db/seed/demo_seed.sql`, Entity | 마이그레이션이 바뀌면 문서 PR 링크 필수(pr-check ❌). 이미 있는 버전 파일은 고치지 않고 새 번호로 |
 | 08 API | backend Controller · DTO · ErrorCode, frontend `features/*/api.ts` · `types.ts` | 바뀌면 08의 표와 JSON 예시를 함께 수정하는 문서 PR, 반대쪽 담당에게 링크 공유. 자동 검사가 경고 |
 | 04 주기 규칙 | backend `domain/cycle`, 테스트 T1~T17(04) | 규칙을 바꾸면 테스트 기대값부터. 도메인관리 리뷰 필수 |
-| 격리 규칙 | backend 모든 정비소 데이터 조회 | 테스트 X1~X10. 실패하면 머지 금지 |
+| 격리 규칙 | backend 모든 정비소 데이터 조회 | 테스트 X1~X16. 실패하면 머지 금지 |
 | 09 화면 | frontend `src/pages` | 화면 ID와 페이지 파일 1:1 |
 | 00 범위 | 존재하는 기능 전체 | 차례가 오지 않은 단계(M3 MVP 검증 전 P2 등) · Non-goal 기능은 빈 화면 · 버튼 · API · 테이블로도 만들지 않음 |
 
