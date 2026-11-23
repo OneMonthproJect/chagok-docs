@@ -89,7 +89,8 @@ screen/booking ─┤   (booking: reservation.api·customer.api·maintenance.api
                 └──▶ cycle
 
 maintenance ────┬──▶ customer.api     (차량이 우리 정비소 것인지)
-                └──▶ item.api         (항목이 있는지)
+                ├──▶ item.api         (항목이 있는지)
+                └──▶ account.api        (담당 정비사가 우리 정비소 사람인지, D-55)
 reservation ────┬──▶ customer.api
                 ├──▶ item.api         (예약 목적 항목, D-38)
                 └──▶ account.api        (담당 정비사가 우리 정비소 사람인지, D-51)
@@ -102,7 +103,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | 규칙 | 내용 |
 |---|---|
 | 외래키 방향 = 코드 방향 | `maintenance_record → vehicle`이므로 maintenance가 customer를 부른다. 거꾸로는 안 된다 |
-| 담당 정비사 검증은 `account.api`로 | `reservation → account.api`(허용 의존). 담당은 요청 값이라(`assigneeId`, 08 0.1·X13) 그 정비소의 활성 사장·정비사인지 확인한다. staff 표는 `account` 도메인에 있으므로 이 `api`는 `account`의 `api` 패키지에 둔다. 담당 검증은 P0-나머지부터 필요하다(P0-핵심은 토큰의 계정이 담당이다). staff 쪽은 reservation을 부르지 않는다 |
+| 담당 정비사 검증은 `account.api`로 | `reservation → account.api`, `maintenance → account.api`(허용 의존). 담당은 요청 값이라(`assigneeId`·`mechanicId`, 08 0.1·X13) 그 정비소의 활성 사장·정비사인지 확인한다. staff 표는 `account` 도메인에 있으므로 이 `api`는 `account`의 `api` 패키지에 둔다. 담당 검증은 P0-나머지부터 필요하다(P0-핵심은 토큰의 계정이 담당이다). staff 쪽은 reservation·maintenance를 부르지 않는다 |
 | `cycle`은 아무것도 모른다 | 입력은 값(record), 출력도 값. `java.time`만 쓴다. 그래서 테스트에 DB가 필요 없다 |
 | "방문 완료 → 정비 기록 등록" 연결은 **화면 이동**이다 | reservation이 maintenance를 부르지 않는다. 프론트가 방문 완료 응답을 받고 정비 기록 화면으로 보낸다 |
 | shop_id는 `global/auth`의 로그인 정보에서 | 도메인들이 shop 도메인을 부를 필요가 없다 |
@@ -214,7 +215,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | pr-check DB·Flyway 규칙 | 공유된 마이그레이션 수정, 이름 규칙, `schema.sql`·`data.sql`, classpath 안 시드, `ddl-auto` ≠ validate | 이미 있음 (❌) |
 | cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 |
 | 예약 규칙 테스트 R1~R29 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
-| 격리 테스트 X1~X10 | 남의 정비소 데이터 → 404 | 각 도메인 이슈 |
+| 격리 테스트 X1~X16 | 남의 정비소 데이터 → 404 | 각 도메인 이슈 |
 | Flyway + 빈 MySQL CI(`backend-ci`), 기존 버전 파일 수정 차단(`pr-check`) | 스키마 차이 | `기반` 이슈 |
 | ESLint 경계 규칙 | 프론트 feature 간 import | 프론트 `기반` 이슈 |
 | pr-check | 한 PR이 도메인 3개(프론트는 feature 3개) 이상을 건드리면 경고, 명세 변경인데 `chagok-docs` 문서 PR 링크가 없으면 경고·차단 | 이미 있음 |
@@ -229,7 +230,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | `global은_domain과_screen을_모른다` | global → domain·screen 의존 금지 |
 | `screen은_아무도_import하지_않는다` | screen 밖에서 screen 의존 금지 (domain → screen 포함) |
 | `다른_도메인은_api로만` (도메인별) | 다른 도메인의 `api` 밖(Entity·Repository·Service·DTO) 의존 금지 |
-| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 (`reservation → account.api` 허용 포함) |
+| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 (`reservation → account.api`, `maintenance → account.api` 허용 포함) |
 | `도메인_사이_순환_없음` | 도메인 사이 순환 금지 |
 | `cycle은_순수_계산이다` | cycle → 다른 도메인·Spring·JPA 금지 |
 | `Controller는_Repository를_직접_쓰지_않는다` | |
@@ -254,11 +255,13 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | P0-나머지 외부 정비·거절 입력 | maintenance 입력 화면·검증 (enum 값과 cycle 처리는 이미 있음, 결정 6) | maintenance만 |
 | P0-나머지 점검 결과(양호/주의) | maintenance 결과 칸(마이그레이션 V파일) + cycle의 "지난 점검 주의" 판정 + 화면 표시 | maintenance·cycle, 추가 위주 |
 | P1 차량 약식 도면 | 프론트 차량 상세 페이지에 도면 컴포넌트 (상태는 기존 응답 그대로, 색은 StatusBadge 기준) | 프론트 1곳 |
+| P0-나머지 정비 기록 수정 | maintenance 내부(+ revision 표, V파일) + account.api 조회 메서드 | maintenance + 추가 1개 |
 | P1 월평균 주행거리 추정 | `cycle` + `maintenance.api`에 주행거리 이력 메서드 추가 + `screen/target` | 3곳, 추가 위주 |
 | P1 연락 결과 기록 | 새 `domain/contact`(표 1개, 새 마이그레이션 V파일) + `screen/target`에 표시 한 줄 | 새 패키지 + 1줄 |
 | P1 신규·재방문 집계 | 새 `screen/stats` + 필요한 `api` 메서드 추가 | 새 패키지 |
 | P1 정비소 개설·정지 | 새 `screen/admin` 또는 `domain/shop` 내부 + `shop.api` + SecurityConfig 규칙 1줄 | shop + 1줄 |
 | P1 정비소별 항목 설정 화면 | `item` 내부 + 화면 1개 | item만 |
+| P1 고객 비활성화·삭제·익명화 | customer 내부 + reservation.api·maintenance.api 조회 메서드 2개 | customer + 추가 2개 |
 | P2 (M3 MVP 검증 후, 결정 이슈로 하나씩) | 상세 기획안 13장 「추가할 것」 기준. 새 패키지·새 마이그레이션 위주 | 이 표보다 많이 건드리면 결정 이슈에서 다시 판단 |
 
 ---
