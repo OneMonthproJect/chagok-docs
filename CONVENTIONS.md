@@ -89,9 +89,11 @@ screen/booking ─┤   (booking: reservation.api·customer.api·maintenance.api
                 └──▶ cycle
 
 maintenance ────┬──▶ customer.api     (차량이 우리 정비소 것인지)
-                └──▶ item.api         (항목이 있는지)
+                ├──▶ item.api         (항목이 있는지)
+                └──▶ account.api        (담당 정비사가 우리 정비소 사람인지, D-55)
 reservation ────┬──▶ customer.api
-                └──▶ item.api         (예약 목적 항목, D-38)
+                ├──▶ item.api         (예약 목적 항목, D-38)
+                └──▶ account.api        (담당 정비사가 우리 정비소 사람인지, D-51)
 account ────────────▶ shop.api
 customer, item, shop, cycle ──▶ (다른 도메인 없음)
 
@@ -101,6 +103,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | 규칙 | 내용 |
 |---|---|
 | 외래키 방향 = 코드 방향 | `maintenance_record → vehicle`이므로 maintenance가 customer를 부른다. 거꾸로는 안 된다 |
+| 담당 정비사 검증은 `account.api`로 | `reservation → account.api`, `maintenance → account.api`(허용 의존). 담당은 요청 값이라(`assigneeId`·`mechanicId`, 08 0.1·X13) 그 정비소의 활성 사장·정비사인지 확인한다. staff 표는 `account` 도메인에 있으므로 이 `api`는 `account`의 `api` 패키지에 둔다. 담당 검증은 P0-나머지부터 필요하다(P0-핵심은 토큰의 계정이 담당이다). staff 쪽은 reservation·maintenance를 부르지 않는다 |
 | `cycle`은 아무것도 모른다 | 입력은 값(record), 출력도 값. `java.time`만 쓴다. 그래서 테스트에 DB가 필요 없다 |
 | "방문 완료 → 정비 기록 등록" 연결은 **화면 이동**이다 | reservation이 maintenance를 부르지 않는다. 프론트가 방문 완료 응답을 받고 정비 기록 화면으로 보낸다 |
 | shop_id는 `global/auth`의 로그인 정보에서 | 도메인들이 shop 도메인을 부를 필요가 없다 |
@@ -114,7 +117,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | 항목 상태(미확인/여유/임박/도래), 임박 기준, 도래 경계(≥), km 판정, "지난 방문 거절"·"지난 점검 주의" 표시 판정 | `domain/cycle` | 부르기만 한다. 날짜·km 비교를 직접 쓰지 않는다 |
 | 정비소 소속 확인 | 각 도메인 service의 `getOwned(shopId, id)` 한 메서드 | 조회는 모두 이 메서드나 `findBy…AndShopId`로. 없거나 남의 것이면 같은 `NOT_FOUND`(404) |
 | 역할 확인(사장만 가능한 일) | `SecurityConfig` URL 규칙 | 서비스 안에서 역할 `if` 분기를 만들지 않는다 |
-| 예약 상태 전이(예약 → 방문 완료/취소/노쇼)와 변경 가능 여부 | `Reservation` Entity 메서드 `complete()`, `cancel()`, `markNoShow(now)`, `reschedule(…)` | 끝난 예약을 바꾸려 하면 Entity가 거절한다. 동시 수정은 `@Version`이 막는다 |
+| 예약 상태 전이(예약 → 진행중 → 방문 완료/취소, 예약 → 노쇼)와 변경 가능 여부 | `Reservation` Entity 메서드 `start()`, `complete()`, `cancel()`, `markNoShow(now)`, `reschedule(…)` | 끝난 예약을 바꾸려 하면 Entity가 거절한다. 동시 수정은 `@Version`이 막는다 |
 | 정비 구분(교체/점검/외부/거절)이 주기를 다시 시작하는지 | `RecordType` enum의 `resetsCycle()` | `if (type == REPLACE || …)`를 여기저기 쓰지 않는다 |
 | 현재 시각 | `Clock` 빈 하나 | `LocalDate.now()` 직접 호출 금지. Entity·cycle은 시각을 인자로 받는다 |
 | 상태 표시 문구·색 | 프론트 `shared/ui/StatusBadge` | 화면마다 색·문구를 따로 정하지 않는다. 프론트는 상태를 계산하지 않는다 |
@@ -135,6 +138,8 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | global | 인증·오류·공통 응답·시각 같은 기술 기반 | 업무 규칙, domain·screen import(ArchitectureTest) |
 
 규칙끼리 부딪혀서 지키기 어려운 경우(예: 3장 표에 없는 방향이 꼭 필요함), 우회 코드를 만들지 말고 멈추고 설계 검토(`결정` 이슈)로 올린다.
+
+권한 판정 한 곳(06 7.5): 사장 전용·담당·기간(예: 정비사는 본인 담당 + 3일) 판정은 서비스에 `if (role == …)`를 흩뜨리지 않고 도메인의 `…Policy`/`EditRule` 하나에서 한다(4장 "역할 확인" 행과 함께, 11장 7문항으로 확인).
 
 Entity 연관: 같은 도메인 안(customer–vehicle)만 `@ManyToOne(fetch = LAZY)` 허용. 다른 도메인은 `Long vehicleId`처럼 ID로만.
 
@@ -205,12 +210,12 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | 장치 | 무엇을 막나 | 만드는 때 |
 |---|---|---|
 | `ArchitectureTest` (ArchUnit, 아래) | 규칙 1·2·4, 3장 의존 방향, global → domain·screen, Controller의 Repository 주입, Entity setter | **B-0에서 만듦** (`chagok-backend/src/test/java/…/architecture/ArchitectureTest.java`). 대상 클래스가 없는 규칙은 SKIPPED |
-| `EndpointGuardTest` | 등록 안 된 경로 거부, 토큰 없이 `/api/**` 401, 관리자 토큰으로 `/api/**` 403, 정비소 토큰으로 `/api/admin/**` 403, `/actuator/health`만 공개 (SecurityConfig는 `anyRequest().denyAll()`로 끝) | `기반` 이슈 B-1 (설계: 12 백로그 9장). 보호할 API가 없는 지금은 만들지 않는다 |
+| `EndpointGuardTest` | 등록 안 된 경로 거부, 토큰 없이 `/api/**` 401, 서비스 관리자 토큰으로 `/api/**` 403, 정비소 토큰으로 `/api/admin/**` 403, `/actuator/health`만 공개 (SecurityConfig는 `anyRequest().denyAll()`로 끝) | `기반` 이슈 B-1 (설계: 12 백로그 9장). 보호할 API가 없는 지금은 만들지 않는다 |
 | pr-check 비밀값 검사 | `.env`·키 파일, 토큰 형태, 설정 파일의 평문 비밀번호 | 이미 있음 (❌) |
 | pr-check DB·Flyway 규칙 | 공유된 마이그레이션 수정, 이름 규칙, `schema.sql`·`data.sql`, classpath 안 시드, `ddl-auto` ≠ validate | 이미 있음 (❌) |
 | cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 |
-| 예약 규칙 테스트 R1~R8 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
-| 격리 테스트 X1~X10 | 남의 정비소 데이터 → 404 | 각 도메인 이슈 |
+| 예약 규칙 테스트 R1~R29 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
+| 격리 테스트 X1~X16 | 남의 정비소 데이터 → 404 | 각 도메인 이슈 |
 | Flyway + 빈 MySQL CI(`backend-ci`), 기존 버전 파일 수정 차단(`pr-check`) | 스키마 차이 | `기반` 이슈 |
 | ESLint 경계 규칙 | 프론트 feature 간 import | 프론트 `기반` 이슈 |
 | pr-check | 한 PR이 도메인 3개(프론트는 feature 3개) 이상을 건드리면 경고, 명세 변경인데 `chagok-docs` 문서 PR 링크가 없으면 경고·차단 | 이미 있음 |
@@ -225,7 +230,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | `global은_domain과_screen을_모른다` | global → domain·screen 의존 금지 |
 | `screen은_아무도_import하지_않는다` | screen 밖에서 screen 의존 금지 (domain → screen 포함) |
 | `다른_도메인은_api로만` (도메인별) | 다른 도메인의 `api` 밖(Entity·Repository·Service·DTO) 의존 금지 |
-| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 |
+| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 (`reservation → account.api`, `maintenance → account.api` 허용 포함) |
 | `도메인_사이_순환_없음` | 도메인 사이 순환 금지 |
 | `cycle은_순수_계산이다` | cycle → 다른 도메인·Spring·JPA 금지 |
 | `Controller는_Repository를_직접_쓰지_않는다` | |
@@ -250,11 +255,13 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | P0-나머지 외부 정비·거절 입력 | maintenance 입력 화면·검증 (enum 값과 cycle 처리는 이미 있음, 결정 6) | maintenance만 |
 | P0-나머지 점검 결과(양호/주의) | maintenance 결과 칸(마이그레이션 V파일) + cycle의 "지난 점검 주의" 판정 + 화면 표시 | maintenance·cycle, 추가 위주 |
 | P1 차량 약식 도면 | 프론트 차량 상세 페이지에 도면 컴포넌트 (상태는 기존 응답 그대로, 색은 StatusBadge 기준) | 프론트 1곳 |
+| P0-나머지 정비 기록 수정 | maintenance 내부(+ revision 표, V파일) + account.api 조회 메서드 | maintenance + 추가 1개 |
 | P1 월평균 주행거리 추정 | `cycle` + `maintenance.api`에 주행거리 이력 메서드 추가 + `screen/target` | 3곳, 추가 위주 |
 | P1 연락 결과 기록 | 새 `domain/contact`(표 1개, 새 마이그레이션 V파일) + `screen/target`에 표시 한 줄 | 새 패키지 + 1줄 |
 | P1 신규·재방문 집계 | 새 `screen/stats` + 필요한 `api` 메서드 추가 | 새 패키지 |
 | P1 정비소 개설·정지 | 새 `screen/admin` 또는 `domain/shop` 내부 + `shop.api` + SecurityConfig 규칙 1줄 | shop + 1줄 |
 | P1 정비소별 항목 설정 화면 | `item` 내부 + 화면 1개 | item만 |
+| P1 고객 비활성화·삭제·익명화 | customer 내부 + reservation.api·maintenance.api 조회 메서드 2개 | customer + 추가 2개 |
 | P2 (M3 MVP 검증 후, 결정 이슈로 하나씩) | 상세 기획안 13장 「추가할 것」 기준. 새 패키지·새 마이그레이션 위주 | 이 표보다 많이 건드리면 결정 이슈에서 다시 판단 |
 
 ---

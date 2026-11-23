@@ -211,7 +211,7 @@ M4 기능 동결 이후에는 `FEATURE_FREEZE=true`로 바꾼다(Organization �
 | 07 ERD | backend `src/main/resources/db/migration/V*.sql`, `db/seed/demo_seed.sql`, Entity | 마이그레이션이 바뀌면 07 문서 PR 링크 필수 (pr-check ❌). 이미 있는 버전 파일은 고치지 않는다 |
 | 08 API | backend Controller·DTO·ErrorCode, frontend `features/*/api.ts`·`types.ts` | 바뀌면 08 문서 PR (pr-check가 경고). **JSON 예시 블록도 같이**. 반대쪽 담당에게 PR 링크 공유 |
 | 04 주기 규칙 | backend `domain/cycle`, 테스트 T1~T17(04) | 규칙을 바꾸면 테스트 기대값부터. 도메인관리 리뷰 필수 |
-| 격리 규칙 | backend 모든 정비소 데이터 조회 | 테스트 X1~X10. 실패하면 머지 금지 |
+| 격리 규칙 | backend 모든 정비소 데이터 조회 | 테스트 X1~X16. 실패하면 머지 금지 |
 | 09 화면 | frontend `src/pages` | 화면 ID와 페이지 1:1 |
 | 00 범위 | 존재하는 기능 전체 | 차례가 오지 않은 단계(M3 MVP 검증 전 P2 등)·Non-goal 기능은 빈 화면·버튼·API·테이블로도 만들지 않음 |
 
@@ -273,7 +273,7 @@ M4 기능 동결 이후에는 `FEATURE_FREEZE=true`로 바꾼다(Organization �
 
 ## 부록: 초기 설정 체크리스트
 
-레포 생성·첫 커밋은 @하다가, 이후 관리는 형상관리자가 맡는다. Organization 안의 레포라 소유권을 옮길 필요 없이 **형상관리자에게 세 레포 Admin 권한**을 주면 된다.
+레포 생성·첫 커밋은 최은정(eunjung01230)이, 이후 관리는 형상관리자가 맡는다. Organization 안의 레포라 소유권을 옮길 필요 없이 **형상관리자에게 세 레포 Admin 권한**을 주면 된다.
 
 **Organization (한 번)**
 - [ ] 레포를 만들 계정에 레포 생성 권한(Owner 또는 Member privileges의 레포 생성 허용)
