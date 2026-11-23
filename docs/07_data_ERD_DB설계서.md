@@ -3,7 +3,7 @@
 > 테이블·관계·제약조건·격리 규칙·시드 구성 — **테이블·컬럼·제약·격리 I-xx·시드표의 원본**
 
 상태: 작성됨 (2026-11-22 · @하다) — M1 설계 확정 때 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서 + 13 changelog → 새 Flyway 버전 파일
-근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, M1 결정 A~D (13 changelog, chagok-docs#12)
+근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, **D-57·D-58(2026-11-23 회의 결정: 역할 개정·필수 입력)**, M1 결정 A~D (13 changelog, chagok-docs#12)
 DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
 
 ---
@@ -79,6 +79,7 @@ erDiagram
 | password_change_required | BOOLEAN | NOT NULL, 기본 FALSE | 임시 비밀번호 계정 (P1에서 사용) |
 | created_at | DATETIME | NOT NULL | |
 
+- **P1(V3)에 추가 (D-57)**: `active BOOLEAN NOT NULL DEFAULT TRUE` — 정비사 비활성화(F-STF-01). 삭제는 없다.
 `login_id`는 `platform_admin`과 겹쳐도 된다(로그인 API가 다르다, 08).
 
 ### 3.4 `customer` — 고객
@@ -104,9 +105,9 @@ erDiagram
 | shop_id | BIGINT | NOT NULL, FK → shop.id | 고객의 `shop_id`와 같아야 함 (I-2) |
 | customer_id | BIGINT | NOT NULL, FK (shop_id, customer_id) → customer(shop_id, id) | 복합 FK (5.1) |
 | plate_number | VARCHAR(20) | NOT NULL | 공백 제거. **중복 허용** (UNIQUE 없음) |
-| model | VARCHAR(50) | NULL | 차종 |
-| model_year | SMALLINT | NULL | 연식. 범위(1980~올해+1)는 서버 검증만 (올해는 CHECK에 쓸 수 없음) |
-| latest_mileage | INT | NULL, CHECK ≥ 0 | 최근 주행거리. 등록 때 입력 또는 방문 기록으로 갱신 |
+| model | VARCHAR(50) | NULL | 차종. **서버 검증으로 필수**(D-58). DB는 NULL을 허용한다 |
+| model_year | SMALLINT | NULL | 연식. 선택이지만 비어 있으면 정비 시작(방문 접수)·정비 기록 첫 저장 때 필수(D-58, 서버 검증). 범위(1980~올해+1)는 서버 검증만 (올해는 CHECK에 쓸 수 없음) |
+| latest_mileage | INT | NULL, CHECK ≥ 0 | 최근 주행거리. 선택이지만 비어 있으면 정비 시작·정비 기록 첫 저장 때 필수(D-58). 등록 때 입력 또는 방문 기록으로 갱신 |
 | created_at | DATETIME | NOT NULL | |
 | updated_at | DATETIME | NOT NULL | |
 
@@ -217,7 +218,7 @@ erDiagram
 | I-2 | 자식의 `shop_id`는 부모의 `shop_id`와 같다 (차량↔고객, 기록·예약↔차량, 기록·예약 목적↔정비 항목, 예약 목적↔예약) | ① 서버: 저장 전 `getOwned(shopId, id)`로 부모를 먼저 찾아서 그 `shop_id`를 씀 ② DB: 복합 FK (5.1, V1 검증 6.3) |
 | I-3 | 정비소 데이터 조회는 모두 토큰의 `shop_id` 조건을 건다. 요청 값의 `shop_id`는 쓰지 않는다 | Repository `…AndShopId`, X8 |
 | I-4 | 없거나 남의 것이면 같은 404 | `getOwned`, X1~X6 |
-| I-5 | `platform_admin`에는 `shop_id`가 없고, 관리자 토큰으로는 정비소 테이블을 조회할 경로가 없다 | SecurityConfig, X9 |
+| I-5 | `platform_admin`에는 `shop_id`가 없고, 서비스 관리자 토큰으로는 정비소 테이블을 조회할 경로가 없다 | SecurityConfig, X9 |
 
 ### 5.1 정비소 간 참조 분석 (M1 결정 A)
 
@@ -236,7 +237,7 @@ erDiagram
 | reservation_item → service_item | 요청 값 (`purpose.itemIds`) | 그 정비소의 쓰는 항목인지 | **복합 FK** (shop_id, service_item_id) | 400 `INVALID_INPUT` (X11) |
 | maintenance_record → staff | 토큰 | — | FK `staff_id` | 구조상 없음 |
 | reservation → staff (`created_by_staff_id`) | 토큰 | — | FK | 구조상 없음 |
-| shop → platform_admin | P1 관리자 토큰 | — | FK (NULL 허용) | 정비소 범위 밖 |
+| shop → platform_admin | P1 서비스 관리자 토큰 | — | FK (NULL 허용) | 정비소 범위 밖 |
 
 - 복합 FK는 위 6개만 둔다. staff를 가리키는 두 관계는 값이 토큰에서만 오므로 복합 FK와 `staff`의 UNIQUE(shop_id, id)를 더하지 않는다(불필요한 제약을 늘리지 않음).
 - 복합 FK의 부모 쪽 UNIQUE(shop_id, id)는 customer·vehicle·service_item·reservation 4개 테이블에만 있다. `id`가 PK라 값이 겹칠 일은 없고, FK가 참조할 키를 만드는 용도다.
@@ -363,7 +364,21 @@ V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남
 | 오세훈 010-0000-0010 (Y) | 55차0010 | 배터리 교체 D-36M+20d, 엔진오일 교체 D-1M, 에어클리너 교체 D-3M, 에어컨필터 교체 D-3M | 배터리 임박 | ○ | 이력 많은 차량 (방문 3회 이상) |
 | 〃 | 66카0011 | 없음 | 전부 미확인 | × | 한 고객 여러 차량 |
 
-차종·연식·최근 주행거리는 08 JSON 예시와 같게 넣는다: 78라0004 K5·2020·45,000km, 55차0010 쏘나타·2018·97,000km, 90마0005 아반떼·2019. 그 밖은 비워도 된다.
+**차종은 모든 차량에 값이 필요하다**(D-58). 차종·연식·최근 주행거리는 08 JSON 예시와 같게 아래처럼 넣는다. 임의의 가짜 값이며, 시드 작성 때 기록의 km·날짜와 어긋나면 숫자만 맞추고 이 표에 반영한다.
+
+| 차량 | 차종 | 연식 | 최근 주행거리 | 비고 |
+|---|---|---|---|---|
+| 12가0001 | 아반떼 | 💡 2019 | 💡 40,000 | 엔진오일 기록의 km와 맞춤 |
+| 34나0002 | 소나타 | 💡 2018 | 💡 60,000 | |
+| 56다0003 | 그랜저 | 💡 2017 | 💡 80,000 | |
+| 78라0004 | K5 | 2020 | 45,000 | 08 예시 |
+| 90마0005 | 아반떼 | 2019 | **비움** | 주행거리 없음 → "정비 시작 때 입력" 확인용 |
+| 11바0006 | 투싼 | 💡 2016 | 💡 70,000 | |
+| 22사0007 | 쏘렌토 | 💡 2018 | 💡 55,000 | |
+| 33아0008 | 스포티지 | 💡 2021 | 💡 30,000 | |
+| 44자0009 | 아반떼 | 💡 2015 | 💡 90,000 | |
+| 55차0010 | 쏘나타 | 2018 | 97,000 | 08 예시 |
+| 66카0011 | K3 | **비움** | **비움** | 한 고객 여러 차량 + 연식·주행거리 없음 확인용 |
 
 ### 7.3 A 정비소 예약
 
@@ -378,7 +393,7 @@ V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남
 
 | 고객 | 차량 | 기록 | 확인 |
 |---|---|---|---|
-| 강동원 010-0000-0101 (Y) | **12가0001** (A의 김민수와 같은 번호) | 엔진오일 교체 D-7M | A에서 검색해도 안 보임 (X7), A 토큰으로 id 조회 시 404 (X1·X2) |
+| 강동원 010-0000-0101 (Y) | **12가0001** (A의 김민수와 같은 번호), 차종 아반떼 💡 | 엔진오일 교체 D-7M | A에서 검색해도 안 보임 (X7), A 토큰으로 id 조회 시 404 (X1·X2) |
 
 ### 7.5 시드 기대값 (매일 마감 전 확인용)
 
@@ -388,5 +403,7 @@ V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남
 | 홈 "오늘 연락할 고객" | 5명 (김민수·박철수·한가람·윤하늘·오세훈) |
 | 재점검 대상 목록 | 6대 (위 5명의 차량 + 이영희 34나0002 "예약 있음") |
 | A 정비소 고객 수 | 10명, 차량 11대 |
+
+D-58 반영(차종 값)으로 이 기대값은 **바뀌지 않는다**.
 
 시드는 `chagok-seed-data` 스킬로 만들고(`demo_seed.sql`), 기대값이 바뀌면 이 절과 08 JSON 예시를 같이 고친다.
