@@ -2,7 +2,7 @@
 
 > 기능 ID ↔ 이슈 ↔ 담당 ↔ 선행 작업 (계속 수정)
 
-상태: 1차 계획 (2026-11-22 · @하다) — 담당은 D-14, 이슈 번호는 GitHub에 올린 뒤 채운다
+상태: 1차 계획 (2026-11-22 · 최은정(eunjung01230)) — 담당은 D-14, 이슈 번호는 GitHub에 올린 뒤 채운다
 근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장, 13 changelog D-51~D-59
 작업 상태의 원본은 Organization `OneMonthproJect`의 Projects 보드다. 이 문서에는 계획과 연결만 둔다. 이슈는 `chagok-issue-writer`로 만든다.
 
@@ -108,7 +108,7 @@
 
 - **D-56 착수 조건**: 34-1·34-2·34-5(그리고 V3의 `customer.status`·`anonymized_at`·`vehicle.active`)의 구현 이슈는 05 POL-46(차량번호·정비 이력 영구 보존의 법적 근거 확인, 담당 PM, 시한 💡 M3 MVP 검증 전) 확인이 끝난 뒤에 연다. 문서는 확정되어 있다.
 
-## 7. 담당 (D-14 후 채움)
+## 7. 담당 (D-14: 역할·소속 확정, 영역별 분담은 이슈 착수 때 채움)
 
 | 영역 | 백엔드 | 프론트 |
 |---|---|---|
@@ -116,11 +116,11 @@
 | 계정·인증 (account) | | |
 | 고객·차량 (customer) | | |
 | 정비 기록·항목 (maintenance·item) | | |
-| 주기 계산 (cycle) | | (리뷰: 도메인관리) |
+| 주기 계산 (cycle) | | (리뷰: 도메인관리 최은정(eunjung01230)) |
 | 재점검 대상·홈 (screen/target) | | |
 | 예약·패널 (reservation·screen/booking) | | |
 | 방문 중 안내 (screen/visit) | | |
-| DB·시드 | DB관리 2명 | — |
+| DB·시드 | DB관리 2명: 이재성(godgeul-glitch)·이영주(softy20) | — |
 
 ## 8. 이슈 완료 기준
 

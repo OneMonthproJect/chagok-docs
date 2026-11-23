@@ -273,7 +273,7 @@ M4 기능 동결 이후에는 `FEATURE_FREEZE=true`로 바꾼다(Organization �
 
 ## 부록: 초기 설정 체크리스트
 
-레포 생성·첫 커밋은 @하다가, 이후 관리는 형상관리자가 맡는다. Organization 안의 레포라 소유권을 옮길 필요 없이 **형상관리자에게 세 레포 Admin 권한**을 주면 된다.
+레포 생성·첫 커밋은 최은정(eunjung01230)이, 이후 관리는 형상관리자가 맡는다. Organization 안의 레포라 소유권을 옮길 필요 없이 **형상관리자에게 세 레포 Admin 권한**을 주면 된다.
 
 **Organization (한 번)**
 - [ ] 레포를 만들 계정에 레포 생성 권한(Owner 또는 Member privileges의 레포 생성 허용)
