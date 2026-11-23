@@ -36,7 +36,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item, staff(재배정·담당 중복, P0-나머지) / reservation, reservation_item, reservation_revision(ASSIGNEE, V2) (version) | 19, 36, 41 (재배정·36·41은 P0-나머지) | M-02 | R7~R9, R11, R14, R18, R20, R24, X11~X13 |
 | F-RSV-07 | P0-나머지 | REQ-19 | reservation / reservation (version) | 20 | S-02 패널 | R10, R12, R13, X12 |
 | F-RSV-08 | P0-나머지 | REQ-19 | reservation / reservation(NO_SHOW, V2) | 21 | S-02 패널 | R6, R10, R12, R13, X12 |
-| F-RSV-09 | P0-나머지 | REQ-28 | reservation, vehicle / reservation(IN_PROGRESS, V2) (version), vehicle(연식·최근 주행거리) | 39 | S-02 패널 | R21~R23, R10, R12, R13, X12 |
+| F-RSV-09 | P0-나머지 | REQ-28 | reservation, vehicle / reservation(IN_PROGRESS, V2) (version), vehicle(연식·최근 주행거리) | 39 | S-02 패널 | R21~R23, R10, R12, R13, X14 |
 | F-RSV-10 | P0-나머지 | REQ-29 | reservation / reservation (version), reservation_revision(STATUS·MEMO, V2) | 40, 41 | S-02 패널 | R25~R29, X14 |
 | F-CUS-06 | P0-나머지 | REQ-20 | customer, vehicle / customer, vehicle (version, V2) | 22, 23 | S-06, S-07 | X12 |
 | F-CUS-07 | P0-나머지 | (NFR) | customer / — | 04, 05, 14, 15 | S-02, S-04, S-05 | |
