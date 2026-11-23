@@ -151,7 +151,7 @@ P1이다. D-56은 법적 근거 확인(05 POL-46, 담당 PM) 완료 후에 구�
 
 | ID | 내용 | 상태 |
 |---|---|---|
-| V1-1·V1-2 | 빈 DB에 V1 적용·앱 기동(`validate`), FK 목록(복합 8 + 단일 9, 담당 정비사 복합 FK 2개 `fk_reservation_assignee`·`fk_maintenance_record_staff` 포함), `staff`의 `UNIQUE(shop_id, id)` | 미구현 (V1 없음) |
+| V1-1·V1-2 | 빈 DB에 V1 적용·앱 기동(`validate`), FK 목록(복합 8 + 단일 9, 담당 정비사 복합 FK 2개 `fk_reservation_assignee_staff`·`fk_maintenance_record_staff` 포함), `staff`의 `UNIQUE(shop_id, id)` | 미구현 (V1 없음) |
 | V1-3~V1-5 | 다른 정비소 부모를 가리키는 vehicle·maintenance_record·reservation·reservation_item INSERT 실패. **담당 FK**: A 정비소 예약의 `assignee_staff_id`·A 정비소 기록의 `staff_id`에 B 정비소 정비사를 넣으면 실패(1452) | 미구현 (V1 없음) |
 | V1-6~V1-10 | CHECK(30분·초, EXTERNAL↔출처, NO_SHOW 없음)·UNIQUE·차량번호 중복 허용 | 미구현 (V1 없음) |
 | V1-11·V1-12 | 시드 적용·기대값, 이후 단계 칼럼 없음(`IN_PROGRESS`·`updated_at`·revision 표·`status`·`active`는 V1에 없음, `reservation.assignee_staff_id`는 V1에 있음) | 미구현 (V1 없음) |
