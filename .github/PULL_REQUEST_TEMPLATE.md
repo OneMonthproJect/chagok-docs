@@ -18,5 +18,6 @@ Closes #
 
 ## AI 사용
 - [ ] 없음
-- [ ] 있음 → `docs/etc/AI_USAGE`에 기록함 (사용한 스킬·에이전트: )
+- [ ] 있음 → 아래에 기록 한 줄 (docs `AI_USAGE`에는 하루 단위로 통합, CONTRIBUTING 5장 「AI 사용 기록」)
+  - `| 날짜 | 레포#이슈 | 스킬·에이전트 | 한 일 | 사람이 바꾼 것 |`
 - [ ] 커밋·본문에 AI 공동 작성자 표기가 없다 (AI 이름을 넣은 Co-authored-by 트레일러, AI 메일 주소, AI 생성 안내 문구 — CONTRIBUTING 4장)

@@ -78,7 +78,7 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 
 - 제목은 한국어 50자 이내, 마침표 없음.
 - 비밀번호·DB 접속 정보·`.env`는 커밋하지 않는다.
-- **AI를 공동 작성자로 올리지 않는다.** 커밋·PR 본문에 `Co-authored-by: Claude`, `noreply@anthropic.com`, "Generated with Claude Code"를 넣지 않는다. 커밋 작성자는 항상 본인 계정이다. AI 사용 사실은 PR 템플릿 「AI 사용」과 `chagok-docs/docs/etc/AI_USAGE`에 사람이 적는다. (pr-check가 막음)
+- **AI를 공동 작성자로 올리지 않는다.** 커밋·PR 본문에 `Co-authored-by: Claude`, `noreply@anthropic.com`, "Generated with Claude Code"를 넣지 않는다. 커밋 작성자는 항상 본인 계정이다. AI 사용 사실은 PR 템플릿 「AI 사용」에 사람이 적고, `chagok-docs/docs/etc/AI_USAGE`에는 하루 단위로 모아 올린다(5장 「AI 사용 기록」). (pr-check가 막음)
 - Squash merge라 develop에는 PR 제목만 커밋으로 남는다(레포 설정: Squash 커밋 메시지 = PR 제목, 본문 없음. D-49). 작업 중 커밋은 자유롭게 하되 PR 제목은 규칙대로.
 - 커밋 메시지에 `Closes #`·`Fixes #`·`Resolves #`를 쓰지 않는다. 기본 브랜치가 `main`이라 릴리스 때 이 키워드가 이슈를 닫을 수 있다. 이슈 번호는 `(#12)`처럼만 적는다.
 
@@ -97,6 +97,15 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 - push 전 `git pull origin develop`. 충돌은 PR 올린 사람이 해결한다.
 - 승인 인원을 강제하지 않는다. 다만 머지 전에 팀원 1명이 확인하는 것을 기본으로 한다(작은 문서·오타 수정은 생략 가능). 확인하는 사람은 브랜치를 받아 **다른 코드 레포의 develop과 함께 띄워** 실제로 실행해 본다. 점검 순서와 코멘트 초안은 `chagok-pr-review` 스킬이나 `chagok-pr-reviewer` 에이전트로 만들 수 있다(승인·코멘트 게시는 사람이). 작성자도 PR을 올리기 전에 같은 에이전트로 스스로 점검한다 — L2·L3는 필수, L1은 선택, L0(오타·주석)은 생략(`.claude/rules/ai-rules.md` 「작업 등급」).
 - 자동 검사(`pr-check`, 코드 레포는 빌드 CI도)가 실패(❌)한 PR은 **머지하지 않는다.** GitHub가 자동으로 막지 않으므로, 머지하는 사람이 ✅를 확인한다. ❌인데 머지된 것을 발견하면 형상관리자가 되돌리거나(`git revert`) 고치는 PR을 바로 요청한다.
+
+### AI 사용 기록 (chagok-docs#60)
+
+| 무엇 | 규칙 |
+|---|---|
+| 원본 기록 | **모든 PR 본문의 「AI 사용」 칸.** 「없음」/「있음」 중 하나를 반드시 체크하고, 있음이면 기록 한 줄(`\| 날짜 \| 레포#이슈 \| 스킬·에이전트 \| 한 일 \| 사람이 바꾼 것 \|`)을 본문에 적는다 |
+| docs 반영 | `docs/etc/AI_USAGE_AI활용기록.md`에는 **하루 단위로 통합**한다. 그날 머지된 세 레포 PR의 「있음」 줄을 모아 docs PR 하나로 올린다. 작업마다 AI_USAGE 전용 PR을 따로 만들지 않는다 |
+| 통합 담당 | 최은정(eunjung01230) — 2026-11-23 eunjung01230 지정(chagok-docs#60). 각 PR 작성자는 자기 PR 본문에 기록하고, 통합 담당이 모아 올린다. 기존 AI_USAGE 줄은 지우거나 덮어쓰지 않는다 |
+| 누락 방지 | ① 통합 담당이 세 레포에서 그날 머지된 PR을 모은다: `gh pr list -R OneMonthproJect/<레포> --state merged --search "merged:YYYY-MM-DD" --json number,title,body` ② 「있음」인 PR이 모두 들어갔는지, 「없음」·「있음」 둘 다 비어 있는 PR이 없는지 대조한다(비어 있으면 작성자에게 묻고 PR 본문을 고치게 함) ③ 통합 PR 본문에 대조한 PR 번호 목록을 남긴다 ④ 그날 통합하지 못하면 다음 통합 PR에 날짜별로 함께 넣는다 |
 
 ### GitHub Free 운영 — 무엇이 자동으로 막히고, 무엇을 사람이 지키나
 
