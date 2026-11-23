@@ -22,7 +22,7 @@ description: 차곡의 기획 문서(00·04·07·08·09)와 코드(chagok-backen
 
 | 문서 | 코드·테스트 |
 |---|---|
-| 00 범위 (P0-핵심/나머지/P1/P2/Non-goal) | 존재하는 기능 전체 (MVP 점검 전 P2, 결정 이슈 없는 P2, Non-goal 기능이 들어와 있으면 안 됨) |
+| 00 범위 (P0-핵심/나머지/P1/P2/Non-goal) | 존재하는 기능 전체 (M3 MVP 검증 전 P2, 결정 이슈 없는 P2, Non-goal 기능이 들어와 있으면 안 됨) |
 | 04 기능 ID·규칙·T-xx | backend Service, `domain/cycle`, `test/.../cycle` |
 | 05 정책 / 06 권한 | backend Service 검증, 보안 설정 |
 | 07 테이블·제약·격리 I-xx·시드 | backend `src/main/resources/db/migration/V*.sql`(번호 순서대로 합친 최종 모양), Entity, Repository, `db/seed/demo_seed.sql` |
@@ -37,10 +37,10 @@ description: 차곡의 기획 문서(00·04·07·08·09)와 코드(chagok-backen
 
 사용자가 바꾸려는 것을 받는다(예: "엔진오일 주기 6개월 → 5개월", "API 15 응답에 lastMileage 추가", "reservation에 memo 컬럼").
 
-1. 바꾸려는 것이 관문 1 이후인지 확인한다. 이후에 07·08을 바꾸면 `CONTRIBUTING.md` 7장 순서(`chagok-docs` `결정` 이슈 → `chagok-docs` 문서 PR + 13 changelog → 코드 레포 PR에 문서 PR 링크, 문서 PR 먼저 머지)가 먼저라고 알린다.
+1. 바꾸려는 것이 M1 설계 확정 이후인지 확인한다. 이후에 07·08을 바꾸면 `CONTRIBUTING.md` 7장 순서(`chagok-docs` `결정` 이슈 → `chagok-docs` 문서 PR + 13 changelog → 코드 레포 PR에 문서 PR 링크, 문서 PR 먼저 머지)가 먼저라고 알린다.
 2. 대응표를 따라 영향받는 곳을 찾는다. 문서는 해당 절, 코드는 `grep`으로 실제 파일·줄을 찾는다(코드가 아직 없으면 "구현 시 반영"으로 둔다).
 3. API가 바뀌면 08 표뿐 아니라 해당 API의 JSON 예시 블록도 영향 범위에 넣는다. 테스트 기대값이 바뀌는지 본다. 주기 규칙 변경은 T-xx 기대값부터 바뀐다.
-4. 범위 원칙 위반 여부: 새 기능이면 00의 단계(P2는 MVP 점검 후 결정 이슈), Non-goal, "미리 만들지 않기"에 걸리는지.
+4. 범위 원칙 위반 여부: 새 기능이면 00의 단계(P2는 M3 MVP 검증 후 결정 이슈), Non-goal, "미리 만들지 않기"에 걸리는지.
 5. 건드리는 패키지 수를 CONVENTIONS 9장 표와 비교한다. 더 많으면 "구조가 새는 곳"으로 따로 보고한다.
 6. 기능을 빼는(보류) 변경이면 00·04·08에 같은 PR에서 "보류" 표시를 넣도록 영향 범위에 포함한다.
 7. 바꾸려는 기준 문서가 다른 기준 문서와 엮이면(예: 08 응답 필드 추가 → 07 컬럼 필요) 양쪽을 모두 영향 범위에 넣는다. 한쪽만 고치면 source-of-truth의 "기준 문서끼리 다름"이 새로 생긴다.
@@ -49,7 +49,7 @@ description: 차곡의 기획 문서(00·04·07·08·09)와 코드(chagok-backen
 
 ```markdown
 ## 변경 요약
-무엇을 / 왜 / 관문 1 이후 여부 (→ 결정 이슈 필요)
+무엇을 / 왜 / M1 설계 확정 이후 여부 (→ 결정 이슈 필요)
 
 ## 영향 범위
 | 구분 | 위치 | 바꿀 내용 |
@@ -78,7 +78,7 @@ description: 차곡의 기획 문서(00·04·07·08·09)와 코드(chagok-backen
 - 08 안: API마다 JSON 예시 블록이 있는지, JSON 문법이 맞는지, 예시의 필드·enum·날짜 형식이 같은 API의 표와 같은지.
 - 08 ↔ 프론트 `features/*/types.ts`·`api.ts`: 필드 이름·선택 여부.
 - 04 T-xx ↔ `test/.../cycle`, 08 X-xx ↔ `test/.../isolation`: 빠진 테스트 ID.
-- 00 ↔ 코드: 차례가 오지 않은 단계(MVP 점검 전 P2 등)·Non-goal 기능이 들어와 있는지, 미리 만든 빈 화면·API·테이블이 있는지.
+- 00 ↔ 코드: 차례가 오지 않은 단계(M3 MVP 검증 전 P2 등)·Non-goal 기능이 들어와 있는지, 미리 만든 빈 화면·API·테이블이 있는지.
 - 08 "보류" 표시 ↔ 코드: 보류 API가 문서에서만 살아 있거나, 코드에만 남아 있는지.
 - 문서 ↔ 문서: 00 범위표 ↔ 04 기능 ID, 04 ↔ 08(기능별 API), 07 ↔ 08(응답 필드가 가리키는 컬럼), 04·07·08 ↔ 09·10의 ID, 13 changelog 결정 ↔ 본문 반영. 어긋나면 source-of-truth 순서로 판단을 적는다.
 - CONVENTIONS ↔ 코드: 상태 판정이 cycle 밖에 있는지(`grep -rn "plusMonths\|isBefore\|isAfter" --include=*.java` 결과가 cycle 밖), 다른 도메인 내부 import가 있는지.

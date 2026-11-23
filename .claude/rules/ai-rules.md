@@ -48,7 +48,7 @@ chagok/
 - 문서와 코드가 다르면 문서가 기준이다. 코드에 맞춰 문서를 고치지 않고 차이를 보고한다. 문서끼리 다르면 `source-of-truth.md` 순서를 따른다.
 - **문서는 `chagok-docs`에서만 고친다.** 코드 레포 PR에서 명세가 바뀌어야 하면 `chagok-docs`에 따로 문서 PR을 만들자고 제안하고, 코드 PR 본문에 그 링크를 단다(`CONTRIBUTING.md` 7장).
 - 테스트를 통과시키려고 검증·보안·아키텍처 규칙을 끄거나 지우지 않는다. Flyway를 거치지 않고 스키마·데이터를 바꾸지 않는다. 시연 데이터를 운영 코드·마이그레이션에 넣지 않는다(시연 시드는 `chagok-backend/db/seed/`).
-- 이슈 범위 밖 기능, 아직 차례가 오지 않은 단계의 기능(중간 점검 전의 P0-나머지·P1, MVP 점검 전의 P2), Non-goal 기능을 빈 화면·버튼·API·테이블로 미리 만들지 않는다.
+- 이슈 범위 밖 기능, 아직 차례가 오지 않은 단계의 기능(M2 통합 검증 전의 P0-나머지·P1, M3 MVP 검증 전의 P2), Non-goal 기능을 빈 화면·버튼·API·테이블로 미리 만들지 않는다.
 - `main`·`develop`에 직접 커밋·push하지 않는다. 커밋·push·PR·머지·이슈 생성·태그는 사람이 확인한 뒤에 (`.claude/settings.json`이 확인을 묻고, force push와 main·develop push는 막는다).
 - `.env`·`secrets/`·키 파일은 읽거나 출력하지 않는다. 설정은 "있음/없음"까지만 확인한다.
 - 코드를 썼으면 `CONVENTIONS.md` 1장 7개를 스스로 점검하고 결과를 보고한다.
@@ -84,7 +84,7 @@ chagok/
 | `chagok-contract-checker` | Controller·DTO·`types.ts`를 바꾼 뒤, 프론트·백 연결 직후, 릴리스 점검 전 | `chagok-spec-sync` (모드 C) | Read·Grep·Glob·Bash | 없음 |
 | `chagok-pr-reviewer` | PR을 올리기 직전(작성자 자가 점검), 확인하는 팀원이 PR을 볼 때 | `chagok-pr-review` | Read·Grep·Glob·Bash | 없음 |
 | `chagok-scope-keeper` | 새 기능·범위 추가 의견, 이슈를 새로 만들기 전 | `chagok-scope-guard` | Read·Grep·Glob·Bash | 없음 |
-| `chagok-seed-builder` | 시드를 만들거나 고칠 때, 중간 점검·MVP 점검·발표 전 | `chagok-seed-data` | + Edit·Write | `db/seed/demo_seed.sql`만 |
+| `chagok-seed-builder` | 시드를 만들거나 고칠 때, M2 통합 검증·M3 MVP 검증·M5 최종 시연 전 | `chagok-seed-data` | + Edit·Write | `db/seed/demo_seed.sql`만 |
 
 - 구현을 끝낸 메인 대화는 PR 본문을 만들기 전에 `chagok-contract-checker`(API를 건드렸을 때)와 `chagok-pr-reviewer`를 차례로 돌리고, 결과를 사람에게 보여 준다.
 - 에이전트 결과는 제안이다. 고칠지, 커밋·머지할지는 사람이 정한다. 에이전트도 이 규칙과 `.claude/settings.json`의 제한을 그대로 받는다.
