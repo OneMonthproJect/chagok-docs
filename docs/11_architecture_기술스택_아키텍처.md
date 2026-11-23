@@ -15,7 +15,7 @@
 | 백엔드 | Java 21 + Spring Boot 4.1.2, Gradle, REST API | 결정 2, D-41 | 공통 응답·전역 예외 처리 |
 | DB | MySQL 8 + JPA | 결정 2 | `ddl-auto: validate` |
 | DB 구조 관리 | Flyway (변경마다 버전 파일) | 결정 17 | Boot 4는 `spring-boot-starter-flyway` + `flyway-mysql`. `schema.sql` 자동 실행 끔 |
-| 인증 | JWT | 결정 3 | 관리자 토큰에는 `shop_id`가 없음. 라이브러리는 인증 `기반` 이슈에서 (Jackson 3 호환 확인) |
+| 인증 | JWT | 결정 3 | 서비스 관리자 토큰에는 `shop_id`가 없음. 라이브러리는 인증 `기반` 이슈에서 (Jackson 3 호환 확인) |
 | 예약 캘린더 | 라이브러리 없이 직접 구현 (월·주·일) | 결정 16 | P0-나머지 |
 | 사장 알림 (P1) | 브라우저 Notification API, 프론트에서만 | 기획안 | 탭이 열려 있을 때만. 웹 푸시는 P2 |
 | 구조 검사 | ArchUnit(백엔드), ESLint 경계 규칙(프론트) | CONVENTIONS 8장 | 빌드에서 자동 |

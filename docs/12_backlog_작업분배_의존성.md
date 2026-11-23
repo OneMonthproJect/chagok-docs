@@ -3,7 +3,7 @@
 > 기능 ID ↔ 이슈 ↔ 담당 ↔ 선행 작업 (계속 수정)
 
 상태: 1차 계획 (2026-11-22 · @하다) — 담당은 D-14, 이슈 번호는 GitHub에 올린 뒤 채운다
-근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장
+근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장, 13 changelog D-57·D-58
 작업 상태의 원본은 Organization `OneMonthproJect`의 Projects 보드다. 이 문서에는 계획과 연결만 둔다. 이슈는 `chagok-issue-writer`로 만든다.
 
 ---
@@ -39,12 +39,12 @@
 | 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 패키지 / 화면 | 선행 |
 |---|---|---|---|---|---|
 | 1 | F-CYC-01 | BE | [F-CYC-01] 항목 상태 계산 + T1~T13 | domain/cycle | B-1 |
-| 2 | F-AUTH-01·02 | BE | [F-AUTH-01] 로그인·관리자 로그인·내 계정 (API 01~03) | domain/account | B-1, B-3 |
+| 2 | F-AUTH-01·02 | BE | [F-AUTH-01] 로그인·서비스 관리자 로그인·내 계정 (API 01~03) | domain/account | B-1, B-3 |
 | 3 | F-AUTH-01 | FE | [F-AUTH-01] 로그인 화면 S-01 | pages/S01 | B-2 |
-| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록·차량 추가·상세 (API 05~09) + X1·X2·X7 | domain/customer | 2 |
-| 5 | F-CUS-01·02 | FE | [F-CUS-01] 고객·차량 목록 S-05 + 등록 M-01 | pages/S05, features/customer | 3 |
+| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록(차종 필수, D-58)·차량 추가·상세 (API 05~09) + X1·X2·X7 | domain/customer | 2 |
+| 5 | F-CUS-01·02 | FE | [F-CUS-01] 고객·차량 목록 S-05 + 등록 M-01(차종 필수) | pages/S05, features/customer | 3 |
 | 6 | F-CUS-04 | FE | [F-CUS-04] 고객 상세 S-06 | pages/S06 | 5 |
-| 7 | F-MNT-01 | BE | [F-MNT-01] 방문 기록 저장·이력 조회·항목 목록 (API 11~13) + X5 | domain/maintenance, domain/item | 4 |
+| 7 | F-MNT-01 | BE | [F-MNT-01] 방문 기록 저장·이력 조회·항목 목록 (API 11~13, 차량에 연식·주행거리가 비어 있으면 첫 저장 때 필수, D-58) + X5 | domain/maintenance, domain/item | 4 |
 | 8 | F-VIS-01·CUS-05 | BE | [F-VIS-01] 항목 상태·미리보기 (API 10) + X6 | screen/visit | 1, 7 |
 | 9 | F-CUS-05 | FE | [F-CUS-05] 차량 상세 S-07 | pages/S07 | 6 |
 | 10 | F-MNT-01·VIS-01 | FE | [F-MNT-01] 방문·정비 기록 S-08 (미리보기) | pages/S08, features/maintenance | 9 |
@@ -117,6 +117,6 @@
 |---|---|---|
 | ArchitectureTest: global → domain·screen 금지 | 실행됨 (global에 클래스 있음) | 지금 |
 | ArchitectureTest: 도메인 api 경유, 의존 방향, 순환, screen import 금지, cycle 순수, Controller → Repository 금지, Entity setter 금지 | 대상 클래스가 없어 **SKIPPED(미검증)** | 해당 패키지·클래스가 생기는 이슈부터 자동 |
-| EndpointGuardTest | **미구현** (보호할 API가 없음) | B-1: ① 등록 안 된 경로 → 거부 ② 토큰 없이 `/api/**` → 401 ③ 관리자 토큰으로 `/api/**` → 403 ④ 정비소 토큰으로 `/api/admin/**` → 403 ⑤ `/actuator/health`만 공개. 정비소 소유 일치(X1~X8)는 각 도메인 이슈 |
+| EndpointGuardTest | **미구현** (보호할 API가 없음) | B-1: ① 등록 안 된 경로 → 거부 ② 토큰 없이 `/api/**` → 401 ③ 서비스 관리자 토큰으로 `/api/**` → 403 ④ 정비소 토큰으로 `/api/admin/**` → 403 ⑤ `/actuator/health`만 공개. 정비소 소유 일치(X1~X8)는 각 도메인 이슈 |
 | X1~X10 | 미구현 | 각 도메인 이슈 (08 9장) |
 | T·R | 미구현 | cycle·예약 이슈 (04) |
