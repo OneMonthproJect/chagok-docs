@@ -169,7 +169,7 @@
 | POL-124 | 동시 수정 | 409 `CONCURRENT_MODIFICATION` (덮어쓰지 않음). 대상: 예약 변경·상태 변경(P0-핵심, POL-102·104), 고객·차량 수정(P0-나머지, `customer`·`vehicle`의 `version`은 V2), 방문 접수·정정·정비 기록 수정(P0-나머지) | 최신 내용을 다시 불러와 보여주고 다시 수정하게 함 |
 | POL-125 | 네트워크 오류·응답 없음 | — | 입력값 유지. 저장됐는지 목록·이력에서 확인한 뒤 사람이 다시 저장. **자동 재전송 금지** |
 | POL-126 | 인증 만료 | 401 `AUTH_REQUIRED` | 로그인 안내 → 로그인 화면 |
-| POL-127 | 권한 없음 | 403 `FORBIDDEN` | 권한 안내 |
+| POL-127 | 권한 없음 | 403 `FORBIDDEN` | 권한 안내. P1의 계정 상태 403(`PASSWORD_CHANGE_REQUIRED`·`TERMS_AGREEMENT_REQUIRED`·`ACCOUNT_INACTIVE`)은 권한 안내가 아니라 08 0.2 표대로 처리 |
 | POL-128 | 접근할 수 없는 데이터 | 404 `NOT_FOUND` (남의 것과 없는 것을 구분하지 않음) | "찾을 수 없습니다" |
 | POL-129 | 서버 오류 | 500 `INTERNAL_ERROR` (내부 정보·스택은 응답에 넣지 않음) | 공통 오류 안내, 입력값 유지 |
 

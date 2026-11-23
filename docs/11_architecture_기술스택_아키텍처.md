@@ -82,8 +82,8 @@ flowchart LR
 ### 3.3.1 토큰을 받은 뒤 바뀐 계정 상태 (P1, D-60~D-62)
 
 - 토큰은 그대로 **서명·만료(12시간)·클레임**만 담는다. 비활성·첫 비밀번호 변경·약관 동의 여부는 토큰에 넣지 않고, 보호된 정비소 요청마다 서버가 DB에서 확인한다(08 0.6). 그래서 비밀번호를 바꾸거나 약관에 동의하면 같은 토큰으로 바로 다음 단계가 되고, 정비사를 비활성화하면 그 전에 받은 토큰도 다음 요청부터 막힌다(D-62). 리프레시 토큰·무효화 목록·서버 세션은 두지 않는다.
-- **위치**: 인증이 끝난 뒤, 역할 권한(`SecurityConfig`) 다음에 도는 `global/auth`의 요청 확인 한 곳. 어떤 API를 제한 상태에서 허용하는지(08 0.6 표)도 그곳 한 곳에 둔다.
-- **의존 방향**: `global`은 `domain`을 import할 수 없다(CONVENTIONS 3·5장, ArchitectureTest). 그래서 `global/auth`에 "계정 상태를 돌려주는" 작은 인터페이스(값은 enum·record)를 두고 `account` 도메인 service가 구현하는 방식을 쓴다(`account` → `global`은 허용 방향). 판정에 쓰는 값(`staff.active`·`password_change_required`·약관 동의 기록)은 `account` 도메인이 읽는다. **CONVENTIONS 3장 표에는 이 연결이 아직 적혀 있지 않다** — P1 착수(백로그 30·32·34-3) 전에 형상관리·도메인관리가 이 방식을 확인하고, 규칙과 부딪히면 `결정` 이슈로 올린다(CONVENTIONS 5장 끝).
+- **위치**: 인증이 끝난 뒤, 역할 권한(`SecurityConfig` URL 규칙) **전에** 도는 `global/auth`의 요청 확인 한 곳(08 0.6·06 2.1과 같은 순서 — 비활성·임시 비밀번호 상태의 정비사가 사장 전용 API를 불러도 `FORBIDDEN`이 아니라 상태 코드가 나간다). 어떤 API를 제한 상태에서 허용하는지(08 0.6 표)도 그곳 한 곳에 둔다.
+- **의존 방향**: `global`은 `domain`을 import할 수 없다(CONVENTIONS 3·5장, ArchitectureTest). 그래서 `global/auth`에 "계정 상태를 돌려주는" 작은 인터페이스(값은 enum·record)를 두고 `account` 도메인 service가 구현하는 방식을 쓴다(`account` → `global`은 허용 방향). 판정에 쓰는 값(`staff.active`·`password_change_required`·약관 동의 기록)은 `account` 도메인이 읽는다. `account → global` 방향 자체는 이미 허용되어 있다(CONVENTIONS 3장 "모두 ──▶ global"). P1 착수(백로그 30·32·34-3) 전에 형상관리·도메인관리가 확인할 것은 두 가지다: ① global에 인터페이스를 두고 domain이 구현하는 방식(의존 역전)을 CONVENTIONS에 적을지 ② 제한 상태에서 허용할 API 표와 약관 판정을 global에 두는 것이 CONVENTIONS 5장 global 행("업무 규칙 없음")에 걸리는지(걸리면 판정은 account에, global은 결과만). 규칙과 부딪히면 `결정` 이슈로 올린다(CONVENTIONS 5장 끝).
 - **비용**: 요청마다 `staff` 한 행(+ 사장이면 약관 동의 기록)을 읽는다. 1~5인 정비소 규모에서는 캐시 없이 시작하고, 느려지면 5장 표대로 다시 정한다.
 - 정비소 정지(`shop.status`)는 이 확인에 넣지 않는다(정지 즉시 차단은 P2, 05 POL-15).
 
