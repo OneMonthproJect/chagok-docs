@@ -91,7 +91,8 @@ screen/booking ─┤   (booking: reservation.api·customer.api·maintenance.api
 maintenance ────┬──▶ customer.api     (차량이 우리 정비소 것인지)
                 └──▶ item.api         (항목이 있는지)
 reservation ────┬──▶ customer.api
-                └──▶ item.api         (예약 목적 항목, D-38)
+                ├──▶ item.api         (예약 목적 항목, D-38)
+                └──▶ account.api        (담당 정비사가 우리 정비소 사람인지, D-51)
 account ────────────▶ shop.api
 customer, item, shop, cycle ──▶ (다른 도메인 없음)
 
@@ -101,6 +102,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | 규칙 | 내용 |
 |---|---|
 | 외래키 방향 = 코드 방향 | `maintenance_record → vehicle`이므로 maintenance가 customer를 부른다. 거꾸로는 안 된다 |
+| 담당 정비사 검증은 `account.api`로 | `reservation → account.api`(허용 의존). 담당은 요청 값이라(`assigneeId`, 08 0.1·X13) 그 정비소의 활성 사장·정비사인지 확인한다. staff 표는 `account` 도메인에 있으므로 이 `api`는 `account`의 `api` 패키지에 둔다. 담당 검증은 P0-나머지부터 필요하다(P0-핵심은 토큰의 계정이 담당이다). staff 쪽은 reservation을 부르지 않는다 |
 | `cycle`은 아무것도 모른다 | 입력은 값(record), 출력도 값. `java.time`만 쓴다. 그래서 테스트에 DB가 필요 없다 |
 | "방문 완료 → 정비 기록 등록" 연결은 **화면 이동**이다 | reservation이 maintenance를 부르지 않는다. 프론트가 방문 완료 응답을 받고 정비 기록 화면으로 보낸다 |
 | shop_id는 `global/auth`의 로그인 정보에서 | 도메인들이 shop 도메인을 부를 필요가 없다 |
@@ -114,7 +116,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | 항목 상태(미확인/여유/임박/도래), 임박 기준, 도래 경계(≥), km 판정, "지난 방문 거절"·"지난 점검 주의" 표시 판정 | `domain/cycle` | 부르기만 한다. 날짜·km 비교를 직접 쓰지 않는다 |
 | 정비소 소속 확인 | 각 도메인 service의 `getOwned(shopId, id)` 한 메서드 | 조회는 모두 이 메서드나 `findBy…AndShopId`로. 없거나 남의 것이면 같은 `NOT_FOUND`(404) |
 | 역할 확인(사장만 가능한 일) | `SecurityConfig` URL 규칙 | 서비스 안에서 역할 `if` 분기를 만들지 않는다 |
-| 예약 상태 전이(예약 → 방문 완료/취소/노쇼)와 변경 가능 여부 | `Reservation` Entity 메서드 `complete()`, `cancel()`, `markNoShow(now)`, `reschedule(…)` | 끝난 예약을 바꾸려 하면 Entity가 거절한다. 동시 수정은 `@Version`이 막는다 |
+| 예약 상태 전이(예약 → 진행중 → 방문 완료/취소, 예약 → 노쇼)와 변경 가능 여부 | `Reservation` Entity 메서드 `start()`, `complete()`, `cancel()`, `markNoShow(now)`, `reschedule(…)` | 끝난 예약을 바꾸려 하면 Entity가 거절한다. 동시 수정은 `@Version`이 막는다 |
 | 정비 구분(교체/점검/외부/거절)이 주기를 다시 시작하는지 | `RecordType` enum의 `resetsCycle()` | `if (type == REPLACE || …)`를 여기저기 쓰지 않는다 |
 | 현재 시각 | `Clock` 빈 하나 | `LocalDate.now()` 직접 호출 금지. Entity·cycle은 시각을 인자로 받는다 |
 | 상태 표시 문구·색 | 프론트 `shared/ui/StatusBadge` | 화면마다 색·문구를 따로 정하지 않는다. 프론트는 상태를 계산하지 않는다 |
@@ -211,7 +213,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | pr-check 비밀값 검사 | `.env`·키 파일, 토큰 형태, 설정 파일의 평문 비밀번호 | 이미 있음 (❌) |
 | pr-check DB·Flyway 규칙 | 공유된 마이그레이션 수정, 이름 규칙, `schema.sql`·`data.sql`, classpath 안 시드, `ddl-auto` ≠ validate | 이미 있음 (❌) |
 | cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 |
-| 예약 규칙 테스트 R1~R8 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
+| 예약 규칙 테스트 R1~R29 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
 | 격리 테스트 X1~X10 | 남의 정비소 데이터 → 404 | 각 도메인 이슈 |
 | Flyway + 빈 MySQL CI(`backend-ci`), 기존 버전 파일 수정 차단(`pr-check`) | 스키마 차이 | `기반` 이슈 |
 | ESLint 경계 규칙 | 프론트 feature 간 import | 프론트 `기반` 이슈 |
@@ -227,7 +229,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | `global은_domain과_screen을_모른다` | global → domain·screen 의존 금지 |
 | `screen은_아무도_import하지_않는다` | screen 밖에서 screen 의존 금지 (domain → screen 포함) |
 | `다른_도메인은_api로만` (도메인별) | 다른 도메인의 `api` 밖(Entity·Repository·Service·DTO) 의존 금지 |
-| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 |
+| `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 (`reservation → account.api` 허용 포함) |
 | `도메인_사이_순환_없음` | 도메인 사이 순환 금지 |
 | `cycle은_순수_계산이다` | cycle → 다른 도메인·Spring·JPA 금지 |
 | `Controller는_Repository를_직접_쓰지_않는다` | |
