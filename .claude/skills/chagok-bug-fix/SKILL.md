@@ -22,10 +22,10 @@ description: 차곡에서 명세와 다르게 동작하는 버그를 재현하�
    - 프론트가 상태를 다시 계산함 → 서버 값 그대로
    - 시드가 07·마이그레이션과 어긋남 → `chagok-seed-data`
 5. **최소 수정**: 원인 한 곳만 고친다. 같은 패턴이 다른 곳에도 있으면 **고치지 말고** 목록으로 보고한다(별도 이슈 후보).
-6. **점검**: 재현 테스트 통과, `./gradlew build`(ArchitectureTest 포함, DB가 있으면 `./gradlew dbTest`) 또는 `npm run lint && npm run build`. 못 돌렸으면 "미검증(이유)"으로 보고하고 완료라고 하지 않는다.
+6. **점검**: 재현 테스트 통과 + 바뀐 레포의 `./gradlew build`(ArchitectureTest 포함) 또는 `npm run lint && npm run build`. `./gradlew dbTest`와 L3 대상별 검증은 `ai-rules.md` 「작업 등급」대로(격리·인증·DB 버그는 L3). 못 돌렸으면 "미검증(이유)"으로 보고하고 완료라고 하지 않는다.
 
 원인 한 곳만 고치는 수정이 아니라 여러 파일·도메인·구조에 걸치거나 API·DB를 바꿔야 하면, 고치기 전에 `ai-rules.md` 「작업 절차」 2단계(계획 보고)를 하고 개발자 승인을 받는다. 테스트를 통과시키려고 검증을 지우거나 예외를 삼키지 않는다(CONVENTIONS 12장).
-7. **PR 전 점검**: Claude Code면 API를 건드렸을 때 `chagok-contract-checker`, 이어서 `chagok-pr-reviewer`에게 맡기고 결과를 사람에게 보여 준다. claude.ai면 `chagok-spec-sync` 모드 C·`chagok-pr-review`(작성자 자가 점검)로.
+7. **PR 전 점검** (`ai-rules.md` 「에이전트」 조건): Claude Code면 diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있을 때 `chagok-contract-checker`, L2·L3면 이어서 `chagok-pr-reviewer`에게 맡기고 결과를 사람에게 보여 준다. claude.ai면 `chagok-spec-sync` 모드 C·`chagok-pr-review`(작성자 자가 점검)로.
 8. **보고**: 아래 형식. 커밋·push·PR은 사용자가 확인한 뒤에(`.claude/settings.json`이 확인을 묻는다).
 
 ## 2. 멈추고 물어볼 때
@@ -66,7 +66,7 @@ description: 차곡에서 명세와 다르게 동작하는 버그를 재현하�
 ## 트러블슈팅 기록 후보 (chagok-docs `docs/etc/DEV_REVIEW_트러블슈팅.md`)
 - 에러 / 원인 / 해결 각 한 줄 (팀에 남길 만한 버그일 때만)
 
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | 레포#번호 | chagok-bug-fix (+ 쓴 에이전트) | 한 일 | 사람이 바꾼 것: (사람이 채움) |
 ```
 

@@ -177,13 +177,31 @@ src/
 │   └── lib/               날짜 표시 등
 ├── features/     도메인별. shared만 import
 │   ├── auth/  customer/  maintenance/  reservation/  target/
-│   │   └── api.ts · types.ts(08 그대로) · components/
+│   │   └── api.ts · types.ts(08 그대로) · components/ · mocks/(개발용, 아래)
 └── pages/        화면 조립 (09 화면 ID와 1:1). 여러 feature를 합치는 유일한 곳
 ```
 
 - feature끼리 import하지 않는다. 두 feature가 한 화면에 필요하면 `pages`에서 합친다(백엔드 `screen`과 같은 생각).
 - 상태(미확인/여유/임박/도래)는 서버가 준 값을 그대로 보여 준다. 프론트에서 날짜로 다시 계산하지 않는다.
 - 저장 버튼은 요청 중 비활성(두 번 누르기 방지 — 차량번호 중복을 막지 않는 기획이라 특히 필요).
+
+### Mock (프론트 개발용, 2026-11-23 chagok-docs#58)
+
+백엔드를 띄우지 않고 화면을 만들기 위한 것이다. **계약의 기준은 08이고, Mock은 08을 따라가는 사본이다.** Mock에 맞춰 08·07·DB를 바꾸지 않는다.
+
+| 항목 | 규칙 |
+|---|---|
+| 위치 | `features/<도메인>/mocks/` — `*.json` fixture + 간단한 응답 함수 `index.ts` 하나. 그 화면 이슈가 자기 feature에 만든다 |
+| 모양 | 08 0.2 공통 응답 그대로(`{ success, data, error }`). 필드 이름·타입·nullable·enum·일시 형식(오프셋 없음)이 08과 글자까지 같다. P0-핵심은 08 머리말대로 `assignee`를 뺀다 |
+| 값 | 07 7장 시드와 08 JSON 예시의 값(가상의 이름·번호·차량번호)을 쓴다. 실제 개인정보를 넣지 않는다. 시드에 없는 값을 만들면 08 규칙에 맞는지 확인한다 |
+| 사례 | 정상, 빈 목록(`items: []`), 오류(08 0.3 코드: 400·401·403·404·409)를 08 0.2 모양으로. 로그인은 A 정비소 기준이고, B 정비소 id(07 7.4: 고객 11·차량 12)를 요청하면 404 `NOT_FOUND`(격리). 서비스 관리자로 정비소 API를 부르면 403 |
+| 전환 | API 호출 계층에서만 한다. `features/<도메인>/api.ts`가 실제 요청과 Mock 응답 중 하나를 고르고, 둘 다 `shared/api/client.ts`의 같은 응답 해석·오류 처리(05 POL-120~129)를 거친다. 화면 컴포넌트·`pages`는 `mocks/`를 import하지 않는다(아래 ESLint) |
+| 켜는 방법 | 개발 환경에서만 명시적으로: `.env.development.local`(Git 제외)에 `VITE_USE_MOCK=true`. 판정은 `import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true'` 한 곳(`shared/api/client.ts`) |
+| 운영 빌드 | Mock을 쓰지 않는다. `vite build`에서는 `DEV`가 false라 꺼지고, `mocks/`는 `api.ts`에서 동적 `import()`로만 불러 운영 번들에 들어가지 않게 한다 |
+| 08이 바뀔 때 | 같은 PR에서 그 API의 `types.ts`와 `mocks/`를 함께 고친다. API 계약 점검(`chagok-contract-checker`) 대상에 `mocks/`도 넣는다 |
+| 하지 않는 것 | Mock 서버, Mock 라이브러리(MSW 등), 프론트 DB·브라우저 저장소에 데이터 쌓기, 범용 Mock 프레임워크, 08에 없는 API의 Mock |
+
+전환 장치(`client.ts`의 판정과 응답 해석)는 B-2(chagok-frontend#10), 도메인별 `mocks/`는 각 화면 이슈가 만든다.
 
 ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 
@@ -201,7 +219,15 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
     { group: ['@/features/*'], message: '다른 feature가 필요하면 pages에서 조합하세요 (같은 feature 안은 상대 경로)' },
   ]}]},
 },
+{
+  files: ['src/pages/**', 'src/features/*/components/**'],
+  rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/mocks/**', '**/mocks'], message: 'Mock은 api.ts에서만 고릅니다 (CONVENTIONS 7장 Mock)' },
+  ]}]},
+},
 ```
+
+`api.ts`의 동적 `import()`는 이 규칙에 걸리지 않는다(정적 import만 막음). 위 규칙은 화면 쪽의 정적 import를 막는 장치다.
 
 ---
 
