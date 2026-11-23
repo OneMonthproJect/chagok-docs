@@ -43,3 +43,4 @@
 | 2026-11-23 | chagok-backend#11 (PR #16), chagok-frontend#10 (PR #13) | Claude Code (스킬·에이전트 미사용) | B-1·B-2 기능 브랜치 기반 실제 통합 검증 수행. 격리 MySQL 8 빈 DB·Flyway 재현, 실제 HTTP 27건·브라우저 15건 검증. 401·403 및 공통 오류 응답 확인. 로그인 이동 reason 확인, from 미검증. 성공 응답·400·409·500은 단위 테스트 검증. 비차단 문제 2건, docs #63 표기 불일치 및 .claude 사본 동기화 필요 확인 | PR 머지·라벨 부여·push 미수행. develop 기준 완료 조건 및 M2 전체 검증 미완료 |
 | 2026-11-24 | chagok-docs#72 | Claude Code (스킬·에이전트 없음) | 세 저장소 스킬·협업 정책·브랜치 42개·PR 41개 읽기 전용 조사, 설계안 및 정책 충돌 4건 분석, 결정 이슈 작성 | 사용자 승인에 따른 이슈 생성, 스킬·설정 파일 변경 없음 |
 | 2026-11-24 | chagok-docs#73 | Claude Code (스킬·에이전트 없음) | 세 레포 settings.json deny·ask 비교, 브랜치·worktree·GitHub 상태 변경 명령 누락 확인, L3 보강 이슈 작성 | 사용자 요청에 따른 이슈 생성, settings.json 변경 없음 |
+| 2026-11-24 | chagok-docs#74 | Claude Code (스킬·에이전트 없음) | CONTRIBUTING 5장·ai-rules·#60·이슈 템플릿 대조로 PR 없는 작업 기록 규정 공백 확인, 사례(#72·#73·PR #70 리뷰) 정리, 결정 이슈 작성 | 사용자 요청에 따른 이슈 생성, 규칙·템플릿 변경 없음 |
