@@ -42,7 +42,7 @@ git log --format='%h %s%n%b' origin/develop..HEAD   # AI 표기 확인용
 | 7 | 문서 동기화 | 마이그레이션 ↔ 07, API ↔ 08, 화면 ↔ 09: 링크된 `chagok-docs` 문서 PR이 실제로 그 내용을 고치는지, 머지됐거나 같은 날 머지될지. 이미 있는 Flyway 버전 파일 수정 없음. 「문서 변경 없음」 체크가 사실인지. docs 레포 PR이면 기준 문서 ↔ 13 (pr-check 경고 확인). 문서 PR이면 ID가 00·04·07·08과 같은지, 문서끼리 다른 곳을 `.claude/rules/source-of-truth.md` 순서와 반대로 고치지 않았는지 | major |
 | 8 | 테스트·검증 증거 | 이슈에 적힌 T-xx·R-xx·X-xx(04·08 표기 그대로)가 있는가, 정상·오류·권한·경계 사례가 있는가, 테스트를 지우거나 약화하지 않았는가, ArchitectureTest·보안 설정을 고쳐서 통과시키지 않았는가. PR 본문의 테스트 결과가 CI 결과와 맞는가(실행 결과 없이 "통과"라고 쓴 것은 미검증으로 본다, SKIPPED는 통과가 아님) | major (규칙을 꺼서 통과시켰으면 blocker) |
 | 9 | 오류·입력 (05 POL-120~129) | `@Valid` 범위, ErrorCode 사용, 오류를 삼켜 성공처럼 응답하지 않음, 저장 버튼 중복 클릭 방지, 실패 시 입력값 유지, 자동 재전송 없음, 변경 API의 `version` 충돌 처리 | minor~major |
-| 10 | AI 표기 | 커밋·본문에 AI 공동 작성자 표기 없음, AI 사용 시 PR 템플릿 「AI 사용」에 스킬·에이전트 이름과 chagok-docs `docs/etc/AI_USAGE_AI활용기록.md` 체크 | major |
+| 10 | AI 표기 | AI 공동 작성자 표기는 pr-check가 막으므로 `gh pr checks` 결과로 본다. AI를 썼으면 PR 템플릿 「AI 사용」에 스킬·에이전트 이름과 기록이 있는지(제출 위치는 `ai-rules.md` 「AI만의 규칙」) | major |
 | 11 | 유지보수 | 이름, `// LIMIT:`·`// 근거:` 주석, 단순화했다면 PR 본문 「단순화 기록」(이유·영향·제약·위험·개선 시점) | minor |
 
 각 지적은 근거 문서 절이나 CONVENTIONS 규칙 번호를 함께 적는다. 근거 없는 취향 지적은 하지 않는다. 문제가 없으면 억지로 만들지 않는다.
@@ -84,7 +84,7 @@ blocker가 하나라도 있으면 "승인 비권장". major만 있으면 "수정
 승인(`gh pr review`)·코멘트 게시(`gh pr comment`)·머지는 실행하지 않는다. 확인하는 팀원이 브랜치를 직접 실행하고 ✅를 확인한 뒤 GitHub에서 한다.
 
 ```markdown
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | 레포 PR#번호 | chagok-pr-review | 리뷰: blocker n · major n | 사람이 바꾼 것: (사람이 채움) |
 ```
 

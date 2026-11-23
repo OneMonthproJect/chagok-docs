@@ -120,7 +120,7 @@ spec-sync 결과 요약
 ## 빈 DB 실행
 체크리스트 (형상관리자가 채움)
 
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | 릴리스 v0.x | chagok-release-check (+ 쓴 에이전트) | 릴리스 점검: 판정 | 사람이 바꾼 것: (사람이 채움) |
 ```
 
