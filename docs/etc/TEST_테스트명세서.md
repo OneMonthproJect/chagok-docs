@@ -149,13 +149,16 @@ P1이다. D-56은 법적 근거 확인(05 POL-46, 담당 PM) 완료 후에 구�
 
 서버 검증을 거치지 않고 SQL로 직접 넣어 DB 제약이 막는지 본다. B-3(V1) PR에서 확인하고 결과를 PR 본문에 적는다.
 
+테스트: `chagok-backend` `V1InitMigrationTest` (`@Tag("db")`, 14개). 근거 실행: chagok-backend#5 head `4f5bc9b` → CI run 45134308683, develop 머지 `f4c69fb` → CI run 45136171490. 두 실행 모두 14/14 통과, SKIPPED 0 (테스트 결과 XML `db-test-report`).
+
 | ID | 내용 | 상태 |
 |---|---|---|
-| V1-1·V1-2 | 빈 DB에 V1 적용·앱 기동(`validate`), FK 목록(복합 8 + 단일 9, 담당 정비사 복합 FK 2개 `fk_reservation_assignee_staff`·`fk_maintenance_record_staff` 포함), `staff`의 `UNIQUE(shop_id, id)` | 미구현 (V1 없음) |
-| V1-3~V1-5 | 다른 정비소 부모를 가리키는 vehicle·maintenance_record·reservation·reservation_item INSERT 실패. **담당 FK**: A 정비소 예약의 `assignee_staff_id`·A 정비소 기록의 `staff_id`에 B 정비소 정비사를 넣으면 실패(1452) | 미구현 (V1 없음) |
-| V1-6~V1-10 | CHECK(30분·초, EXTERNAL↔출처, NO_SHOW 없음)·UNIQUE·차량번호 중복 허용 | 미구현 (V1 없음) |
-| V1-11·V1-12 | 시드 적용·기대값, 이후 단계 칼럼 없음(`IN_PROGRESS`·`updated_at`·revision 표·`status`·`active`는 V1에 없음, `reservation.assignee_staff_id`는 V1에 있음) | 미구현 (V1 없음) |
-| V1-13 | 타임스탬프 칼럼에 DB 기본값 없음 (빼고 INSERT 실패) | 미구현 (V1 없음) |
+| V1-1·V1-2 | 빈 DB에 V1 적용·앱 기동(`validate`), FK 목록(복합 8 + 단일 9, 담당 정비사 복합 FK 2개 `fk_reservation_assignee_staff`·`fk_maintenance_record_staff` 포함), `staff`의 `UNIQUE(shop_id, id)` | 통과 (chagok-backend#5, CI db-test). V1-1의 `validate`는 Entity가 아직 없어 "Flyway 적용 + 앱 기동"까지만 확인 — JPA Entity 매핑 검증은 Entity 이슈에서 |
+| V1-3~V1-5 | 다른 정비소 부모를 가리키는 vehicle·maintenance_record·reservation·reservation_item INSERT 실패. **담당 FK**: A 정비소 예약의 `assignee_staff_id`·A 정비소 기록의 `staff_id`에 B 정비소 정비사를 넣으면 실패(1452), 같은 정비소 정비사는 저장. `assignee_staff_id` 필수(1364·1048) | 통과 (chagok-backend#5, CI db-test) |
+| V1-6~V1-10 | CHECK(30분·초, EXTERNAL↔출처, `IN_PROGRESS`·`NO_SHOW` 없음)·UNIQUE·차량번호 중복 허용 | 통과 (chagok-backend#5, CI db-test) |
+| V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용, 07 7.5 기대값 | 미구현 (별도 시드 이슈) |
+| V1-12 | 이후 단계 칼럼 없음(`IN_PROGRESS`·`updated_at`·revision 표·`status`·`active`는 V1에 없음, `reservation.assignee_staff_id`는 V1에 있음) | 통과 (chagok-backend#5, CI db-test) |
+| V1-13 | 타임스탬프 칼럼에 DB 기본값 없음 (빼고 INSERT 실패) | 통과 (chagok-backend#5, CI db-test) |
 
 ## 7. 화면·흐름 (수동 확인)
 
