@@ -15,7 +15,7 @@ DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값(M1 설계 확정 chagok-
 - PK는 `BIGINT AUTO_INCREMENT`. 전화번호·차량번호를 키로 쓰지 않는다.
 - 상태(미확인/여유/임박/도래), "예약 있음", "처리 필요", "지난 방문 거절", "지난 점검 주의"는 **저장하지 않는다**. 조회 때 계산한다.
 - enum은 `VARCHAR` + `CHECK`로 둔다(값 추가가 쉬움). 값 이름은 08 API와 글자까지 같다.
-- 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준) 💡, 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
+- 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준, M1 설계 확정 15번: 오프셋 없는 형식), 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
 - 모든 테이블에 `created_at`. 수정되는 표에만 `updated_at`. 정비 기록(`maintenance_record`)도 F-MNT-04(D-55)로 수정되므로 `updated_at`·`version`을 가진다(P0-나머지, V2).
 - **생성·수정 시각은 서버가 넣는다 (M1 설계 확정).** `created_at`은 최초 생성 시각, `updated_at`은 생성 때도 같은 값으로 넣고 실제로 수정될 때 갱신한다. 값은 JPA Auditing이 넣고, Auditing의 시간 공급자(`DateTimeProvider`)는 주입한 `Clock` 빈(Asia/Seoul)을 쓴다. 두 칼럼은 `NOT NULL`이고 **DB `DEFAULT`·`CURRENT_TIMESTAMP`·`ON UPDATE`를 쓰지 않는다**(DB 세션 시간대와 서버 `Clock`이 어긋나지 않게). 시드는 시각을 직접 적는다(7장). 예약 `version`은 시각과 별개로 `@Version`이 관리한다.
 - **정비소 일치는 두 겹으로 지킨다 (M1 결정 A).** ① 서버가 저장 전 부모를 `getOwned(shopId, id)`로 찾는다(없거나 남의 것이면 404). ② DB는 핵심 부모·자식 관계를 **복합 FK** `(shop_id, 부모_id) → 부모(shop_id, id)`로 묶어, 서버 검증이 빠져도 다른 정비소 부모를 가리키는 행이 저장되지 않게 한다. 복합 FK의 부모 쪽에는 `UNIQUE(shop_id, id)`를 둔다(MySQL 8.4부터 FK는 UNIQUE·PK 키만 참조할 수 있다). 대상 관계와 이유는 5.1.
@@ -160,7 +160,7 @@ erDiagram
 | visit_key | CHAR(36) | NOT NULL | 한 번 저장한 방문의 묶음 번호(UUID). **서버가 저장 요청(API 12) 하나마다 새로 만든다.** 요청으로 받지 않고, 예약 번호와 잇지 않는다. 여러 행이 같은 값을 가지므로 UNIQUE 아님 |
 | record_date | DATE | NOT NULL | 방문일. 외부는 고객이 말한 정비일 |
 | mileage | INT | NULL, CHECK ≥ 0 | 방문 주행거리. 외부는 확인 가능할 때만 |
-| record_type | VARCHAR(20) | NOT NULL, CHECK IN ('REPLACE','INSPECT','EXTERNAL','DECLINE') | 교체·점검·외부·거절 (D-06). 4개 모두 P0-핵심부터 |
+| record_type | VARCHAR(20) | NOT NULL, CHECK IN ('REPLACE','INSPECT','EXTERNAL','DECLINE') | 교체·점검·외부·거절 (D-06). CHECK 값 4개는 V1부터 있다. 입력은 P0-핵심 `REPLACE`·`INSPECT`, `EXTERNAL`·`DECLINE`은 P0-나머지부터(08 12, 13 2026-11-22). 시드(7.2)에는 4개가 모두 있어 P0-핵심 조회 응답에도 나온다 |
 | source | VARCHAR(20) | NOT NULL, CHECK IN ('SHOP','CUSTOMER_STATEMENT') | EXTERNAL이면 CUSTOMER_STATEMENT, 나머지는 SHOP |
 | staff_id | BIGINT | NOT NULL, FK (shop_id, staff_id) → staff(shop_id, id) | **담당 정비사**. P0-핵심은 저장한 계정(토큰), P0-나머지부터 요청의 `mechanicId`(기본: 예약의 담당 또는 로그인 계정, 05 POL-59). 요청 값이 될 수 있으므로 복합 FK (5.1, V1) |
 | memo | VARCHAR(200) | NULL | |
