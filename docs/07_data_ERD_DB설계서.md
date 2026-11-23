@@ -346,6 +346,11 @@ V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 �
 
 - `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4` (콜레이션은 MySQL 8 기본 `utf8mb4_0900_ai_ci`).
 - 제약에 이름을 붙인다 💡: `uk_{테이블}_{칼럼}`, `fk_{자식}_{부모}`, `ck_{테이블}_{칼럼}`, `idx_{테이블}_{칼럼}`. MySQL은 FK·CHECK 이름이 스키마 안에서 유일해야 하고, V2가 `ck_reservation_status`를 `DROP CHECK` 후 다시 만들어야 하므로 이름이 필요하다.
+  - 예외: 규칙대로 지은 이름이 MySQL 식별자 최대 길이 64자를 넘으면 마이그레이션이 실패하므로 칼럼 이름을 줄인다(`shop_id` → `shop` 등). 칼럼 구성·순서는 바꾸지 않는다. 줄인 이름은 아래 표에 적는다.
+
+    | 테이블 | 칼럼 (3장 그대로) | 규칙대로의 이름 | 실제 이름 |
+    |---|---|---|---|
+    | maintenance_record | (shop_id, vehicle_id, service_item_id, record_date) | `idx_maintenance_record_shop_id_vehicle_id_service_item_id_record_date` (69자) | `idx_maintenance_record_shop_vehicle_item_date` (45자) |
 - FK 칼럼 순서는 부모 키와 같게 `(shop_id, 부모_id)`. 자식 쪽 인덱스는 같은 순서로 시작해야 한다(3장 표의 인덱스가 그 역할). 인덱스를 따로 적지 않으면 MySQL이 이름 없는 인덱스를 만들므로 3장대로 명시한다.
 - `staff.shop_id`, `shop.created_by_admin_id`, `reservation.created_by_staff_id`의 단일 FK 인덱스도 명시한다. `maintenance_record.staff_id`는 복합 FK라 `(shop_id, staff_id)` 인덱스로, `reservation.assignee_staff_id`는 `(shop_id, assignee_staff_id, reserved_at)` 인덱스로 대신한다(3장).
 - 시연 시드는 V1에 넣지 않는다(7장). 기본 기준표 6행도 시드가 정비소마다 넣는다.
