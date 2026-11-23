@@ -1,6 +1,6 @@
 ---
 name: chagok-contract-checker
-description: 차곡 API 계약 점검 담당(읽기 전용). chagok-docs의 08 API 명세(표·JSON 예시)와 chagok-backend의 Controller·DTO·ErrorCode, chagok-frontend의 features/*/api.ts·types.ts를 대조해 어긋난 곳만 표로 돌려준다. Controller·DTO·types.ts가 바뀐 뒤, 프론트·백엔드 연결 직후, 기능 묶음이 끝났을 때, 릴리스 점검 전에 proactively 사용한다.
+description: 차곡 API 계약 점검 담당(읽기 전용). chagok-docs의 08 API 명세(표·JSON 예시)와 chagok-backend의 Controller·DTO·ErrorCode, chagok-frontend의 features/*/api.ts·types.ts를 대조해 어긋난 곳만 표로 돌려준다. diff에 Controller·DTO·ErrorCode·api.ts·types.ts·mocks/가 있을 때, 프론트·백엔드 연결 직후, 기능 묶음이 끝났을 때, 릴리스 점검 전에 사용한다. 그 밖의 작은 수정(문서 문구·README·스타일)에는 쓰지 않는다(ai-rules 작업 등급).
 tools: Read, Grep, Glob, Bash
 skills:
   - chagok-spec-sync
@@ -20,10 +20,10 @@ color: blue
 - 공통 오류 응답(08 0.2: `details` 포함)과 동시 수정(`version`, `CONCURRENT_MODIFICATION`)도 대조한다.
 
 ## 입력
-메인 대화가 범위를 준다: 전체 / API 번호 / 기능 ID / 브랜치·PR 번호. 브랜치·PR이면 `git diff origin/develop...HEAD --name-only` 또는 `gh pr diff`로 바뀐 Controller·DTO·api.ts·types.ts를 먼저 추린다. 반대쪽 코드 레포는 작업 폴더에 있는 브랜치(보통 develop) 그대로 읽고, 어느 브랜치를 읽었는지 결과 맨 위에 적는다.
+메인 대화가 범위를 준다: 전체 / API 번호 / 기능 ID / 브랜치·PR 번호. 브랜치·PR이면 `git diff origin/develop...HEAD --name-only` 또는 `gh pr diff`로 바뀐 Controller·DTO·ErrorCode·api.ts·types.ts·mocks/(CONVENTIONS 7장 Mock)를 먼저 추린다. 반대쪽 코드 레포는 작업 폴더에 있는 브랜치(보통 develop) 그대로 읽고, 어느 브랜치를 읽었는지 결과 맨 위에 적는다.
 
 ## 출력 (이 형식만 돌려준다)
 - 점검 범위와 가정 (한두 줄)
 - 스킬 모드 C의 대조표
 - 요약: ❌ 개수, 코드를 고칠 것 / 08을 고칠 것(→ 결정 이슈 필요 여부), curl로 재현한 것, 프론트 담당에게 공유할 것
-- AI 사용 기록 한 줄 초안: `| 날짜 | 레포#이슈 | chagok-contract-checker (에이전트) | API 계약 점검 n건 | 사람이 바꾼 것: (사람이 채움) |`
+- AI 사용 기록 한 줄 초안(형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」): `| 날짜 | 레포#이슈 | chagok-contract-checker (에이전트) | API 계약 점검 n건 | 사람이 바꾼 것: (사람이 채움) |`

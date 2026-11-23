@@ -18,5 +18,6 @@
 ## `.claude/`를 고칠 때
 
 - 세 레포의 AI 동작이 함께 바뀐다. `chore/#번호-…` 브랜치와 PR로 하고, 형상관리 리뷰를 받는다.
+- 작업 등급(`ai-rules.md` 「작업 등급」)은 경로가 아니라 내용으로 정한다: 설명·문구·오타는 L0~L1, 스킬 호출 조건·작업 절차는 L2, `settings.json`(deny·ask·`additionalDirectories`)·훅·보안·Git 보호 규칙은 L3. 규칙끼리 부딪히거나 보안 우회 위험이 보이면 L3로 올린다.
 - 머지한 뒤 팀에 "chagok-docs pull 후 `sync-claude.sh` 다시 실행"을 공지하고, claude.ai용 `.skill` 파일도 다시 배포한다(`docs/etc/GUIDE` 「배포」).
 - 코드 레포의 `.claude/rules·skills·agents` 사본을 직접 고치지 않는다. 다음 동기화 때 덮어써진다.
