@@ -3,7 +3,7 @@
 > 기능 ID ↔ 이슈 ↔ 담당 ↔ 선행 작업 (계속 수정)
 
 상태: 1차 계획 (2026-11-22 · @하다) — 담당은 D-14, 이슈 번호는 GitHub에 올린 뒤 채운다
-근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장, 13 changelog D-57·D-58
+근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장, 13 changelog D-51~D-54·D-57·D-58
 작업 상태의 원본은 Organization `OneMonthproJect`의 Projects 보드다. 이 문서에는 계획과 연결만 둔다. 이슈는 `chagok-issue-writer`로 만든다.
 
 ---
@@ -32,7 +32,7 @@
 | B-0 | BE·FE | 초기 레포 구성: 의존성, 폴더, 환경변수 예시, Gradle Wrapper(9.8.2), Flyway 설정, CI(wrapper 검증·build·dbTest·프론트 lint/build), pr-check(비밀값·DB 규칙), ArchitectureTest 기반, 시연 시드 구조 | **구성 완료.** 프론트 lint·build는 확인, 백엔드 빌드·CI는 첫 push에서 확인 필요 |
 | B-1 | BE | [기반] global: JWT 인증 필터·로그인 정보, ErrorCode(08 0.3)·전역 처리기, ApiResponse(08 0.2, `details` 포함), Clock, PageLimit + `EndpointGuardTest` 구현(아래 9장) | M1 설계 확정 |
 | B-2 | FE | [기반] shared: client.ts(공통 응답·오류 처리 05 POL-120~129, 토큰, 자동 재전송 없음), StatusBadge, Layout, Button(저장 중 비활성) + 라우팅·로그인 가드 | M1 설계 확정 |
-| B-3 | BE | [기반] Flyway `V1__init.sql`(07, `reservation.version` 포함) + 시연 시드 `db/seed/demo_seed.sql`(07 7장, 시연 계정 1234) — DB 담당자 | ERD 확정 |
+| B-3 | BE | [기반] Flyway `V1__init.sql`(07, `reservation.version` 포함, 담당 정비사 스키마: `staff` UNIQUE(shop_id, id)·`reservation.assignee_staff_id` 복합 FK·`maintenance_record.staff_id` 복합 FK, D-51) + 시연 시드 `db/seed/demo_seed.sql`(07 7장, 시연 계정 1234, 차종·담당 정비사 값 포함) — DB 담당자 | ERD 확정 |
 
 ## 4. P0-핵심 (→ M2 통합 검증)
 
@@ -48,13 +48,13 @@
 | 8 | F-VIS-01·CUS-05 | BE | [F-VIS-01] 항목 상태·미리보기 (API 10) + X6 | screen/visit | 1, 7 |
 | 9 | F-CUS-05 | FE | [F-CUS-05] 차량 상세 S-07 | pages/S07 | 6 |
 | 10 | F-MNT-01·VIS-01 | FE | [F-MNT-01] 방문·정비 기록 S-08 (미리보기) | pages/S08, features/maintenance | 9 |
-| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19) + R1~R5·R7~R14 + X4·X11·X12(18·19) | domain/reservation | 4 |
+| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19, P0-핵심은 서버가 등록자를 담당으로 자동 지정, D-51) + R1~R5·R7~R14 + X4·X11·X12(18·19) | domain/reservation | 4 |
 | 12 | F-TGT-01·HOME-01 | BE | [F-TGT-01] 재점검 대상·홈 (API 14·04) + X7 | screen/target | 8, 11 |
-| 13 | F-RSV-03 | BE | [F-RSV-03] 예약 상세 패널 (API 17) + X3 | screen/booking | 8, 11 |
-| 14 | F-RSV-01·02·06 | FE | [F-RSV-02] 예약 S-03 날짜별 목록 + 등록·변경 M-02 (기존 예약 발견 → 패널, 409 처리) | pages/S03, features/reservation | 5 |
-| 15 | F-RSV-03·04 | FE | [F-RSV-03] 예약 상세 패널 + 방문 완료 → S-08 | features/reservation | 14, 10 |
+| 13 | F-RSV-03 | BE | [F-RSV-03] 예약 상세 패널 (API 17, 최근 방문 2건 + `totalVisitCount`, D-54) + X3 | screen/booking | 8, 11 |
+| 14 | F-RSV-01·02·06 | FE | [F-RSV-02] 홈 S-02의 오늘 예약 목록(앞뒤 날짜 이동) + 등록·변경 M-02 (기존 예약 발견 → 패널, 409 처리) | pages/S02, features/reservation | 5 |
+| 15 | F-RSV-03·04 | FE | [F-RSV-03] 예약 상세 패널(최근 방문 2회, 총 3회 이상이면 상세 이동 활성) + 방문 완료 → S-08 | features/reservation | 14, 10 |
 | 16 | F-TGT-01 | FE | [F-TGT-01] 재점검 대상 S-04 (목록에서 예약) | pages/S04, features/target | 14 |
-| 17 | F-HOME-01 | FE | [F-HOME-01] 홈 S-02 | pages/S02 | 15, 16 |
+| 17 | F-HOME-01 | FE | [F-HOME-01] 홈 S-02 (요약 숫자 + 오늘 예약 목록) | pages/S02 | 15, 16 |
 | 18 | — | 전원 | M2 통합 검증: 빈 DB에서 시나리오 A·B, 07 7.5 기대값 확인 → `v0.5-m2-integration` | | 1~17 |
 
 ## 5. P0-나머지 (M2 통합 검증 후)
@@ -63,14 +63,24 @@
 |---|---|---|---|---|
 | V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 한 파일) — DB 담당자 | 18 |
 | 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 |
-| 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-03·04·07·08) | 19 |
-| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소·노쇼 (API 20·21) + R6·R10·R12·R13 + X12 | V2 |
-| 22 | F-RSV-05 | FE | [F-RSV-05] 월·주·일 캘린더 | 18 |
+| 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-02·04·07·08) | 19 |
+| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소(예약·진행중)·노쇼 (API 20·21) + R6·R10·R12·R13 + X12 | V2 |
+| 22 | F-RSV-05 | FE | [F-RSV-05] 홈 S-02 캘린더(월·주, 일 보기 없음, 담당 색+이름 라벨) — 오늘 예약 목록을 캘린더로 교체 | 18, 25-6 |
 | 23 | F-RSV-07·08 | FE | [F-RSV-07] 패널 취소·노쇼 | 21 |
 | 24 | F-CUS-06·07 | BE | [F-CUS-06] 고객·차량 수정 (API 22·23, `version` 확인) + 목록 마스킹 + X12 | 18, V2 |
 | 25 | F-CUS-06 | FE | [F-CUS-06] S-06·S-07 수정 | 24 |
+| 25-1 | F-RSV-01·06 | BE | [F-RSV-01] 등록 때 담당 정비사 선택·정비사별 중복 제한(API 16·19 `assigneeId`, 12 `mechanicId`, 담당 후보 36, 409 `MECHANIC_SLOT_CONFLICT`) + R15~R20·X13 (D-51) | 18 |
+| 25-2 | F-RSV-09 | BE | [F-RSV-09] 방문 접수(진행중) (API 39, 연식·주행거리 입력) + R21~R23 (D-52) | 18, V2 |
+| 25-3 | F-RSV-06 | BE | [F-RSV-06] 담당 재배정(전날 마감, 사장 당일 예외·사유 필수) + `reservation_revision`(API 19·41) + R24 (D-53 재배정) | 25-1, V2 |
+| 25-4 | F-RSV-10 | BE | [F-RSV-10] 지난 예약 정정(API 40·41) + `reservation_revision` + R25~R29 (D-53 정정) | V2 |
+| 25-6 | F-RSV-05 | BE | [F-RSV-05] 월 요약(API 42, 15 `assigneeId` 쿼리) | 18 |
+| 25-7 | F-RSV-06·09·10 | FE | [F-RSV-09] 패널 방문 접수·정정·이력 보기, M-02 담당 선택·재배정 | 25-1~25-4 |
 
 예약 변경은 P0-핵심으로 옮겼다(D-42). 취소·노쇼의 순서는 이 표를 정할 때 정한다.
+
+- 25-1~25-4·25-6·25-7은 D-51~D-54로 생긴 이슈 단위다. 기존 번호를 바꾸지 않으려고 하위 번호로 잇는다. 이슈 번호는 GitHub에 올린 뒤 채운다.
+- D-53 코드 이슈는 정정(25-4)과 재배정(25-3)으로 나눈다.
+- 이슈는 도메인 1개 단위로 쪼개고 도메인 3개 이상을 건드리는 이슈는 만들지 않는다(CONTRIBUTING 3장). P0-나머지·P1 이슈는 M2 통합 검증 통과 전에 열지 않는다.
 
 ## 6. P1 (P0-나머지 후 → M3 MVP 검증)
 
