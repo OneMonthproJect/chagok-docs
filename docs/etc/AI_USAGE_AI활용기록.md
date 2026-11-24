@@ -51,3 +51,4 @@
 | 2026-11-24 | chagok-docs#68 (PR #76) | Claude Code, chagok-pr-reviewer (에이전트) | X 테스트 범위 표기를 08 9장 기준으로 9개 파일 갱신, 머지 금지 범위 선택지 정리, 자가 점검(major 1) 반영 | 머지 금지 범위를 (b) 08 9장 X 전체로 결정 |
 | 2026-11-24 | chagok-docs#71 (PR #75) | chagok-pr-reviewer (에이전트), web-fetch (에이전트) | 자가 점검 major 5건 중 4건 수정. v15 기획안·상세 기획안 D-60~D-65 반영 정리, 유사서비스·후기 조사 문서 분리, 약관 동의 기록 모델 검토안, 후기 URL 재확인 시도(403), 이슈·PR 작성 | (사람이 검토 후 적음) |
 | 2026-11-24 | chagok-docs#77 (PR #78) | Claude Code, general-purpose (에이전트, 04·06·07·08·09·10 명세 매핑 읽기 전용) | 세 레포 원격 상태 전수 조회, STARTER 초안 7개를 최신 상태와 대조해 갱신, 개인 가이드 5개 작성, ID·링크·경로 정합성 스크립트 검증, 이슈·PR 작성 | (사람이 검토 후 적음) |
+| 2026-11-24 | chagok-docs#77 (릴리스 PR docs #80·backend #18·frontend #15) | Claude Code (스킬·에이전트 없음) | 세 레포 main·develop 차이·merge-tree 확인, 릴리스 PR 3개 본문 작성(Refs만·태그 없음), CI·CodeRabbit 요청 결과 확인 댓글 | 일회성 형상관리 예외로 사람이 확인·머지, 태그 없이 동기화만 하기로 결정 |
