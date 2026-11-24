@@ -36,7 +36,7 @@
 5. cycle 구현: 기준 기록 = 교체·외부 중 가장 늦은 것(점검·거절 제외), 도래(오늘 ≥ 다음 정비일 또는 km ≥ 기준+주기, 경계 포함), 임박(오늘+1개월 ≥ 다음 정비일), `plusMonths` 말일. 날짜는 인자로 받는다(Clock 직접 사용 금지).
 6. T1~T13 단위 테스트(`./gradlew build`, DB 없음). `ArchitectureTest`가 SKIPPED → 실행으로 바뀌는지 확인.
 7. PR (L2, `review-me` 자동) → `chagok-pr-reviewer` 자가 점검 → 김예린 확인.
-8. 병행: 2번 account (L3, `SecurityConfig`에 01·02 공개 경로). FU-1(`/error`·406·AccessDenied)과 같은 파일이라 **순서를 먼저 정한다**(추천: 2번 머지 뒤 FU-1).
+8. 병행: 2번 account (L3, `SecurityConfig`에 01·02 공개 경로). FU-1(backend#17, `/error`·406·AccessDenied)과 같은 파일이라 **순서를 먼저 정한다**(추천: 2번 머지 뒤 FU-1).
 9. 2번 머지 뒤 이재성에게 01·03 실제 연결 요청 → 401·403 함께 확인.
 10. 7번(이영주) 머지 후 8번, 11번(김예린) 머지 후 12번.
 
@@ -92,19 +92,19 @@ base `develop`, 제목 `[#번호] …`, 본문 `Closes #번호`, CI ✅, `chagok
 - [ ] PM과 담당 확정 (01 5장 1번: 내 부하 조정)
 - [ ] 1~17 이슈 생성 (Assignee는 확정 후)
 - [ ] 1번 브랜치 생성, T1~T13 목록 확인
-- [ ] FU-1과 2번의 `SecurityConfig` 순서 결정
+- [ ] FU-1(backend#17)과 2번의 `SecurityConfig` 순서 결정
 
 ## 11. 형상관리 업무
 
 - 이슈 생성·라벨·마일스톤·짝 링크, 12 4장 실제 번호 반영 docs PR(PM과).
 - 모든 PR CI ✅ 확인 후에만 머지되는지 감시(GitHub가 막지 않음). 머지된 ❌ PR은 revert.
 - 릴리스: `chagok-release-check` → docs → backend → frontend 순, Merge commit, `Refs`만, 같은 태그. 코드 릴리스 PR의 CodeRabbit 실행 여부 확인(지금까지 기록 없음).
-- #72(브랜치 정리·사후 리뷰·CodeRabbit 기준)·#73(settings ask, L3) 주인.
+- #73(settings ask, L3) 주인. #72는 D-66으로 결정됨 — 마일스톤 점검 때 원격 브랜치 정리 승인, 사후 리뷰 확인(PR #82·#87, 서브 형상관리 머지 #85·#88), `chagok-branch-audit` 구현(별도 L2).
 - 업무량: BE 4개 + 형상관리는 팀에서 가장 많다. **PM에게 8 또는 12 재배정 검토를 요청**한다.
 
 ## 12. 미결·확인
 
 - 담당 확정 전 (추천안)
-- FU-1(backend fix) 생성·담당, FU-3(토큰 저장·CORS) 결정
+- FU-1 = chagok-backend#17 담당·2번과 순서 조율. FU-3은 D-68로 결정됨(CORS 허용 목록 없음 → backend CORS 설정 변경 없음)
 - 02 3장 Q12(2번 테스트 ID), Q7(X8 담당)
 - CodeRabbit App 설치·동작 확인

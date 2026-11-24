@@ -13,7 +13,7 @@
 
 ## 2. 현재 상태
 
-- 있음: `shared/api/client.ts`(08 공통 응답, `ApiError`, 401 → 토큰 삭제·`onUnauthorized`, Mock 판정), `shared/lib/tokenStore.ts`(localStorage ❓), `submitGuard.ts`, `shared/ui/Button`·`Layout`·`StatusBadge`·`theme.css`(**임시 디자인**, D-19 전), `app/App.jsx`·`RequireAuth`(`state.from`)·`UnauthorizedRedirect`(`state.reason='expired'`)·`ServerCheck`(지금 `/login`).
+- 있음: `shared/api/client.ts`(08 공통 응답, `ApiError`, 401 → 토큰 삭제·`onUnauthorized`, Mock 판정), `shared/lib/tokenStore.ts`(localStorage — D-68로 확정, ❓ 주석은 3번 이슈에서 해제), `submitGuard.ts`, `shared/ui/Button`·`Layout`·`StatusBadge`·`theme.css`(**임시 디자인**, D-19 전), `app/App.jsx`·`RequireAuth`(`state.from`)·`UnauthorizedRedirect`(`state.reason='expired'`)·`ServerCheck`(지금 `/login`).
 - 없음: `pages/`·`features/` 전부.
 - 미검증: `state.from` 실제 이동(보호 화면 없음), Button 렌더링(jsdom 없음).
 - 착수 가능: **3번 바로 가능**(선행 B-2 완료, 08 01·03 예시로 Mock).
@@ -36,7 +36,7 @@ FE는 DB를 직접 쓰지 않는다. 테이블은 BE 담당이 다룬다.
 3. 3번 이슈 열기 → `feature/#<번호>-login-page`.
 4. `features/auth/`: `types.ts`(08 그대로), `api.ts`(`client.request` 사용), `mocks/`(08 예시, `VITE_USE_MOCK=true`는 `.env.development.local`).
 5. `pages/S01` + `App.jsx` 라우트 교체(`ServerCheck` 자리). 실패 문구 하나(`LOGIN_FAILED`), 비밀번호는 브라우저 저장소에 두지 않음(09).
-6. 로그인 성공 → `tokenStore.setToken` → `state.from`이 있으면 그곳, 없으면 S-02. `reason='expired'`면 안내 문구. (FU-3 결정 전: 현재 계약대로 구현, from 누락은 기록)
+6. 로그인 성공 → `tokenStore.setToken` → `state.from`이 있으면 그곳, 없으면 S-02. `reason='expired'`면 안내 문구. (D-68 확정: 이 이슈에서 `UnauthorizedRedirect`도 `state.from`을 넘기도록 고치고 `tokenStore.ts`의 ❓ 주석을 해제한다. `app` 로그인 가드 변경은 L3. CORS 설정은 만들지 않음)
 7. `npm test`(Vitest, api 단위) + 수동 확인.
 8. 김동윤 2번 머지 후 실제 백엔드로 401·403 확인 → PR.
 9. 14번: 5번(고객 검색) Mock을 재사용해 M-02 → 409 `RESERVATION_ACTIVE_EXISTS`면 기존 예약 패널 열기 **자리만**(패널은 15).
@@ -108,6 +108,6 @@ Mock은 08의 사본이다. Mock과 08이 다르면 08이 맞다. 계약 변경�
 ## 12. 미결·확인
 
 - 담당 확정 전 (추천안), 업무량 중간~높음(FE 4개)
-- FU-3: 토큰 저장 위치, 401 이동 `from` 계약 (현재 `from` 누락)
+- D-68(FU-3) 코드 반영: `UnauthorizedRedirect`의 `from` 전달, `tokenStore` ❓ 해제 — 3번 이슈에서(L3, `app` 로그인 가드)
 - Q5(14·17 목록 중복), Q6(패널 순서), Q9(S-02 연락처 칸)
 - D-19 확정 시점 (README에 2026-11-24 확정 예정으로 적혀 있음 — 결과 확인)
