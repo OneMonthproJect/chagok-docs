@@ -2,7 +2,7 @@
 
 > 기능 ID ↔ 이슈 ↔ 담당 ↔ 선행 작업 (계속 수정)
 
-상태: 1차 계획 (2026-11-22 · 최은정(eunjung01230)) — 담당은 D-14, 이슈 번호는 GitHub에 올린 뒤 채운다
+상태: 1차 계획 (2026-11-22 · 최은정(eunjung01230)) — 담당은 D-14, 이슈 번호는 2026-11-24 4·5장 「GitHub 이슈」 칸에 채웠다(chagok-docs#101)
 근거: 00 단계, 04 기능, 10 연결표, CONTRIBUTING 3·9장, 13 changelog D-51~D-65
 작업 상태의 원본은 Organization `OneMonthproJect`의 Projects 보드다. 이 문서에는 계획과 연결만 둔다. 이슈는 `chagok-issue-writer`로 만든다.
 
@@ -36,52 +36,60 @@
 
 ## 4. P0-핵심 (→ M2 통합 검증)
 
-| 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 패키지 / 화면 | 선행 |
-|---|---|---|---|---|---|
-| 1 | F-CYC-01 | BE | [F-CYC-01] 항목 상태 계산 + T1~T13 | domain/cycle | B-1 |
-| 2 | F-AUTH-01·02 | BE | [F-AUTH-01] 로그인·서비스 관리자 로그인·내 계정 (API 01~03) | domain/account | B-1, B-3 |
-| 3 | F-AUTH-01 | FE | [F-AUTH-01] 로그인 화면 S-01 | pages/S01 | B-2 |
-| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록(차종 필수, D-58)·차량 추가·상세 (API 05~09, 주행거리 0~2,000,000·연식 1980~현재 연도+1·`dueCount`·`soonCount` 정의는 D-63 B01·B03·B04) + X1·X2·X7·X17 | domain/customer | 2 |
-| 5 | F-CUS-01·02 | FE | [F-CUS-01] 고객·차량 목록 S-05 + 등록 M-01(차종 필수) | pages/S05, features/customer | 3 |
-| 6 | F-CUS-04 | FE | [F-CUS-04] 고객 상세 S-06 | pages/S06 | 5 |
-| 7 | F-MNT-01 | BE | [F-MNT-01] 방문 기록 저장·이력 조회·항목 목록 (API 11~13, 차량에 연식·주행거리가 비어 있으면 첫 저장 때 필수, D-58, 범위 D-63 B03·B04) + X5·X7(13, D-63 B06) | domain/maintenance, domain/item | 4 |
-| 8 | F-VIS-01·CUS-05 | BE | [F-VIS-01] 항목 상태·미리보기 (API 10) + X6 | screen/visit | 1, 7 |
-| 9 | F-CUS-05 | FE | [F-CUS-05] 차량 상세 S-07 | pages/S07 | 6 |
-| 10 | F-MNT-01·VIS-01 | FE | [F-MNT-01] 방문·정비 기록 S-08 (미리보기) | pages/S08, features/maintenance | 9 |
-| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19, P0-핵심은 서버가 등록자를 담당으로 자동 지정, D-51) + R1~R5·R7~R14 + X4·X11·X12(18·19) | domain/reservation | 4 |
-| 12 | F-TGT-01·HOME-01 | BE | [F-TGT-01] 재점검 대상·홈 (API 14·04) + X7 | screen/target | 8, 11 |
-| 13 | F-RSV-03 | BE | [F-RSV-03] 예약 상세 패널 (API 17, 최근 방문 2건 + `totalVisitCount`, D-54, `itemStatuses`는 `sortOrder` 순 D-63 B02) + X3(B 정비소 예약은 테스트 픽스처, D-63 B12) | screen/booking | 8, 11 |
-| 14 | F-RSV-01·02·06 | FE | [F-RSV-02] 홈 S-02의 오늘 예약 목록(앞뒤 날짜 이동) + 등록·변경 M-02 (기존 예약 발견 → 패널, 409 처리) | pages/S02, features/reservation | 5 |
-| 15 | F-RSV-03·04 | FE | [F-RSV-03] 예약 상세 패널(최근 방문 2회, 총 3회 이상이면 상세 이동 활성) + 방문 완료 → S-08 | features/reservation | 14, 10 |
-| 16 | F-TGT-01 | FE | [F-TGT-01] 재점검 대상 S-04 (목록에서 예약) | pages/S04, features/target | 14 |
-| 17 | F-HOME-01 | FE | [F-HOME-01] 홈 S-02 (요약 숫자 + 오늘 예약 목록) | pages/S02 | 15, 16 |
-| 18 | — | 전원 | M2 통합 검증: 빈 DB에서 시나리오 A·B, 07 7.5 기대값 확인 → `v0.5-m2-integration` | | 1~17 |
+| 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 패키지 / 화면 | 선행 | GitHub 이슈 |
+|---|---|---|---|---|---|---|
+| 1 | F-CYC-01 | BE | [F-CYC-01] 항목 상태 계산 + T1~T13 | domain/cycle | B-1 | backend#19 |
+| 2 | F-AUTH-01·02 | BE | [F-AUTH-01] 로그인·서비스 관리자 로그인·내 계정 (API 01~03) | domain/account | B-1, B-3 | backend#20 |
+| 3 | F-AUTH-01 | FE | [F-AUTH-01] 로그인 화면 S-01 | pages/S01 | B-2 | frontend#16 |
+| 3-1 | — | FE | [기반] 앱 골격: 라우트 수집·AppLayout·공통 머리·메뉴·로그아웃 (STARTER 02·07) | app | 3 | frontend#17 |
+| 3-2 | — | FE | [기반] shared UI 공통 5종 (Modal·FormField·EmptyState·ErrorNotice·ItemStatusList) | shared/ui | B-2 | frontend#18 |
+| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록(차종 필수, D-58)·차량 추가·상세 (API 05~09, 주행거리 0~2,000,000·연식 1980~현재 연도+1·`dueCount`·`soonCount` 정의는 D-63 B01·B03·B04) + X1·X2·X7·X17 | domain/customer | 2 | backend#21(4-1: API 05·06), backend#24(4-2: API 08·09), backend#43(API 07 고객 상세, ❓ Q14) |
+| 5 | F-CUS-01·02 | FE | [F-CUS-01] 고객·차량 목록 S-05 + 등록 M-01(차종 필수) | pages/S05, features/customer | 3 | frontend#19 |
+| 6 | F-CUS-04 | FE | [F-CUS-04] 고객 상세 S-06 | pages/S06 | 5 | frontend#20 |
+| 6-1 | F-CUS-03 | FE | [F-CUS-03] 기존 고객에 차량 추가 (S-06 인라인) | pages/S06 | 6 | frontend#21 |
+| 7 | F-MNT-01 | BE | [F-MNT-01] 방문 기록 저장·이력 조회·항목 목록 (API 11~13, 차량에 연식·주행거리가 비어 있으면 첫 저장 때 필수, D-58, 범위 D-63 B03·B04) + X5·X7(13, D-63 B06) | domain/maintenance, domain/item | 4 | backend#22(7-1: item API 13), backend#23(7-2: API 11), backend#42(API 12 저장) |
+| 8 | F-VIS-01·CUS-05 | BE | [F-VIS-01] 항목 상태·미리보기 (API 10) + X6 | screen/visit | 1, 7 | backend#25 |
+| 9 | F-CUS-05 | FE | [F-CUS-05] 차량 상세 S-07 | pages/S07 | 6 | frontend#22 |
+| 10 | F-MNT-01·VIS-01 | FE | [F-MNT-01] 방문·정비 기록 S-08 (미리보기) | pages/S08, features/maintenance | 9 | frontend#23(입력·저장), frontend#35(저장 전 미리보기) |
+| 11 | F-RSV-01·02·04·06 | BE | [F-RSV-01] 예약 등록·기간 조회·방문 완료·변경 (API 15·16·18·19, P0-핵심은 서버가 등록자를 담당으로 자동 지정, D-51) + R1~R5·R7~R14 + X4·X11·X12(18·19) | domain/reservation | 4 | backend#26(11-1: API 15·16), backend#27(11-2: API 18·19) |
+| 12 | F-TGT-01·HOME-01 | BE | [F-TGT-01] 재점검 대상·홈 (API 14·04) + X7 | screen/target | 8, 11 | backend#28(12-1: API 14), backend#29(12-2: API 04) |
+| 13 | F-RSV-03 | BE | [F-RSV-03] 예약 상세 패널 (API 17, 최근 방문 2건 + `totalVisitCount`, D-54, `itemStatuses`는 `sortOrder` 순 D-63 B02) + X3(B 정비소 예약은 테스트 픽스처, D-63 B12) | screen/booking | 8, 11 | backend#30 |
+| 14 | F-RSV-01·02·06 | FE | [F-RSV-02] 홈 S-02의 오늘 예약 목록(앞뒤 날짜 이동) + 등록·변경 M-02 (기존 예약 발견 → 패널, 409 처리) | pages/S02, features/reservation | 5 | frontend#24(14-1: 오늘 예약 목록), frontend#25(14-2: M-02) |
+| 15 | F-RSV-03·04 | FE | [F-RSV-03] 예약 상세 패널(최근 방문 2회, 총 3회 이상이면 상세 이동 활성) + 방문 완료 → S-08 | features/reservation | 14, 10 | frontend#26 |
+| 16 | F-TGT-01 | FE | [F-TGT-01] 재점검 대상 S-04 (목록에서 예약) | pages/S04, features/target | 14 | frontend#27 |
+| 17 | F-HOME-01 | FE | [F-HOME-01] 홈 S-02 (요약 숫자 + 오늘 예약 목록) | pages/S02 | 15, 16 | frontend#28 |
+| 18 | — | 전원 | M2 통합 검증: 빈 DB에서 시나리오 A·B, 07 7.5 기대값 확인 → `v0.5-m2-integration` | | 1~17 | — (만들지 않음, 형상관리가 정함) |
+
+- **GitHub 이슈 칸(2026-11-24)**: 순번과 선행 열은 1차 계획 그대로 두고, 실제 이슈 번호만 덧붙였다. 4·7·11·12·14는 API 경계로 나눈 하위 이슈이고(4-1·4-2, 7-1·7-2, 11-1·11-2, 12-1·12-2, 14-1·14-2), 3-1·3-2·6-1은 추가 이슈다. 일정(시작 후 10~12일) 때문에 backend#23에서 API 12(저장)를 #42로, #24에서 API 07(고객 상세)을 #43으로, frontend#23에서 S-08 미리보기를 #35로 더 나눴다. 이 표의 「선행」은 **착수 조건이 아니라 머지 순서**로 읽는다(계약 PR 먼저, STARTER 08 3장).
+- 번호와 분할의 근거·담당 추천은 `docs/etc/STARTER` 02 10장, 01 6장.
 
 ## 5. P0-나머지 (M2 통합 검증 후)
 
-| 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 선행 |
-|---|---|---|---|---|
-| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, 한 파일) — DB 담당자 | 18 |
-| 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 |
-| 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-02·04·07·08) | 19 |
-| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소(예약·진행중)·노쇼 (API 20·21) + R6·R10·R12·R13 + X12 | V2 |
-| 22 | F-RSV-05 | FE | [F-RSV-05] 홈 S-02 캘린더(월·주, 일 보기 없음, 담당 색+이름 라벨, 주 보기 08:00~20:00 + 범위 밖 위·아래 영역 D-63 B08) — 오늘 예약 목록을 캘린더로 교체 | 18, 25-6 |
-| 23 | F-RSV-07·08 | FE | [F-RSV-07] 패널 취소·노쇼 | 21 |
-| 24 | F-CUS-06·07 | BE | [F-CUS-06] 고객·차량 수정 (API 22·23, `version` 확인) + 목록 마스킹(규칙 08 0.5, D-63 B07) + X12 | 18, V2 |
-| 25 | F-CUS-06 | FE | [F-CUS-06] S-06·S-07 수정 | 24 |
-| 25-1 | F-RSV-01·06 | BE | [F-RSV-01] 등록 때 담당 정비사 선택·정비사별 중복 제한(API 16·19 `assigneeId`, 12 `mechanicId`, 담당 후보 36, 409 `MECHANIC_SLOT_CONFLICT`) + R15~R20·X13 (D-51) | 18 |
-| 25-2 | F-RSV-09 | BE | [F-RSV-09] 방문 접수(진행중) (API 39, 연식·주행거리 입력) + R21~R23 (D-52) | 18, V2 |
-| 25-3 | F-RSV-06 | BE | [F-RSV-06] 담당 재배정(전날 마감, 사장 당일 예외·사유 필수) + `reservation_revision`(API 19·41) + R24 (D-53 재배정) | 25-1, V2 |
-| 25-4 | F-RSV-10 | BE | [F-RSV-10] 지난 예약 정정(API 40·41) + `reservation_revision` + R25~R29 (D-53 정정) | V2 |
-| 25-5 | F-MNT-04 | BE | [F-MNT-04] 정비 기록 수정·수정 이력(API 37·38, 11 응답 확장) + H1~H11·X14 (D-55) | 18, V2 |
-| 25-6 | F-RSV-05 | BE | [F-RSV-05] 월 요약(API 42, 15 `assigneeId` 쿼리) | 18 |
-| 25-7 | F-RSV-06·09·10 | FE | [F-RSV-09] 패널 방문 접수·정정·이력 보기, M-02 담당 선택·재배정 | 25-1~25-4 |
-| 25-8 | F-MNT-04 | FE | [F-MNT-04] S-07 수정 버튼·수정 이력 패널 + M-03 정비 기록 수정 | 25-5 |
+| 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 선행 | GitHub 이슈 |
+|---|---|---|---|---|---|
+| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, 한 파일) — DB 담당자 | 18 | backend#31 |
+| V2-1 | — | BE | [기반] P0-나머지 `ErrorCode` 일괄 추가 (08 0.3, `global/error`) — 기능 이슈가 `ErrorCode`를 고치지 않게 먼저 머지 | 18 | backend#45 |
+| 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 | backend#32(maintenance), backend#41(T14·T15 cycle) |
+| 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-02·04·07·08) | 19 | frontend#29 |
+| 21 | F-RSV-07·08 | BE | [F-RSV-07] 취소(예약·진행중)·노쇼 (API 20·21) + R6·R10·R12·R13 + X12 | V2 | backend#33 |
+| 22 | F-RSV-05 | FE | [F-RSV-05] 홈 S-02 캘린더(월·주, 일 보기 없음, 담당 색+이름 라벨, 주 보기 08:00~20:00 + 범위 밖 위·아래 영역 D-63 B08) — 오늘 예약 목록을 캘린더로 교체 | 18, 25-6 | frontend#30(월), frontend#36(주) |
+| 23 | F-RSV-07·08 | FE | [F-RSV-07] 패널 취소·노쇼 | 21 | frontend#31 |
+| 24 | F-CUS-06·07 | BE | [F-CUS-06] 고객·차량 수정 (API 22·23, `version` 확인) + 목록 마스킹(규칙 08 0.5, D-63 B07) + X12 | 18, V2 | backend#34 |
+| 25 | F-CUS-06 | FE | [F-CUS-06] S-06·S-07 수정 | 24 | frontend#32 |
+| 25-1 | F-RSV-01·06 | BE | [F-RSV-01] 등록 때 담당 정비사 선택·정비사별 중복 제한(API 16·19 `assigneeId`, 12 `mechanicId`, 담당 후보 36, 409 `MECHANIC_SLOT_CONFLICT`) + R15~R20·X13 (D-51) | 18 | backend#35(reservation), backend#44(API 36 `account.api`) |
+| 25-2 | F-RSV-09 | BE | [F-RSV-09] 방문 접수(진행중) (API 39, 연식·주행거리 입력) + R21~R23 (D-52) | 18, V2 | backend#36 |
+| 25-3 | F-RSV-06 | BE | [F-RSV-06] 담당 재배정(전날 마감, 사장 당일 예외·사유 필수) + `reservation_revision`(API 19·41) + R24 (D-53 재배정) | 25-1, V2 | backend#37 |
+| 25-4 | F-RSV-10 | BE | [F-RSV-10] 지난 예약 정정(API 40·41) + `reservation_revision` + R25~R29 (D-53 정정) | V2 | backend#38 |
+| 25-5 | F-MNT-04 | BE | [F-MNT-04] 정비 기록 수정·수정 이력(API 37·38, 11 응답 확장) + H1~H11·X14 (D-55) | 18, V2 | backend#39 |
+| 25-6 | F-RSV-05 | BE | [F-RSV-05] 월 요약(API 42, 15 `assigneeId` 쿼리) | 18 | backend#40 |
+| 25-7 | F-RSV-06·09·10 | FE | [F-RSV-09] 패널 방문 접수·정정·이력 보기, M-02 담당 선택·재배정 | 25-1~25-4 | frontend#33(패널), frontend#37(M-02) |
+| 25-8 | F-MNT-04 | FE | [F-MNT-04] S-07 수정 버튼·수정 이력 패널 + M-03 정비 기록 수정 | 25-5 | frontend#34 |
 
 예약 변경은 P0-핵심으로 옮겼다(D-42). 취소·노쇼의 순서는 이 표를 정할 때 정한다.
 
-- 25-1~25-8은 D-51~D-55로 생긴 이슈 단위다. 기존 번호를 바꾸지 않으려고 하위 번호로 잇는다. 이슈 번호는 GitHub에 올린 뒤 채운다.
+- 25-1~25-8은 D-51~D-55로 생긴 이슈 단위다. 기존 번호를 바꾸지 않으려고 하위 번호로 잇는다. 이슈 번호는 표의 「GitHub 이슈」 칸에 채웠다(2026-11-24).
 - D-53 코드 이슈는 정정(25-4)과 재배정(25-3)으로 나눈다.
+- P0-나머지 이슈는 PM 요청으로 2026-11-24에 계획용으로 미리 만들었다. **착수는 M2 통합 검증 통과 후**다(위 규칙은 그대로). 일정 때문에 추가로 분리·추가한 것: backend#41(T14·T15를 #32에서 분리), backend#44(API 36), backend#45(P0-나머지 `ErrorCode` 일괄 추가 — 기능 이슈가 `ErrorCode`를 고치지 않게 먼저 머지), frontend#36(주 캘린더)·#37(M-02). reservation 이슈(backend#33·#35~#38·#40)는 한 사람이 맡고 #33 → #36 → #35 → #37 → #38 순서로 머지한다.
 - 이슈는 도메인 1개 단위로 쪼개고 도메인 3개 이상을 건드리는 이슈는 만들지 않는다(CONTRIBUTING 3장). P0-나머지·P1 이슈는 M2 통합 검증 통과 전에 열지 않는다.
 
 ## 6. P1 (P0-나머지 후 → M3 MVP 검증)
