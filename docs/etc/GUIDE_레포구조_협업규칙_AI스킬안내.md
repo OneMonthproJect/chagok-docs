@@ -342,7 +342,7 @@ M1 설계 확정 이후 명세를 바꾸는 순서:
 | 07 ERD | backend `src/main/resources/db/migration/V*.sql`, `db/seed/demo_seed.sql`, Entity | 마이그레이션이 바뀌면 문서 PR 링크 필수(pr-check ❌). 이미 있는 버전 파일은 고치지 않고 새 번호로 |
 | 08 API | backend Controller · DTO · ErrorCode, frontend `features/*/api.ts` · `types.ts` | 바뀌면 08의 표와 JSON 예시를 함께 수정하는 문서 PR, 반대쪽 담당에게 링크 공유. 자동 검사가 경고 |
 | 04 주기 규칙 | backend `domain/cycle`, 테스트 T1~T17(04) | 규칙을 바꾸면 테스트 기대값부터. 도메인관리 리뷰 필수 |
-| 격리 규칙 | backend 모든 정비소 데이터 조회 | 테스트 X1~X16. 실패하면 머지 금지 |
+| 격리·인증 규칙 | backend 모든 정비소 데이터 조회, 인증·권한·계정 상태 | **08 9장의 X 테스트 전체**(현재 X1~X21: 격리 X1~X8·X11~X15·X17, 역할·인증 X9·X10·X16·X18, 계정 상태 X19~X21). 실패하면 머지 금지 |
 | 09 화면 | frontend `src/pages` | 화면 ID와 페이지 파일 1:1 |
 | 00 범위 | 존재하는 기능 전체 | 차례가 오지 않은 단계(M3 MVP 검증 전 P2 등) · Non-goal 기능은 빈 화면 · 버튼 · API · 테이블로도 만들지 않음 |
 
@@ -438,7 +438,7 @@ M1 설계 확정 이후 명세를 바꾸는 순서:
 - 에이전트 결과는 제안입니다. 고칠지, 커밋 · 머지할지는 사람이 정합니다.
 - 리뷰 에이전트는 `gh pr review` · `gh pr comment` · `gh pr merge`를 실행하지 않도록 지시하고, `settings.json`도 실행 전에 확인을 묻습니다.
 - 에이전트도 같은 `ai-rules.md` · `settings.json` · pr-check를 받습니다.
-- 에이전트를 쓴 작업은 `AI_USAGE`의 「스킬 · 에이전트」 칸과 PR 템플릿 「AI 사용」에 이름을 남깁니다. M5 최종 시연 때 AI를 어디에 어떻게 썼는지 보여 줄 근거가 됩니다.
+- 에이전트를 쓴 작업은 PR 템플릿 「AI 사용」 기록 줄의 「스킬 · 에이전트」 칸에 이름을 남깁니다. `AI_USAGE`에는 하루 단위로 모아 올립니다(`CONTRIBUTING.md` 5장 「AI 사용 기록」). M5 최종 시연 때 AI를 어디에 어떻게 썼는지 보여 줄 근거가 됩니다.
 
 ### 한 번 도는 흐름
 

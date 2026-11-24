@@ -35,6 +35,35 @@ chagok/
 - 검사 대상이 없어 건너뛴(SKIPPED) 테스트를 통과로 세지 않는다.
 - 규칙끼리 부딪히거나 문서에 없는 결정이 필요하면 임의로 정하거나 우회하지 말고, 충돌 내용과 추천안을 보고한다.
 
+## 작업 등급 — L0~L3 (위 절차를 얼마나 밟는가)
+
+**등급은 파일 수·줄 수가 아니라 건드린 대상으로 정한다.** 아래 대상 중 하나라도 건드리면 그 등급 이상이다. 애매하면 위 등급. 규칙끼리 부딪히거나 보안 우회 위험이 보이면 L3로 올린다. 팀원이 이름을 대고 요청한 스킬·에이전트는 등급과 관계없이 실행한다.
+
+| 등급 | 대상 |
+|---|---|
+| **L3** | `db/migration/`·`db/seed/`, 인증(`global/auth`·`SecurityConfig`·토큰), 권한(역할·403), 개인정보(연락처 표시·마스킹·로그 노출), 정비소 격리(`getOwned`·Repository의 `shopId` 조건·X 시험), `.github/workflows`·`scripts`(CI·보호 규칙), `.claude/settings.json`(deny·ask·훅) |
+| **L2** | Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`, `cycle`, Entity·Service의 업무 규칙, 기준 문서 00·04·07·08의 정책, 스킬 호출 조건·작업 절차(`.claude/rules·skills·agents`의 규칙) |
+| **L1** | 화면 한 곳의 문구·배치, README·가이드, 국소적인 일반 코드, `.claude/` 설명 문구 |
+| **L0** | 오타·공백·주석·링크처럼 의미가 바뀌지 않는 수정 (`.claude/` 포함) |
+
+| 등급 | 계획·승인 | 스킬 | 에이전트 | AI가 직접 돌리는 검증 | 결과 보고 |
+|---|---|---|---|---|---|
+| L0 | 한 줄로 알리고 진행 | 없음 | 없음 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음 — CI가 봄) | 한두 줄 |
+| L1 | 3~5줄 요약 → 승인 | 해당하면 `issue-coder`·`bug-fix` | `chagok-pr-reviewer` 선택 | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm run build`. dbTest는 CI에 맡김 | 변경 파일·검증 결과·남은 일 |
+| L2 | 위 표 2단계 형식 → 승인 | `issue-coder`, 명세가 바뀌면 `spec-sync` | API·`types.ts`·`mocks/`를 건드렸으면 `chagok-contract-checker`, PR 전 `chagok-pr-reviewer` **필수** | `build` + `dbTest`(DB 테스트에 닿으면), 관련 T·R·X | 위 표 6단계 전부 |
+| L3 | L2 + 위험·되돌리는 방법 | L2 + 시드를 건드리면 `seed-data` | L2와 같음(`pr-reviewer` 필수) + 담당 리뷰(마이그레이션·시드는 DB관리, `.claude/settings.json`·CI는 형상관리) | L2 + **변경 대상의 고위험 검증**(아래) | L2 + 위험·되돌리기 |
+
+L3 검증은 대상에 맞는 것만 고른다. 관련 없는 고비용 검증을 반복하지 않는다(CI 필수 검사는 그대로 모든 PR에서 돈다).
+
+| L3 대상 | 검증 |
+|---|---|
+| DB·Flyway·시드 | 빈 DB 새 설치 + 같은 DB 재실행(Flyway validate → up to date), 시드 실행기와 07 7.5 기대값, V(n) 정합성 테스트. 공용 DB는 쓰지 않는다 |
+| 인증 | 로그인·토큰 흐름, 401(토큰 없음·만료·위조), 403(역할), EndpointGuardTest |
+| 권한 | 역할별 허용·거부(06 ↔ 08), X9·X10 계열 |
+| 개인정보 | 마스킹 위치(목록만, D-40), 상세는 전체 번호, 응답·로그·오류 메시지에 번호·토큰이 새지 않는지 |
+| 정비소 격리 | A 토큰으로 B id → 404, 목록 섞임 없음(X1~X8, 해당 X) |
+| CI·보호 규칙·settings | 규칙이 약해지지 않았는지(deny·ask·pr-check), 우회 경로, 워크플로 실행 결과 |
+
 ## 작업 전에
 
 1. 이슈 범위와 건드릴 패키지를 확인한다. 3개 이상의 도메인을 건드려야 하면 멈추고 이슈를 쪼개자고 제안한다.
@@ -51,8 +80,9 @@ chagok/
 - 이슈 범위 밖 기능, 아직 차례가 오지 않은 단계의 기능(M2 통합 검증 전의 P0-나머지·P1, M3 MVP 검증 전의 P2), Non-goal 기능을 빈 화면·버튼·API·테이블로 미리 만들지 않는다.
 - `main`·`develop`에 직접 커밋·push하지 않는다. 커밋·push·PR·머지·이슈 생성·태그는 사람이 확인한 뒤에 (`.claude/settings.json`이 확인을 묻고, force push와 main·develop push는 막는다).
 - `.env`·`secrets/`·키 파일은 읽거나 출력하지 않는다. 설정은 "있음/없음"까지만 확인한다.
-- 코드를 썼으면 `CONVENTIONS.md` 1장 7개를 스스로 점검하고 결과를 보고한다.
+- 코드를 썼으면 `CONVENTIONS.md` 1장 7개를 스스로 점검한다. 보고는 PR 템플릿 「구조」 칸을 채우는 것으로 한다(L2·L3는 항목별, L1은 "위반 없음" 한 줄). 같은 점검을 별도 표로 다시 쓰지 않는다.
 - 의미 있는 작업은 `chagok-docs/docs/etc/AI_USAGE_AI활용기록.md`에 넣을 한 줄을 제안한다: `| 날짜 | 이슈 | 스킬·에이전트 | 한 일 | 사람이 바꾼 것 |`. 이슈는 `chagok-backend#12`처럼 레포 이름을 붙인다.
+- 그 한 줄의 제출 위치(chagok-docs#60): **PR 본문 「AI 사용」 칸에 반드시 남긴다.** docs `AI_USAGE`에는 하루 단위로 통합 담당이 모아 올린다(`CONTRIBUTING.md` 5장 「AI 사용 기록」). AI는 작업마다 AI_USAGE 전용 이슈·PR을 따로 만들지 않는다. 사용자가 통합 PR을 요청하면 그날 머지된 PR의 줄을 모아 만든다.
 
 ## AI는 도구다 — 협업자·공동 작성자로 올리지 않는다
 
@@ -77,15 +107,16 @@ chagok/
 
 ## 에이전트 (`.claude/agents/`, Claude Code 전용)
 
-스킬이 "어떻게 하는가"(절차의 원본)라면, 에이전트는 그 스킬을 미리 싣고 **별도 맥락·최소 권한**으로 일을 맡아 결과만 돌려주는 담당자다. 아래 상황이면 메인 대화가 직접 하지 말고 해당 에이전트에게 맡긴다.
+스킬이 "어떻게 하는가"(절차의 원본)라면, 에이전트는 그 스킬을 미리 싣고 **별도 맥락·최소 권한**으로 일을 맡아 결과만 돌려주는 담당자다. 아래 조건에 맞을 때만 맡긴다. 조건에 맞지 않는 작은 일은 메인 대화가 직접 한다(작업 등급 표).
 
-| 에이전트 | 맡기는 때 | 싣는 스킬 | 도구 | 쓰기 |
+| 에이전트 | 맡기는 때 (조건) | 싣는 스킬 | 도구 | 쓰기 |
 |---|---|---|---|---|
-| `chagok-contract-checker` | Controller·DTO·`types.ts`를 바꾼 뒤, 프론트·백 연결 직후, 릴리스 점검 전 | `chagok-spec-sync` (모드 C) | Read·Grep·Glob·Bash | 없음 |
-| `chagok-pr-reviewer` | PR을 올리기 직전(작성자 자가 점검), 확인하는 팀원이 PR을 볼 때 | `chagok-pr-review` | Read·Grep·Glob·Bash | 없음 |
-| `chagok-scope-keeper` | 새 기능·범위 추가 의견, 이슈를 새로 만들기 전 | `chagok-scope-guard` | Read·Grep·Glob·Bash | 없음 |
+| `chagok-contract-checker` | diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있을 때, 프론트·백 연결 직후, 릴리스 점검 전. 코드가 없는 문서끼리 대조는 `spec-sync` 모드 B를 직접 | `chagok-spec-sync` (모드 C) | Read·Grep·Glob·Bash | 없음 |
+| `chagok-pr-reviewer` | L2·L3 PR을 올리기 직전(필수), L1은 선택, L0은 쓰지 않음. 확인하는 팀원이 PR을 볼 때 | `chagok-pr-review` | Read·Grep·Glob·Bash | 없음 |
+| `chagok-scope-keeper` | 12 백로그에 없는 기능·범위 추가 의견, 지금 단계 밖(P0-나머지·P1·P2) 이슈를 새로 만들기 전. 백로그 행을 그대로 이슈로 옮길 때는 쓰지 않음 | `chagok-scope-guard` | Read·Grep·Glob·Bash | 없음 |
 | `chagok-seed-builder` | 시드를 만들거나 고칠 때, M2 통합 검증·M3 MVP 검증·M5 최종 시연 전 | `chagok-seed-data` | + Edit·Write | `db/seed/demo_seed.sql`만 |
 
-- 구현을 끝낸 메인 대화는 PR 본문을 만들기 전에 `chagok-contract-checker`(API를 건드렸을 때)와 `chagok-pr-reviewer`를 차례로 돌리고, 결과를 사람에게 보여 준다.
+- 구현을 끝낸 메인 대화는 작업 등급에 따라 PR 본문을 만들기 전에 `chagok-contract-checker`(조건에 맞을 때)와 `chagok-pr-reviewer`(L2·L3)를 차례로 돌리고, 결과를 사람에게 보여 준다.
+- 같은 세션에서 이미 읽은 문서·Git 상태는 그사이에 바뀌었을 수 있는 경우(push·머지·다른 사람 작업 후)에만 다시 확인한다.
 - 에이전트 결과는 제안이다. 고칠지, 커밋·머지할지는 사람이 정한다. 에이전트도 이 규칙과 `.claude/settings.json`의 제한을 그대로 받는다.
 - 에이전트를 쓴 작업은 AI 사용 기록의 「스킬·에이전트」 칸에 `에이전트 이름 (에이전트)`로 적는다.

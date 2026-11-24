@@ -131,7 +131,7 @@ description: 차곡의 기획 문서(00·04·07·08·09)와 코드(chagok-backen
 - curl로 재현한 것:
 - 프론트 담당에게 공유할 것: (CONTRIBUTING 7장: 08이 바뀌면 PR 링크 공유)
 
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | 레포#이슈 | chagok-spec-sync 모드 C | API 계약 점검 n건 | 사람이 바꾼 것: (사람이 채움) |
 ```
 

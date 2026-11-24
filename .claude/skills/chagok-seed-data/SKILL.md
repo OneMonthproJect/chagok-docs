@@ -93,7 +93,7 @@ DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 ## 08 JSON 예시와 다른 값
 - (예시 값이 시드에 없으면 08을 고칠지 시드를 고칠지 DB관리·도메인관리가 정함)
 
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | backend#이슈 | chagok-seed-data | 한 일 | 사람이 바꾼 것: (사람이 채움) |
 ```
 

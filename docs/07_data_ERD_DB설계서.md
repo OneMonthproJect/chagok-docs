@@ -2,9 +2,9 @@
 
 > 테이블·관계·제약조건·격리 규칙·시드 구성 — **테이블·컬럼·제약·격리 I-xx·시드표의 원본**
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — M1 설계 확정 때 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서 + 13 changelog → 새 Flyway 버전 파일
-근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, **D-51~D-59(2026-11-23 회의 결정: 담당 정비사·진행중·지난 예약 정정·정비 기록 수정·삭제·보관·역할 개정·필수 입력·P1 미결 확정)**, M1 결정 A~D (13 changelog, chagok-docs#12)
-DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — M1 설계 확정(2026-11-23, chagok-docs#46). 확정 후 바꾸려면 `결정` 이슈 → 이 문서 + 13 changelog → 새 Flyway 버전 파일. 2026-11-23 D-60~D-63 반영(chagok-docs#65): 약관 동의 기록 표는 **초안(4.4), DB 담당자 검토 전**이며 마이그레이션을 만들지 않았다
+근거: 00·04, 상세 기획안 v11 10장, 결정 D-04·D-05·D-07·D-11·D-17·D-21~D-27·D-36·D-38·D-42, **D-51~D-59(2026-11-23 회의 결정: 담당 정비사·진행중·지난 예약 정정·정비 기록 수정·삭제·보관·역할 개정·필수 입력·P1 미결 확정)**, M1 결정 A~D (13 changelog, chagok-docs#12), D-60~D-63 (계정·약관·세부 정책, chagok-docs#65)
+DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값(M1 설계 확정 chagok-docs#46에서 P0-핵심 15건 확정, 💡 해제)
 
 ---
 
@@ -14,8 +14,8 @@ DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값
 - `platform_admin`을 뺀 모든 테이블은 정비소에 속한다. 고객·차량·정비 기록·예약·예약 목적(V2의 이력 표 2개도)은 `shop_id`를 **직접** 가진다(D-05).
 - PK는 `BIGINT AUTO_INCREMENT`. 전화번호·차량번호를 키로 쓰지 않는다.
 - 상태(미확인/여유/임박/도래), "예약 있음", "처리 필요", "지난 방문 거절", "지난 점검 주의"는 **저장하지 않는다**. 조회 때 계산한다.
-- enum은 `VARCHAR` + `CHECK`로 둔다(값 추가가 쉬움) 💡. 값 이름은 08 API와 글자까지 같다.
-- 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준) 💡, 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
+- enum은 `VARCHAR` + `CHECK`로 둔다(값 추가가 쉬움). 값 이름은 08 API와 글자까지 같다.
+- 시각은 `DATETIME`(소수 초 없음 = 정밀도 0, Asia/Seoul 기준, M1 설계 확정 15번: 오프셋 없는 형식), 날짜는 `DATE`. 예약 시각만 초를 00으로 강제한다(3.8).
 - 모든 테이블에 `created_at`. 수정되는 표에만 `updated_at`. 정비 기록(`maintenance_record`)도 F-MNT-04(D-55)로 수정되므로 `updated_at`·`version`을 가진다(P0-나머지, V2).
 - **생성·수정 시각은 서버가 넣는다 (M1 설계 확정).** `created_at`은 최초 생성 시각, `updated_at`은 생성 때도 같은 값으로 넣고 실제로 수정될 때 갱신한다. 값은 JPA Auditing이 넣고, Auditing의 시간 공급자(`DateTimeProvider`)는 주입한 `Clock` 빈(Asia/Seoul)을 쓴다. 두 칼럼은 `NOT NULL`이고 **DB `DEFAULT`·`CURRENT_TIMESTAMP`·`ON UPDATE`를 쓰지 않는다**(DB 세션 시간대와 서버 `Clock`이 어긋나지 않게). 시드는 시각을 직접 적는다(7장). 예약 `version`은 시각과 별개로 `@Version`이 관리한다.
 - **정비소 일치는 두 겹으로 지킨다 (M1 결정 A).** ① 서버가 저장 전 부모를 `getOwned(shopId, id)`로 찾는다(없거나 남의 것이면 404). ② DB는 핵심 부모·자식 관계를 **복합 FK** `(shop_id, 부모_id) → 부모(shop_id, id)`로 묶어, 서버 검증이 빠져도 다른 정비소 부모를 가리키는 행이 저장되지 않게 한다. 복합 FK의 부모 쪽에는 `UNIQUE(shop_id, id)`를 둔다(MySQL 8.4부터 FK는 UNIQUE·PK 키만 참조할 수 있다). 대상 관계와 이유는 5.1.
@@ -58,6 +58,8 @@ erDiagram
 
 `shop_id`가 없다. 정비소 데이터로 가는 경로가 구조적으로 없다.
 
+- **최초 서비스 관리자 (D-60 A01)**: 셀프 가입은 없다. 시연 DB는 시드의 `admin`(7.1). 시연이 아닌 환경의 첫 서비스 관리자 행은 DB 담당자가 환경별 안전한 초기화 절차로 넣는다(마이그레이션·시드·저장소에 비밀번호나 해시를 두지 않음). 절차 문서는 DB 담당자 후속 과제다.
+
 ### 3.2 `shop` — 정비소
 
 | 컬럼 | 타입 | 제약 | 설명 |
@@ -75,18 +77,20 @@ erDiagram
 |---|---|---|---|
 | id | BIGINT | PK | |
 | shop_id | BIGINT | NOT NULL, FK → shop.id | |
-| login_id | VARCHAR(50) | NOT NULL, UNIQUE | 정비소를 넘어 전체에서 유일 💡 |
+| login_id | VARCHAR(50) | NOT NULL, UNIQUE | 정비소를 넘어 전체에서 유일. P1 신규 계정(26·32)은 서버가 6~20자·`a-z0-9_`·소문자 시작으로 검증(D-60, 칼럼은 그대로) |
 | password_hash | VARCHAR(100) | NOT NULL | |
 | name | VARCHAR(50) | NOT NULL | |
 | role | VARCHAR(20) | NOT NULL, CHECK IN ('OWNER','MECHANIC') | |
-| password_change_required | BOOLEAN | NOT NULL, 기본 FALSE | 임시 비밀번호 계정 (P1에서 사용) |
+| password_change_required | BOOLEAN | NOT NULL, 기본 FALSE | 임시 비밀번호로 발급(26·32)·재발급(35·51)하면 TRUE, 첫 비밀번호 변경(24)에 FALSE (P1, D-60). 시드 시연 계정은 FALSE |
 | created_at | DATETIME | NOT NULL | |
 
 - UNIQUE(shop_id, id): 복합 FK 부모 키 (`reservation`의 담당·`maintenance_record`의 담당 정비사가 참조, 5.1). **V1**(D-51·D-57)
 - **P1(V3)에 추가 (D-57)**: `active BOOLEAN NOT NULL DEFAULT TRUE` — 정비사 비활성화(F-STF-01). 삭제는 없다.
 - 아침 알림 설정은 브라우저에 저장하므로(D-59) `staff`에 알림 시간 칼럼을 두지 않는다.
 
-`login_id`는 `platform_admin`과 겹쳐도 된다(로그인 API가 다르다, 08).
+`login_id`는 `platform_admin`과 겹쳐도 된다(로그인 API가 다르다, 08). 신규 아이디 규칙은 `staff`에만 적용하고 `platform_admin`과의 중복 정책은 합치지 않는다(D-60). 시연 아이디(`owner_a`·`mech_a`·`owner_b`·`admin`)는 바꾸지 않는다.
+
+- **계정 상태 확인 (P1, D-62)**: 보호된 정비소 요청마다 서버가 `staff`(V3 이후 `active` 포함)·`password_change_required`와 약관 동의 기록(4.4)을 읽는다(08 0.6). 토큰에는 이 상태를 넣지 않는다.
 
 ### 3.4 `customer` — 고객
 
@@ -95,7 +99,7 @@ erDiagram
 | id | BIGINT | PK | |
 | shop_id | BIGINT | NOT NULL, FK → shop.id | |
 | name | VARCHAR(50) | NOT NULL | |
-| phone | VARCHAR(20) | NOT NULL | 숫자·하이픈 💡. 중복 허용 |
+| phone | VARCHAR(20) | NOT NULL | 숫자·하이픈. 중복 허용 |
 | consent | BOOLEAN | NOT NULL, 기본 FALSE | 안내 수신 동의 (D-11). "연락 가능 여부" 칸은 두지 않음 (D-25) |
 | created_at | DATETIME | NOT NULL | |
 | updated_at | DATETIME | NOT NULL | |
@@ -113,8 +117,8 @@ erDiagram
 | customer_id | BIGINT | NOT NULL, FK (shop_id, customer_id) → customer(shop_id, id) | 복합 FK (5.1) |
 | plate_number | VARCHAR(20) | NOT NULL | 공백 제거. **중복 허용** (UNIQUE 없음) |
 | model | VARCHAR(50) | NULL | 차종. **서버 검증으로 필수**(D-58). DB는 NULL을 허용한다 |
-| model_year | SMALLINT | NULL | 연식. 선택이지만 비어 있으면 정비 시작(방문 접수)·정비 기록 첫 저장 때 필수(D-58, 서버 검증). 범위(1980~올해+1)는 서버 검증만 (올해는 CHECK에 쓸 수 없음) |
-| latest_mileage | INT | NULL, CHECK ≥ 0 | 최근 주행거리. 선택이지만 비어 있으면 정비 시작·정비 기록 첫 저장 때 필수(D-58). 등록 때 입력 또는 방문 기록으로 갱신 |
+| model_year | SMALLINT | NULL | 연식. 선택이지만 비어 있으면 정비 시작(방문 접수)·정비 기록 첫 저장 때 필수(D-58, 서버 검증). 범위(1980~현재 연도+1, D-63 B04)는 서버 검증만 (올해는 CHECK에 쓸 수 없음) |
+| latest_mileage | INT | NULL, CHECK ≥ 0 | 최근 주행거리. 선택이지만 비어 있으면 정비 시작·정비 기록 첫 저장 때 필수(D-58). 등록 때 입력 또는 방문 기록으로 갱신. 상한 2,000,000은 서버 검증만(D-63 B03, DB CHECK는 ≥ 0 그대로) |
 | created_at | DATETIME | NOT NULL | |
 | updated_at | DATETIME | NOT NULL | |
 
@@ -157,10 +161,10 @@ erDiagram
 | shop_id | BIGINT | NOT NULL, FK → shop.id | |
 | vehicle_id | BIGINT | NOT NULL, FK (shop_id, vehicle_id) → vehicle(shop_id, id) | 복합 FK (5.1) |
 | service_item_id | BIGINT | NOT NULL, FK (shop_id, service_item_id) → service_item(shop_id, id) | 복합 FK (5.1) |
-| visit_key | CHAR(36) | NOT NULL | 한 번 저장한 방문의 묶음 번호(UUID) 💡. **서버가 저장 요청(API 12) 하나마다 새로 만든다.** 요청으로 받지 않고, 예약 번호와 잇지 않는다. 여러 행이 같은 값을 가지므로 UNIQUE 아님 |
+| visit_key | CHAR(36) | NOT NULL | 한 번 저장한 방문의 묶음 번호(UUID). **서버가 저장 요청(API 12) 하나마다 새로 만든다.** 요청으로 받지 않고, 예약 번호와 잇지 않는다. 여러 행이 같은 값을 가지므로 UNIQUE 아님 |
 | record_date | DATE | NOT NULL | 방문일. 외부는 고객이 말한 정비일 |
 | mileage | INT | NULL, CHECK ≥ 0 | 방문 주행거리. 외부는 확인 가능할 때만 |
-| record_type | VARCHAR(20) | NOT NULL, CHECK IN ('REPLACE','INSPECT','EXTERNAL','DECLINE') | 교체·점검·외부·거절 (D-06). 4개 모두 P0-핵심부터 |
+| record_type | VARCHAR(20) | NOT NULL, CHECK IN ('REPLACE','INSPECT','EXTERNAL','DECLINE') | 교체·점검·외부·거절 (D-06). CHECK 값 4개는 V1부터 있다. 입력은 P0-핵심 `REPLACE`·`INSPECT`, `EXTERNAL`·`DECLINE`은 P0-나머지부터(08 12, 13 2026-11-22). 시드(7.2)에는 4개가 모두 있어 P0-핵심 조회 응답에도 나온다 |
 | source | VARCHAR(20) | NOT NULL, CHECK IN ('SHOP','CUSTOMER_STATEMENT') | EXTERNAL이면 CUSTOMER_STATEMENT, 나머지는 SHOP |
 | staff_id | BIGINT | NOT NULL, FK (shop_id, staff_id) → staff(shop_id, id) | **담당 정비사**. P0-핵심은 저장한 계정(토큰), P0-나머지부터 요청의 `mechanicId`(기본: 예약의 담당 또는 로그인 계정, 05 POL-59). 요청 값이 될 수 있으므로 복합 FK (5.1, V1) |
 | memo | VARCHAR(200) | NULL | |
@@ -180,7 +184,7 @@ erDiagram
 | id | BIGINT | PK | |
 | shop_id | BIGINT | NOT NULL, FK → shop.id | |
 | vehicle_id | BIGINT | NOT NULL, FK (shop_id, vehicle_id) → vehicle(shop_id, id) | 복합 FK (5.1) |
-| reserved_at | DATETIME | NOT NULL | 30분 단위 (D-21). 서버 검증 + CHECK `MINUTE(reserved_at) IN (0,30) AND SECOND(reserved_at) = 0` 💡 (08 16 "분 00·30, 초 00") |
+| reserved_at | DATETIME | NOT NULL | 30분 단위 (D-21). 서버 검증 + CHECK `MINUTE(reserved_at) IN (0,30) AND SECOND(reserved_at) = 0` (08 16 "분 00·30, 초 00") |
 | status | VARCHAR(20) | NOT NULL, CHECK IN ('RESERVED','COMPLETED','CANCELED') | P0-나머지 V2에 **'IN_PROGRESS'**(진행중, D-52)·'NO_SHOW'(D-27) 추가. CHECK는 V2가 지우고 두 값과 함께 다시 만들 수 있게 이름을 붙인다(6장) |
 | purpose_other | BOOLEAN | NOT NULL, 기본 FALSE | 예약 목적 "기타" (D-38) |
 | purpose_memo | VARCHAR(200) | NULL | 예약 목적 메모 |
@@ -221,6 +225,7 @@ erDiagram
 | P0-나머지 (V2) | `reservation_revision` | 지난 예약 정정·담당 재배정 이력 (D-53), 4.2 |
 | P1 (V3) | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active` | 고객·차량 비활성화·익명화, 정비사 비활성화 (D-56·D-57) |
 | P1 (V3) | 연락 기록 표 💡 `contact_log` | 4.3. F-CON-02 착수 때 |
+| P1 (V3 또는 별도 버전, **DB 담당자 결정**) | 약관 동의 기록 표 💡 `terms_agreement` | 4.4 초안. F-AUTH-04 착수 전 DB 담당자 검토 (D-61) |
 | P2 | 방문 테이블 분리, 동의 이력, 노쇼 관리, **정비 기록 무효 처리** 등 | 상세 기획안 13장 |
 
 ### 4.1 `maintenance_record_revision` — 정비 기록 수정 이력 (P0-나머지, V2, D-55)
@@ -277,15 +282,42 @@ erDiagram
 - 인덱스: (shop_id, customer_id, contacted_at) — 복합 FK 인덱스이자 "연락함(날짜)" 꼬리표 조회용, (staff_id).
 - 수정·삭제하지 않는다. `updated_at` 없음. "연락함" 꼬리표는 `contacted_at`이 30일 이내인 가장 최근 기록으로 계산한다(저장하지 않음).
 
+### 4.4 `terms_agreement` — 서비스 이용약관 동의 기록 (P1, **초안 — DB 담당자 검토 전**, D-61)
+
+사장이 정비소를 대표해 서비스 이용약관에 동의한 기록(D-61 A08). 최소 기록만 둔다(전자서명·다중 동의·약관 본문 저장 없음). 이름·타입·버전 번호는 DB 담당자 검토에서 정한다.
+
+| 컬럼 | 타입 | 제약 | 설명 |
+|---|---|---|---|
+| id | BIGINT | PK | |
+| shop_id | BIGINT | NOT NULL, FK → shop.id | 동의한 정비소 (I-1) |
+| staff_id | BIGINT | NOT NULL, FK → staff.id | 동의한 사장. 토큰의 계정이라 단일 FK (5.1 원칙, `created_by_staff_id`와 같음) |
+| terms_version | VARCHAR(20) 💡 | NOT NULL | 동의한 약관 버전(서버 설정의 현재 버전, 08 52) |
+| accepted_at | DATETIME | NOT NULL | 동의 시각 (서버 `Clock`) |
+| created_at | DATETIME | NOT NULL | |
+
+- UNIQUE(shop_id, terms_version): 같은 정비소·같은 버전은 1건. 52를 다시 보내면 새로 넣지 않는다. 이 인덱스가 `shop_id` FK 인덱스를 겸한다. `staff_id` FK 인덱스는 따로.
+- 수정·삭제하지 않는다(`updated_at` 없음). 정비사 행은 없다(정비사에게는 필수 동의가 없음).
+- 판정: 사장 요청 때 "그 정비소에 현재 버전 행이 있는가"(08 0.6 4번).
+
+**DB 담당자 검토 항목** (승인 전에는 마이그레이션·시드를 만들거나 DB에 적용하지 않는다)
+
+| # | 검토할 것 | 메모 |
+|---|---|---|
+| 1 | 표·칼럼 이름, `terms_version` 길이 | 버전 형식은 약관 전문 확정 때(04 F-AUTH-04) |
+| 2 | V3에 넣을지, 별도 버전으로 둘지 | 이미 적용된 V1은 고치지 않음. V2(P0-나머지)에는 넣지 않음 |
+| 3 | `staff_id`를 단일 FK로 둘지, 복합 FK `(shop_id, staff_id) → staff(shop_id, id)`로 둘지 | 값이 모두 토큰에서 오므로 단일 FK가 07 5.1 원칙. 복합 FK를 쓰면 I-2 대상이 된다 |
+| 4 | 시연 시드에 시연 정비소(A·B)의 동의 행을 넣을지 | 넣지 않으면 P1 이후 시연 사장 계정이 첫 로그인에서 약관 단계를 거친다. 시드 변경은 `chagok-seed-data`로 따로 |
+| 5 | 검증 체크리스트 (빈 DB 적용 → 재실행 up to date, UNIQUE·FK·NOT NULL 위반 INSERT 실패, V1·V2 정합성) | 6.3 형식으로 그 버전 PR에서 |
+
 ## 5. 격리 규칙 (I-xx)
 
 | ID | 규칙 | 지키는 곳 |
 |---|---|---|
 | I-1 | 정비소 데이터 테이블은 모두 `shop_id NOT NULL` | 이 문서, 마이그레이션 |
 | I-2 | 자식의 `shop_id`는 부모의 `shop_id`와 같다 (차량↔고객, 기록·예약↔차량, 기록·예약 목적↔정비 항목, 예약 목적↔예약, 예약 담당·기록 담당↔정비사, V2부터 이력↔기록·예약) | ① 서버: 저장 전 `getOwned(shopId, id)`로 부모를 먼저 찾아서 그 `shop_id`를 씀 ② DB: 복합 FK (5.1, V1 검증 6.3) |
-| I-3 | 정비소 데이터 조회는 모두 토큰의 `shop_id` 조건을 건다. 요청 값의 `shop_id`는 쓰지 않는다 | Repository `…AndShopId`, X8 |
-| I-4 | 없거나 남의 것이면 같은 404 | `getOwned`, X1~X6 |
-| I-5 | `platform_admin`에는 `shop_id`가 없고, 서비스 관리자 토큰으로는 정비소 테이블을 조회할 경로가 없다 | SecurityConfig, X9 |
+| I-3 | 정비소 데이터 조회는 모두 토큰의 `shop_id` 조건을 건다. 요청 값의 `shop_id`는 쓰지 않는다 | Repository `…AndShopId`, X7·X8 |
+| I-4 | 없거나 남의 것이면 같은 404 | `getOwned`, X1~X6·X12·X14·X15·X17 |
+| I-5 | `platform_admin`에는 `shop_id`가 없고, 서비스 관리자 토큰으로는 정비소 테이블을 조회할 경로가 없다. 반대로 정비소 토큰은 서비스 관리자 API를 쓸 수 없다 | SecurityConfig, X9·X16·X18 |
 
 ### 5.1 정비소 간 참조 분석 (M1 결정 A)
 
@@ -296,7 +328,7 @@ erDiagram
 | staff → shop | 시드 / P1 개설 | — | FK `shop_id` | — |
 | customer → shop | 토큰 | — | FK `shop_id` | — |
 | service_item → shop | 시드 / P1 개설 | — | FK `shop_id`, UNIQUE(shop_id, code) | — |
-| vehicle → customer | 요청 값 (경로 `customerId`, API 08) | `getOwned` | **복합 FK** (shop_id, customer_id) | 404 (X1) |
+| vehicle → customer | 요청 값 (경로 `customerId`, API 08) | `getOwned` | **복합 FK** (shop_id, customer_id) | 404 (I-4. DB 쪽은 V1-3, API 쪽은 08 X17, D-63 B11) |
 | maintenance_record → vehicle | 요청 값 (경로, API 12) | `getOwned` | **복합 FK** (shop_id, vehicle_id) | 404 (X5) |
 | maintenance_record → service_item | 요청 값 (`records[].itemId`) | 그 정비소의 쓰는 항목인지 | **복합 FK** (shop_id, service_item_id) | 400 `INVALID_INPUT` (X11) |
 | reservation → vehicle | 요청 값 (`vehicleId`, API 16) | `getOwned` | **복합 FK** (shop_id, vehicle_id) | 404 (X4) |
@@ -322,7 +354,7 @@ erDiagram
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
 | `V2__…` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`. **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
-| `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등 |
+| `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
 V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
 
@@ -345,12 +377,15 @@ V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 �
 | 9 | reservation_item | shop, reservation·service_item (UNIQUE(shop_id, id)) |
 
 - `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4` (콜레이션은 MySQL 8 기본 `utf8mb4_0900_ai_ci`).
-- 제약에 이름을 붙인다 💡: `uk_{테이블}_{칼럼}`, `fk_{자식}_{부모}`, `ck_{테이블}_{칼럼}`, `idx_{테이블}_{칼럼}`. MySQL은 FK·CHECK 이름이 스키마 안에서 유일해야 하고, V2가 `ck_reservation_status`를 `DROP CHECK` 후 다시 만들어야 하므로 이름이 필요하다.
-  - 예외: 규칙대로 지은 이름이 MySQL 식별자 최대 길이 64자를 넘으면 마이그레이션이 실패하므로 칼럼 이름을 줄인다(`shop_id` → `shop` 등). 칼럼 구성·순서는 바꾸지 않는다. 줄인 이름은 아래 표에 적는다.
+- 제약에 이름을 붙인다: `uk_{테이블}_{칼럼}`, `fk_{자식}_{부모}`, `ck_{테이블}_{칼럼}`, `idx_{테이블}_{칼럼}`. MySQL은 FK·CHECK 이름이 스키마 안에서 유일해야 하고, V2가 `ck_reservation_status`를 `DROP CHECK` 후 다시 만들어야 하므로 이름이 필요하다.
+  - 예외 ①: 규칙대로 지은 이름이 MySQL 식별자 최대 길이 64자를 넘으면 마이그레이션이 실패하므로 칼럼 이름을 줄인다(`shop_id` → `shop` 등). 칼럼 구성·순서는 바꾸지 않는다.
+  - 예외 ②: 한 테이블이 같은 부모를 FK 두 개로 가리키면 `fk_{자식}_{부모}`가 겹친다(스키마 안에서 유일해야 함). 먼저 있던 FK는 규칙대로 두고(기존 FK 변경 최소화), 나중 FK는 `fk_{자식}_{역할}_{부모}`로 역할을 붙여 구분한다.
+  - 예외로 지은 이름은 아래 표에 적는다.
 
     | 테이블 | 칼럼 (3장 그대로) | 규칙대로의 이름 | 실제 이름 |
     |---|---|---|---|
     | maintenance_record | (shop_id, vehicle_id, service_item_id, record_date) | `idx_maintenance_record_shop_id_vehicle_id_service_item_id_record_date` (69자) | `idx_maintenance_record_shop_vehicle_item_date` (45자) |
+    | reservation | (shop_id, assignee_staff_id) → staff(shop_id, id) — 담당 정비사 복합 FK (D-51) | `fk_reservation_staff` (등록자 FK `created_by_staff_id → staff.id`와 겹침) | `fk_reservation_assignee_staff`. 등록자 FK는 `fk_reservation_staff` 그대로 |
 - FK 칼럼 순서는 부모 키와 같게 `(shop_id, 부모_id)`. 자식 쪽 인덱스는 같은 순서로 시작해야 한다(3장 표의 인덱스가 그 역할). 인덱스를 따로 적지 않으면 MySQL이 이름 없는 인덱스를 만들므로 3장대로 명시한다.
 - `staff.shop_id`, `shop.created_by_admin_id`, `reservation.created_by_staff_id`의 단일 FK 인덱스도 명시한다. `maintenance_record.staff_id`는 복합 FK라 `(shop_id, staff_id)` 인덱스로, `reservation.assignee_staff_id`는 `(shop_id, assignee_staff_id, reserved_at)` 인덱스로 대신한다(3장).
 - 시연 시드는 V1에 넣지 않는다(7장). 기본 기준표 6행도 시드가 정비소마다 넣는다.
@@ -423,7 +458,7 @@ V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남
 | `owner_b` | 최사장 | B 정비소 사장 | `1234` |
 | `admin` | 운영관리자 | 서비스 관리자 | `1234` |
 
-A 정비소의 담당 정비사 후보는 사장(`owner_a`)과 정비사(`mech_a`) 2명이고, B 정비소는 사장 1명이라 담당이 사장이다(D-51·D-57). 시연 DB에만 있다. 비밀번호는 BCrypt 해시로 넣고, `password_change_required = false`(첫 로그인 변경 강제 안 함). 운영 환경에는 만들지 않는다 (D-44, 05 POL-17).
+A 정비소의 담당 정비사 후보는 사장(`owner_a`)과 정비사(`mech_a`) 2명이고, B 정비소는 사장 1명이라 담당이 사장이다(D-51·D-57). 시연 DB에만 있다. 비밀번호는 BCrypt 해시로 넣고, `password_change_required = false`(첫 로그인 변경 강제 안 함). 운영 환경에는 만들지 않는다 (D-44, 05 POL-17). 시연 아이디는 P1 신규 아이디 규칙(D-60)과 관계없이 그대로 쓰고, 비밀번호 `1234`도 그대로 로그인한다(신규 비밀번호 규칙은 새 비밀번호·발급에만). P1 이후 시연 정비소의 약관 동의 기록을 시드에 넣을지는 4.4 검토 항목 4.
 
 ### 7.2 A 정비소 고객·차량과 기대 상태
 
@@ -448,7 +483,7 @@ A 정비소의 담당 정비사 후보는 사장(`owner_a`)과 정비사(`mech_a
 | 차량 | 차종 | 연식 | 최근 주행거리 | 비고 |
 |---|---|---|---|---|
 | 12가0001 | 아반떼 | 💡 2019 | 💡 40,000 | 엔진오일 기록의 km와 맞춤 |
-| 34나0002 | 소나타 | 💡 2018 | 💡 60,000 | |
+| 34나0002 | 쏘나타 | 💡 2018 | 💡 60,000 | |
 | 56다0003 | 그랜저 | 💡 2017 | 💡 80,000 | |
 | 78라0004 | K5 | 2020 | 45,000 | 08 예시 |
 | 90마0005 | 아반떼 | 2019 | **비움** | 주행거리 없음 → "정비 시작 때 입력" 확인용 |
@@ -474,7 +509,9 @@ A 정비소의 담당 정비사 후보는 사장(`owner_a`)과 정비사(`mech_a
 
 | 고객 | 차량 | 기록 | 확인 |
 |---|---|---|---|
-| 강동원 010-0000-0101 (Y) | **12가0001** (A의 김민수와 같은 번호), 차종 아반떼 💡 | 엔진오일 교체 D-7M | A에서 검색해도 안 보임 (X7), A 토큰으로 id 조회 시 404 (X1·X2) |
+| 강동원 010-0000-0101 (Y) | **12가0001** (A의 김민수와 같은 번호), 차종 아반떼 💡 | 엔진오일 교체 D-7M | A에서 검색해도 안 보임 (X7), A 토큰으로 id 조회 시 404 (X1·X2), A 토큰으로 이 고객에 차량 추가 시 404 (X17) |
+
+B 정비소에는 **예약을 넣지 않는다**. 08 X3·X12·X14처럼 B 정비소 예약이 필요한 격리 테스트는 그 테스트가 자기 픽스처로 B 예약을 만든다(D-63 B12, 시연 시드 불변). 시연 시드의 7.5 기대값도 그대로다.
 
 ### 7.5 시드 기대값 (매일 마감 전 확인용)
 

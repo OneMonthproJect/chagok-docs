@@ -2,10 +2,10 @@
 
 > 엔드포인트·요청·응답·에러 코드·격리 테스트 — **API 번호, 요청·응답, 에러 코드, X-xx, JSON 예시의 원본**
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — M1 설계 확정 때 확정. 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
-근거: 04 기능 명세, 07 ERD, 06 권한, M1 결정 A~D (13 changelog, chagok-docs#12), D-51~D-59 (13 changelog, 결정 이슈 `chagok-docs#20·#21·#22`). 💡 = 제안값. ❓ = 결정 필요(문서 끝 목록)
-계약 수준 (M1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 36~42, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1(43~50 포함)** 은 8장 큰 모양만.
-담당 정비사(D-51) 단계 구분: **P0-핵심**은 DB 스키마(`reservation.assignee_staff_id`)만 있고 요청에 담당 필드가 없다. 서버가 토큰의 계정을 담당으로 채운다. **P0-나머지**부터 16·19 요청의 `assigneeId`, 12 요청의 `mechanicId`, API 36, 409 `MECHANIC_SLOT_CONFLICT`, X13이 생긴다. 응답의 `assignee`도 P0-나머지부터다(아래 예시 중 `assignee`가 있는 것은 P0-나머지 응답 기준).
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — M1 설계 확정(2026-11-23, chagok-docs#46), 2026-11-23 D-60~D-63 반영(chagok-docs#65·#66). 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
+근거: 04 기능 명세, 07 ERD, 06 권한, M1 결정 A~D (13 changelog, chagok-docs#12), D-51~D-59 (13 changelog, 결정 이슈 `chagok-docs#20·#21·#22`), D-60~D-63 (계정·온보딩·약관·비활성 정비사 토큰·세부 정책, `chagok-docs#65`). 💡 = 제안값(M1 설계 확정 chagok-docs#46에서 P0-핵심 15건 확정, 💡 해제). ❓ = 결정 필요(문서 끝 목록)
+계약 수준 (M1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 36~42, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1(43~52 포함)** 은 8장 큰 모양만. 단 계정·온보딩(03의 P1 필드, 24·26·32·35·51·52)과 계정 상태 확인(0.6)은 D-60~D-62로 요청·응답·오류·JSON까지 정했다(8.1).
+담당 정비사(D-51) 단계 구분: **P0-핵심**은 DB 스키마(`reservation.assignee_staff_id`)만 있고 요청에 담당 필드가 없다. 서버가 토큰의 계정을 담당으로 채운다. **P0-나머지**부터 16·19 요청의 `assigneeId`, 12 요청의 `mechanicId`, API 36, 409 `MECHANIC_SLOT_CONFLICT`, X13이 생긴다. 응답의 `assignee`도 P0-나머지부터다(아래 예시 중 `assignee`가 있는 것은 P0-나머지 응답 기준). **P0-핵심 구현과 프론트 Mock은 04·15·17 예시에서 `assignee`를 뺀 모양을 쓴다**(`phone`은 0.5대로 P0-핵심 기준, 마스킹 전). 담당 정비사 입력(12·16·19·37)과 36의 "활성 사장·정비사" 중 **비활성 제외는 `staff.active`가 생기는 P1(V3)부터**다(07 4장·5.1, D-57). P0-나머지에서는 그 정비소의 사장·정비사이면 된다(X13).
 
 ---
 
@@ -17,13 +17,14 @@
 |---|---|
 | 주소 | 정비소 API `/api/**`, 서비스 관리자 API `/api/admin/**` |
 | 형식 | JSON, UTF-8. 필드 이름은 camelCase |
-| 인증 | `Authorization: Bearer {accessToken}`. 로그인 API(01·02)만 토큰 없이 |
+| 인증 | `Authorization: Bearer {accessToken}`. 로그인 API(01·02)만 토큰 없이. P1부터 첫 비밀번호 변경 전·약관 동의 전·비활성 계정은 0.6의 계정 상태 확인을 거친다 |
 | 날짜 | `"2026-11-24"` (DATE) |
-| 일시 | `"2026-11-24T10:00:00"` (Asia/Seoul, 시간대 표기 없음) 💡 |
+| 일시 | `"2026-11-24T10:00:00"` (Asia/Seoul, 시간대 표기 없음) |
 | 목록 쪽 나누기 | `?page=0&size=20` (M1 설계 확정). 생략하면 page 0·size 20. size 최대 50 — 50을 넘으면 서버가 50으로 줄인다(`PageLimit`, 응답 `size`도 50). page 음수, size 0 이하, 숫자가 아닌 값은 400 `INVALID_INPUT`. 쪽 나누기를 쓰는 API는 05·11과 (P1) 48뿐 (14는 전부, 15는 기간, 13·36은 배열) |
 | 정비소 | 요청에 `shopId`를 받지 않는다. 토큰의 `shop_id`만 쓴다 (I-3) |
-| 공통 오류 | 정비소 API(03~23, 36~50, 그 밖의 P1 정비소 API)는 모두 401 `AUTH_REQUIRED`(토큰 없음·만료)·403 `FORBIDDEN`(서비스 관리자 토큰)·500 `INTERNAL_ERROR`가 날 수 있다. 각 API의 "에러" 줄에는 그 밖의 것만 적는다 |
+| 공통 오류 | 정비소 API(03~23, 36~52, 그 밖의 P1 정비소 API)는 모두 401 `AUTH_REQUIRED`(토큰 없음·만료)·403 `FORBIDDEN`(서비스 관리자 토큰)·500 `INTERNAL_ERROR`가 날 수 있다. P1부터 403 `PASSWORD_CHANGE_REQUIRED`·`TERMS_AGREEMENT_REQUIRED`·`ACCOUNT_INACTIVE`(0.6)도 날 수 있다. 서비스 관리자 API(31~35)는 사장·정비사 토큰이면 403 `FORBIDDEN`(X18). 각 API의 "에러" 줄에는 그 밖의 것만 적는다 |
 | 요청 본문 안의 id | 경로 id와 본문 `vehicleId`(16)는 그 정비소 것이 아니면 404 `NOT_FOUND`. 본문의 정비 항목 id(`records[].itemId`, `purpose.itemIds`)는 없음·남의 것·쓰지 않는 항목 모두 400 `INVALID_INPUT` + `fieldErrors` (같은 응답이라 남의 것인지 드러나지 않음, X11). **담당 정비사 id(`assigneeId`, `mechanicId`, P0-나머지)도 없음·남의 것·비활성 모두 400 `INVALID_INPUT` + `fieldErrors`** (X13) |
+| 주행거리·연식 (D-63 B03·B04) | 주행거리(`mileage`·`latestMileage`·`externalMileage`, 10의 쿼리 `mileage` 포함)는 **정수 0~2,000,000**(km). 연식(`modelYear`)은 **1980 ~ 현재 연도 + 1**이고 현재 연도는 서버 `Clock`(Asia/Seoul)으로 계산한다. 범위 밖·정수가 아닌 값은 400 `INVALID_INPUT` + 그 필드의 `fieldErrors`. 둘 다 선택 입력이며 차량에 비어 있으면 정비 시작 때 필수(D-58)인 것은 그대로 |
 | 예시 값 | 07 시드 구성의 값. 오늘(D)은 예시에서 `2026-11-24`로 둔다. 담당 정비사 이름은 시드 계정 이름(사장 `owner_a` 박사장, 정비사 `mech_a` 김정비) |
 
 ### 0.2 공통 응답
@@ -67,6 +68,8 @@
 | 다른 직원이 먼저 수정 | 409 `CONCURRENT_MODIFICATION` | 덮어쓰지 않음. 최신 내용을 다시 불러와 보여주고 다시 수정하게 함 |
 | 인증 만료 | 401 `AUTH_REQUIRED` | 로그인 안내 → 로그인 화면 |
 | 권한 없음 | 403 `FORBIDDEN` | 권한 안내 |
+| 첫 비밀번호 변경·약관 동의 전 (P1, 0.6) | 403 `PASSWORD_CHANGE_REQUIRED`·`TERMS_AGREEMENT_REQUIRED` | 권한 안내가 아니라 03을 다시 불러 S-01의 해당 단계로 보냄 (09 S-01) |
+| 비활성 계정 (P1, 0.6) | 403 `ACCOUNT_INACTIVE` | 토큰을 지우고 로그인 화면으로, 사용할 수 없는 계정 안내 |
 | 없음·남의 데이터 | 404 `NOT_FOUND` | "찾을 수 없습니다" (있는지 여부를 드러내지 않음) |
 | 서버 오류 | 500 `INTERNAL_ERROR` | 공통 오류 안내, 입력값 유지. 서버는 그 요청의 변경을 모두 되돌린다(트랜잭션) |
 | 네트워크 오류·응답 없음 | (응답 없음) | 입력값 유지. 저장됐는지 목록·이력에서 확인한 뒤 사람이 다시 저장. **자동으로 다시 보내지 않는다** |
@@ -89,24 +92,25 @@
 |---|---|---|---|
 | `AUTH_REQUIRED` | 401 | 토큰 없음·만료·위조 | P0-핵심 |
 | `LOGIN_FAILED` | 401 | 아이디 없음·비밀번호 틀림 (같은 응답) | P0-핵심 |
-| `FORBIDDEN` | 403 | 역할이 맞지 않음 (서비스 관리자 → 정비소 API, 정비사 → 사장 전용 API) | P0-핵심 |
+| `FORBIDDEN` | 403 | 역할이 맞지 않음 (서비스 관리자 → 정비소 API, 사장·정비사 → 서비스 관리자 API(X18, D-63 B10), 정비사 → 사장 전용 API) | P0-핵심 |
 | `NOT_FOUND` | 404 | 없거나 다른 정비소 것 (D-12) | P0-핵심 |
 | `INVALID_INPUT` | 400 | 검증 실패, 잘못된 JSON, 타입 불일치, 30분 단위 아님 | P0-핵심 |
 | `RESERVATION_PAST_DATE` | 400 | 예약 날짜가 어제 이전 (D-23) | P0-핵심 |
 | `RESERVATION_ACTIVE_EXISTS` | 409 | 같은 차량에 유효 예약(예약 + 예약 날짜 ≥ 오늘, 또는 진행중)이 있음 (D-22, D-52) | P0-핵심 |
 | `INVALID_STATUS_TRANSITION` | 409 | 허용되지 않은 예약 상태 변경 | P0-핵심 |
-| `CONFLICT` | 409 | 유일 제약 위반 (아이디 중복 등) | P0-핵심 |
+| `CONFLICT` | 409 | 유일 제약 위반 (P1 계정 발급 26·32의 아이디 중복 등) | P0-핵심 |
 | `CONCURRENT_MODIFICATION` | 409 | 읽은 뒤 다른 직원이 먼저 바꿈 (`version` 불일치, D-42) | P0-핵심 |
 | `INTERNAL_ERROR` | 500 | 그 밖 | P0-핵심 |
 | `MECHANIC_SLOT_CONFLICT` | 409 | 같은 담당 + 같은 시작 시각에 유효 예약이 있음 (D-51). `details`에 `{ "reservationId": n }` | P0-나머지 |
 | `ASSIGNEE_CHANGE_CLOSED` | 409 | 담당 재배정 마감(예약 날짜 전날까지)이 지났거나 지난 날짜 예약 (D-53). 진행중 예약은 `INVALID_STATUS_TRANSITION` | P0-나머지 |
 | `EDIT_PERIOD_EXPIRED` | 403 | 정비사의 수정·정정 기간(3일) 초과 (D-53·D-55) | P0-나머지 |
 | `SHOP_SUSPENDED` | 403 | 정지된 정비소 계정 로그인 | P1 |
-| `PASSWORD_CHANGE_REQUIRED` | 403 | 임시 비밀번호 상태에서 다른 API 호출 | P1 |
+| `PASSWORD_CHANGE_REQUIRED` | 403 | 임시 비밀번호 상태(`password_change_required = true`, 사장·정비사)에서 0.6 허용 API 밖 호출 (D-60) | P1 |
+| `TERMS_AGREEMENT_REQUIRED` | 403 | 현재 버전 서비스 이용약관에 동의하지 않은 정비소의 사장이 0.6 허용 API 밖 호출 (D-61) | P1 |
 | `HAS_ACTIVE_RESERVATION` | 409 | 유효 예약이 있어 비활성화·익명화·정비사 비활성화 불가 (D-56·D-57) | P1 |
 | `HAS_HISTORY` | 409 | 이력이 있어 고객 삭제 불가 (D-56) | P1 |
 | `RETENTION_NOT_REACHED` | 409 | 보관 5년이 지나지 않음 (D-56) | P1 |
-| `ACCOUNT_INACTIVE` | 403 | 비활성 정비사 계정 로그인 (D-57) | P1 |
+| `ACCOUNT_INACTIVE` | 403 | 비활성 정비사 계정 로그인(D-57), 비활성화 전에 받은 토큰으로 정비소 API 호출(D-62) | P1 |
 
 `message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다.
 
@@ -119,16 +123,46 @@ DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 
 | 역할 `role` | `OWNER` 사장 · `MECHANIC` 정비사 · `ADMIN` 서비스 관리자 |
 | 점검 주기 상태 `status` | `UNKNOWN` 미확인 · `AHEAD` 여유 · `SOON` 임박 · `DUE` 도래 |
 | 도래 근거 `dueReason` | `DATE` 날짜 · `KM` 주행거리 · `null` |
-| 정비 구분 `type` | `REPLACE` 교체 · `INSPECT` 점검 · `EXTERNAL` 외부 · `DECLINE` 거절 |
+| 정비 구분 `type` | `REPLACE` 교체 · `INSPECT` 점검 · `EXTERNAL` 외부 · `DECLINE` 거절. 입력(12)은 P0-핵심 `REPLACE`·`INSPECT`, P0-나머지부터 `EXTERNAL`·`DECLINE`(13 2026-11-22). 조회 응답(10 `baseRecord.type`, 11·17 `records[].type`)에는 시드·기존 기록 때문에 P0-핵심에서도 4개가 모두 나올 수 있다(07 3.7·7.2) |
 | 출처 `source` | `SHOP` 우리 정비소 · `CUSTOMER_STATEMENT` 고객 진술 |
 | 점검 결과 `inspectResult` (P0-나머지) | `GOOD` 양호 · `CAUTION` 주의 |
 | 예약 상태 `status` | `RESERVED` 예약 · `IN_PROGRESS` 진행중(P0-나머지, D-52) · `COMPLETED` 방문 완료 · `CANCELED` 취소 · `NO_SHOW` 노쇼(P0-나머지) |
 | 예약 이력 종류 `kind` (P0-나머지, `reservation_revision`) | `STATUS` 상태 정정 · `MEMO` 메모 정정 · `ASSIGNEE` 담당 재배정 |
 | 항목 `code` | `ENGINE_OIL` · `AIR_CLEANER` · `AC_FILTER` · `BRAKE_PAD` · `TIRE` · `BATTERY` |
+| 정비소 상태 `status` (P1, 31·33·34) | `ACTIVE` 이용 중 · `SUSPENDED` 정지 (07 3.2 CHECK와 같음) |
 
 ### 0.5 연락처 표시
 
 목록 응답(04·05·14·15)의 `phone`은 P0-나머지부터 서버가 마스킹한 값(`010-****-0001`, F-CUS-07). 상세 응답(07·09·17)과 문자 초안(28)의 `phone`은 전체 번호(D-40). 아래 목록 예시는 P0-핵심 기준(마스킹 전).
+
+마스킹 규칙 (D-63 B07, 서버 한 곳): 저장된 값에서 숫자만 센다(하이픈 무시). 숫자를 n자리라 하면
+
+| n | 표시 | 예 |
+|---|---|---|
+| 9 이상 | 앞 머리(`02`로 시작하면 2자리, 아니면 3자리) + `-` + 가운데 숫자 수만큼 `*` + `-` + 뒤 4자리 | `010-0000-0001` → `010-****-0001`, `02-123-4567` → `02-***-4567`, `0311234567` → `031-***-4567` |
+| 5~8 | 앞 숫자 수만큼 `*` + `-` + 뒤 4자리 | `1588-1234` → `****-1234` |
+| 4 이하 | 숫자 수만큼 `*` | — |
+
+- 가운데 자리는 항상 가린다. 원래 하이픈 위치는 따르지 않는다(입력 형식이 달라도 같은 번호면 같은 표시).
+- 빈 값(익명화 고객 등, P1)은 빈 값 그대로.
+
+### 0.6 계정 상태 확인 (P1, D-60~D-62)
+
+보호된 정비소 API(`/api/**` 중 `/api/admin/**`를 뺀 것) 요청마다 서버가 토큰의 `staffId`로 `staff`를 읽어 아래 순서로 확인한다. 이 확인은 **역할·경로 확인(사장 전용 경로 등)보다 먼저** 한다. 그래서 비활성·임시 비밀번호 상태의 정비사가 사장 전용 API를 불러도 `FORBIDDEN`이 아니라 아래 상태 코드가 나간다(06 2.1, 11 3.3.1). 토큰에 상태를 넣지 않으므로 비밀번호를 바꾸거나 약관에 동의한 뒤 **같은 토큰**으로 바로 다음 단계로 간다(재로그인 불필요, 새로 고침해도 서버 상태 기준).
+
+| 순서 | 조건 | 응답 | 허용 API |
+|---|---|---|---|
+| 1 | 토큰의 `staffId`에 해당하는 `staff` 행이 없음 (서명·만료가 유효해도) | 401 `AUTH_REQUIRED` | — |
+| 2 | `staff.active = false` (정비사, V3부터) | 403 `ACCOUNT_INACTIVE` | 없음 (화면은 토큰을 지우고 로그인으로) |
+| 3 | `password_change_required = true` (사장·정비사) | 403 `PASSWORD_CHANGE_REQUIRED` | 03 `GET /api/me`, 24 `POST /api/me/password` |
+| 4 | 역할 사장이고 그 정비소에 현재 약관 버전 동의 기록이 없음 | 403 `TERMS_AGREEMENT_REQUIRED` | 03, 24, 52 `POST /api/me/terms-agreement` |
+| — | 모두 통과 | 정상 처리 | 역할·경로 규칙대로 |
+
+- 정비사에게는 4번(약관)을 적용하지 않는다(D-61).
+- `/api/admin/**`는 이 확인 대상이 아니다. 서비스 관리자 토큰은 `platform_admin` 계정이라 `staff` 상태가 없고, 사장·정비사 토큰으로 `/api/admin/**`를 부르면 계정 상태와 관계없이 403 `FORBIDDEN`이다(X18).
+- 정비소 정지(`SHOP_SUSPENDED`)는 로그인만 막는다. 이미 발급된 토큰 즉시 차단은 P2 그대로(05 POL-15).
+- 1~3·4의 판정은 서버가 하고 화면 라우팅은 03 응답으로 같은 단계를 보여 줄 뿐이다. 화면에서 단계를 건너뛰어도 서버가 막는다(X19~X21).
+- P0(시드 시연 계정)은 `password_change_required = false`라 3번에 걸리지 않는다. 4번은 P1 구현 때 시연 정비소의 동의 기록을 시드에 넣을지 DB 담당자가 정한다(07 4.4).
 
 ## 1. API 목록
 
@@ -184,8 +218,10 @@ DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 
 | 48 | GET | `/api/customers/retention-due` | F-CUS-11 | P1 | 사장 |
 | 49 | POST | `/api/customers/{customerId}/anonymize` | F-CUS-11 | P1 | 사장 |
 | 50 | POST | `/api/staff/{staffId}/deactivate` | F-STF-01 | P1 | 사장 |
+| 51 | POST | `/api/staff/{staffId}/password-reset` | F-STF-01 (정비사 임시 비밀번호 재발급, D-60 A09) | P1 | 사장 |
+| 52 | POST | `/api/me/terms-agreement` | F-AUTH-04 (서비스 이용약관 동의, D-61) | P1 | 사장 |
 
-F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저장하므로(04 F-NTF-01, D-59) API가 없다. 36~42는 P0-나머지, 43~50은 P1이다. **43~49(D-56)는 05 POL-46(법적 근거 확인, 담당 PM) 확인 후 구현 착수**(문서는 확정, 구현 이슈는 확인 뒤에 연다).
+F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저장하므로(04 F-NTF-01, D-59) API가 없다. 36~42는 P0-나머지, 43~52는 P1이다. **43~49(D-56)는 05 POL-46(법적 근거 확인, 담당 PM) 확인 후 구현 착수**(문서는 확정, 구현 이슈는 확인 뒤에 연다).
 
 ---
 
@@ -198,6 +234,8 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 | loginId | string | ○ | 1~50자 |
 | password | string | ○ | 1~100자 |
 
+로그인은 이미 있는 계정을 받으므로 신규 아이디 규칙(6~20자)·비밀번호 조합 규칙(8~20자, 05 11장)을 적용하지 않는다. 시연 계정 `1234`도 그대로 로그인한다(D-44, D-60). 임시 비밀번호 계정·약관 동의 전 사장도 로그인은 성공하고(200), 응답 `staff`의 상태 필드(03, P1)로 남은 단계를 안다.
+
 ```json
 { "loginId": "owner_a", "password": "********" }
 ```
@@ -206,7 +244,7 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 |---|---|---|
 | accessToken | string | JWT |
 | tokenType | string | `"Bearer"` |
-| expiresIn | number | 초. 💡 43200 (12시간) |
+| expiresIn | number | 초. 43200 (12시간) |
 | staff | object | 03 응답과 같은 모양 |
 
 ```json
@@ -222,11 +260,11 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 }
 ```
 
-에러: `LOGIN_FAILED`, `INVALID_INPUT`, (P1) `SHOP_SUSPENDED`
+에러: `LOGIN_FAILED`, `INVALID_INPUT`, (P1) `SHOP_SUSPENDED`·`ACCOUNT_INACTIVE`
 
 ### 02 POST `/api/admin/auth/login` — 서비스 관리자 로그인
 
-요청은 01과 같다. 토큰에 `shop_id`가 없다.
+요청은 01과 같다. 토큰에 `shop_id`가 없다. 응답 `admin`은 `{ adminId, name, role }`이고 `role`은 항상 `"ADMIN"`이다.
 
 ```json
 {
@@ -241,6 +279,8 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 }
 ```
 
+에러: `LOGIN_FAILED`, `INVALID_INPUT` (요청 검증이 01과 같고, `LOGIN_FAILED`는 0.3 정의대로 아이디 없음·비밀번호 틀림을 같은 응답으로)
+
 ### 03 GET `/api/me` — 내 계정
 
 ```json
@@ -251,6 +291,29 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 }
 ```
 
+P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드를 더한다. 03은 임시 비밀번호·약관 동의 전 상태에서도 부를 수 있다(0.6). 화면은 다시 로그인하거나 새로 고침할 때 이 값으로 남은 단계부터 보여 준다.
+
+| 응답 data (P1 추가) | 타입 | 설명 |
+|---|---|---|
+| passwordChangeRequired | boolean | `staff.password_change_required`. true면 비밀번호 변경(24) 단계 |
+| termsAgreementRequired | boolean | 사장이고 그 정비소에 현재 약관 버전 동의 기록이 없으면 true. 정비사는 항상 false |
+| termsVersion | string/null | `termsAgreementRequired`가 true일 때 동의할 약관 버전(화면 표시·52 요청 값). 아니면 null |
+
+```json
+{
+  "success": true,
+  "data": {
+    "staffId": 1, "name": "박사장", "role": "OWNER", "shopId": 1, "shopName": "차곡카센터",
+    "passwordChangeRequired": false,
+    "termsAgreementRequired": true,
+    "termsVersion": "2026-11-23"
+  },
+  "error": null
+}
+```
+
+예시는 약관 동의 전 사장의 상태다. `termsVersion` 값 형식(예시의 날짜 문자열)과 현재 버전을 두는 곳(서버 설정)은 약관 전문이 확정될 때 함께 정한다(04 F-AUTH-04). 에러: (P1) `ACCOUNT_INACTIVE`
+
 ## 3. 홈
 
 ### 04 GET `/api/home`
@@ -258,9 +321,9 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 | 응답 data | 타입 | 설명 |
 |---|---|---|
 | date | date | 오늘 |
-| todayReservationCount | number | 오늘 예약 중 취소 제외 💡 |
+| todayReservationCount | number | 오늘 예약 중 취소 제외 |
 | todayContactCount | number | 오늘 연락할 고객 수 (04 F-HOME-01) |
-| todayReservations | array | 15의 항목과 같은 모양(P0-나머지부터 `assignee { staffId, name, colorIndex }` 포함, 상태에 `IN_PROGRESS` 가능), 시각 순, 취소 포함 💡. P0-핵심은 이 오늘 목록이 홈의 예약 목록이고, P0-나머지부터 홈 캘린더가 15·42로 날짜별 예약을 불러온다 |
+| todayReservations | array | 15의 항목과 같은 모양(P0-나머지부터 `assignee { staffId, name, colorIndex }` 포함, 상태에 `IN_PROGRESS` 가능), 시각 순, **취소 포함**(상태 라벨로 구분. `todayReservationCount`는 취소 제외 그대로, D-63 B05). P0-핵심은 이 오늘 목록이 홈의 예약 목록이고, P0-나머지부터 홈 캘린더가 15·42로 날짜별 예약을 불러온다 |
 
 ```json
 {
@@ -308,9 +371,15 @@ F-NTF-01(아침 알림)은 알림 시간·허용 여부를 브라우저에 저�
 
 ### 05 GET `/api/customers?q=&page=&size=` — 검색·목록
 
-`q`는 고객명·연락처·차량번호 일부(공백·하이픈 무시) 💡. 비우면 전체(최근 등록순).
+`q`는 고객명·연락처·차량번호 일부(공백·하이픈 무시). 비우면 전체(최근 등록순).
 
 P1부터: 쿼리 `includeInactive`(기본 false. true면 비활성 고객도 포함, D-56), 항목에 `status`(고객 상태)·`lastVisitDate`·`visitCount`·`hasUpcomingCheck`(F-CUS-09). 차량번호 중복을 막지 않는 것은 그대로.
+
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| items[].customerId, name, phone, consent | number, string, string, boolean | 모두 값 있음. phone은 P0-나머지부터 마스킹(0.5) |
+| items[].vehicles[] | array | `{ vehicleId, plateNumber }`. 차량이 없으면 `[]` |
+| page, size, totalElements, totalPages | number | 쪽 나누기(0.1). 결과가 없으면 `items: []`, `totalElements: 0` (화면 문구는 09 S-05) |
 
 ```json
 {
@@ -339,12 +408,12 @@ P1부터: 쿼리 `includeInactive`(기본 false. true면 비활성 고객도 포
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
 | name | string | ○ | 1~50자 |
-| phone | string | ○ | 숫자·하이픈, 9~20자 💡 |
+| phone | string | ○ | 숫자·하이픈, 9~20자 |
 | consent | boolean | ○ | 기본 false를 화면이 보냄 |
 | vehicle.plateNumber | string | ○ | 1~20자, 공백 제거 |
 | vehicle.model | string | ○ | 1~50자 (D-58) |
-| vehicle.modelYear | number | | 1980~올해+1 💡. 비어 있으면 정비 시작(방문 접수 39) 또는 정비 기록 첫 저장(12) 때 필수 |
-| vehicle.mileage | number | | 0 이상 정수. 비어 있으면 `modelYear`와 같이 정비 시작 또는 정비 기록 첫 저장 때 필수 |
+| vehicle.modelYear | number | | 1980 ~ 현재 연도 + 1 (0.1). 비어 있으면 정비 시작(방문 접수 39) 또는 정비 기록 첫 저장(12) 때 필수 |
+| vehicle.mileage | number | | 정수 0~2,000,000 (0.1). 비어 있으면 `modelYear`와 같이 정비 시작 또는 정비 기록 첫 저장 때 필수. 칼럼은 `vehicle.latest_mileage`(07 3.5), 응답(07·09·17)에서는 `latestMileage` |
 
 ```json
 {
@@ -366,6 +435,13 @@ P1부터: 쿼리 `includeInactive`(기본 false. true면 비활성 고객도 포
 차량번호 중복은 막지 않는다(에러 없음). 고객과 첫 차량은 한 트랜잭션(둘 중 하나가 실패하면 둘 다 저장 안 됨). 에러: `INVALID_INPUT`
 
 ### 07 GET `/api/customers/{customerId}` — 고객 상세
+
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| customerId, name, phone, consent | number, string, string, boolean | phone 전체(D-40) |
+| vehicles[].vehicleId, plateNumber, model | number, string, string | `model`은 서버 검증으로 필수(D-58)라 값이 있다 |
+| vehicles[].modelYear, latestMileage | number/null | 비어 있을 수 있음(07 3.5) |
+| vehicles[].dueCount, soonCount | number | 오늘(서버 `Clock`) 기준, 그 차량의 **사용하는(`active`) 정비 항목** 중 상태가 `DUE`인 항목 수·`SOON`인 항목 수. 10을 주행거리 없이 부른 결과와 같은 기준(날짜 기준, P1부터 월평균 반영 F-CYC-03도 그대로 따름). P0는 6개 항목 모두 사용 (D-63 B01) |
 
 ```json
 {
@@ -398,9 +474,15 @@ P1부터 응답에 고객 `status`, 차량마다 `active`가 붙는다. 익명�
 { "success": true, "data": { "customerId": 10, "vehicleId": 11 }, "error": null }
 ```
 
-에러: `NOT_FOUND`, `INVALID_INPUT` (`model` 누락, P1 비활성 고객에 차량 추가)
+에러: `NOT_FOUND`(없는 고객·다른 정비소 고객 — 차량을 저장하지 않음, X17, D-63 B11), `INVALID_INPUT` (`model` 누락, 주행거리·연식 범위(0.1), P1 비활성 고객에 차량 추가)
 
 ### 09 GET `/api/vehicles/{vehicleId}` — 차량 정보
+
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| vehicleId, plateNumber, model | number, string, string | `model`은 값이 있다(D-58) |
+| modelYear, latestMileage | number/null | 비어 있을 수 있음(07 3.5) |
+| customer | object | `{ customerId, name, phone, consent }`, phone 전체(D-40) |
 
 ```json
 {
@@ -421,7 +503,14 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 
 ### 10 GET `/api/vehicles/{vehicleId}/item-status?mileage=` — 항목 상태 · 저장 전 미리보기
 
-`mileage`를 주면 방문 중 안내(F-VIS-01, km 판정 포함), 안 주면 날짜 기준만. 기록을 남기지 않는다.
+`mileage`를 주면 방문 중 안내(F-VIS-01, km 판정 포함), 안 주면 날짜 기준만. 기록을 남기지 않는다. `mileage`는 정수 0~2,000,000(0.1), 벗어나면 400 `INVALID_INPUT`.
+
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| vehicleId | number | 경로의 차량 |
+| asOf | date | 판정 기준일(오늘) |
+| inputMileage | number/null | 요청의 `mileage` 그대로. 안 주면 null(날짜 기준만) |
+| items | array | 아래 |
 
 | 응답 items[] | 타입 | 설명 |
 |---|---|---|
@@ -465,18 +554,28 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 
 `visit_key`로 묶어 최신순(`visitDate` 내림차순, 같으면 나중에 저장한 방문 먼저). 쪽 나누기와 `totalElements`는 **방문 묶음 수** 기준이다(기록 행 수가 아님). 기록마다 자기 날짜가 있다(외부는 고객이 말한 날짜). 에러: `NOT_FOUND` (X2)
 
+| 응답 items[] | 타입 | 설명 |
+|---|---|---|
+| visitKey | string | UUID 36자 (07 3.7) |
+| visitDate | date | 아래 설명 |
+| mileage | number/null | 방문 주행거리. 비어 있을 수 있음(07 3.7) |
+| staffName | string | 기록 담당 정비사 이름 |
+| records[] | array | `{ recordId, itemId, itemName, type, date, memo }`. `type`은 0.4의 4개 값, `memo`는 null 가능 |
+
+페이지 필드(`page`·`size`·`totalElements`·`totalPages`)는 05와 같다. 차량에 기록이 없으면 `items: []`.
+
 ```json
 {
   "success": true,
   "data": {
     "items": [
       {
-        "visitKey": "3f1c2b9e-0000-4000-8000-000000000003",
+        "visitKey": "5eed0000-0000-4000-8000-000000000015",
         "visitDate": "2026-10-24",
-        "mileage": 97000,
+        "mileage": null,
         "staffName": "김정비",
         "records": [
-          { "recordId": 31, "itemId": 1, "itemName": "엔진오일", "type": "REPLACE", "date": "2026-10-24", "memo": null }
+          { "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "REPLACE", "date": "2026-10-24", "memo": null }
         ]
       }
     ],
@@ -495,16 +594,16 @@ P0-나머지부터 `records[]`에 `source`, `inspectResult`, `version`(수정 �
 
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
-| visitDate | date | ○ | 오늘 이전·오늘 💡 |
-| mileage | number | 조건부 ○ | 0 이상 정수. 차량의 최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 필수 (D-58) |
-| vehicle.modelYear | number | 조건부 ○ | 1980~올해+1. 차량의 연식이 비어 있고 요청에 교체·점검 항목이 있으면 필수 (D-58). 같은 트랜잭션에서 차량에 반영 |
+| visitDate | date | ○ | 오늘 이전·오늘 |
+| mileage | number | 조건부 ○ | 정수 0~2,000,000 (0.1). 차량의 최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 필수 (D-58) |
+| vehicle.modelYear | number | 조건부 ○ | 1980 ~ 현재 연도 + 1 (0.1). 차량의 연식이 비어 있고 요청에 교체·점검 항목이 있으면 필수 (D-58). 같은 트랜잭션에서 차량에 반영 |
 | mechanicId | number | | P0-나머지. 담당 정비사 id. 그 정비소의 활성 사장·정비사 (X13) |
 | records[] | array | ○ | 1개 이상, 같은 itemId 중복 불가 |
 | records[].itemId | number | ○ | 그 정비소의 쓰는 항목 |
 | records[].type | enum | ○ | P0-핵심 `REPLACE`·`INSPECT` / P0-나머지 `EXTERNAL`·`DECLINE` |
 | records[].memo | string | | ~200자 |
 | records[].externalDate | date | 외부면 ○ | P0-나머지. 오늘 이전 |
-| records[].externalMileage | number | | P0-나머지. 0 이상 |
+| records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1) |
 | records[].inspectResult | enum | | P0-나머지. `INSPECT`일 때만 `GOOD`·`CAUTION` |
 
 P0-핵심 요청 예시:
@@ -544,9 +643,17 @@ P0-나머지 요청 예시:
 }
 ```
 
-담당 정비사는 P0-핵심에서는 저장한 계정이다 💡. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13)
+담당 정비사는 P0-핵심에서는 저장한 계정이다. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13)
 
 ### 13 GET `/api/items` — 정비 항목·주기
+
+`data`는 배열(쪽 나누기 없음, 0.1). 로그인한 정비소의 항목만(I-3). 다른 정비소 항목이 섞이지 않는지 X7에서 확인한다(D-63 B06).
+
+| 응답 data[] | 타입 | 설명 |
+|---|---|---|
+| itemId, code, name | number, string, string | `code`는 0.4 항목 값 |
+| cycleMonths, cycleKm | number | 07 3.6 (0보다 큼) |
+| active, sortOrder | boolean, number | |
 
 ```json
 {
@@ -567,7 +674,12 @@ P0-나머지 요청 예시:
 
 ### 14 GET `/api/targets` — 재점검 대상 목록
 
-쪽 나누기 없이 전부 💡(`// LIMIT: 정비소당 대상 수백 건 이하 가정`). 정렬: 도래가 있는 차량 먼저, 그다음 가장 이른 다음 정비일 순.
+쪽 나누기 없이 전부(`// LIMIT: 정비소당 대상 수백 건 이하 가정`). 정렬: 도래가 있는 차량 먼저, 그다음 가장 이른 다음 정비일 순.
+
+| 응답 data | 설명 |
+|---|---|
+| asOf | 판정 기준일(오늘) |
+| items | 아래. 대상이 없으면 `[]` |
 
 | 응답 items[] | 설명 |
 |---|---|
@@ -585,20 +697,20 @@ P0-나머지 요청 예시:
     "asOf": "2026-11-24",
     "items": [
       {
-        "customerId": 1, "customerName": "김민수", "phone": "010-0000-0001",
-        "vehicleId": 1, "plateNumber": "12가0001",
-        "targetItems": [
-          { "itemId": 1, "name": "엔진오일", "status": "DUE", "nextDueDate": "2026-11-17", "baseDate": "2026-05-17" }
-        ],
-        "activeReservation": null
-      },
-      {
         "customerId": 2, "customerName": "이영희", "phone": "010-0000-0002",
         "vehicleId": 2, "plateNumber": "34나0002",
         "targetItems": [
           { "itemId": 1, "name": "엔진오일", "status": "DUE", "nextDueDate": "2026-11-14", "baseDate": "2026-05-14" }
         ],
         "activeReservation": { "reservationId": 3, "reservedAt": "2026-11-26T10:00:00" }
+      },
+      {
+        "customerId": 1, "customerName": "김민수", "phone": "010-0000-0001",
+        "vehicleId": 1, "plateNumber": "12가0001",
+        "targetItems": [
+          { "itemId": 1, "name": "엔진오일", "status": "DUE", "nextDueDate": "2026-11-17", "baseDate": "2026-05-17" }
+        ],
+        "activeReservation": null
       }
     ]
   },
@@ -606,13 +718,18 @@ P0-나머지 요청 예시:
 }
 ```
 
-시드 기준 실제 응답은 6대(07 7.5). 안내 수신 미동의 고객은 나오지 않는다.
+시드 기준 실제 응답은 6대(07 7.5). 예시는 그중 2대를 정렬 순서대로 적었다(앞에 11바0006이 더 있다). 안내 수신 미동의 고객은 나오지 않는다.
 
 ## 6. 예약
 
 ### 15 GET `/api/reservations?from=&to=` — 기간 조회 (날짜별 목록·캘린더)
 
-`from`·`to`는 날짜(둘 다 포함). 최대 42일 💡(월 보기 6주). 취소·노쇼 포함, 시각 순. P0-핵심은 홈의 날짜별 예약 목록(앞뒤 날짜 이동)이, P0-나머지부터는 홈 캘린더의 주 보기와 월 보기의 날짜 목록 패널이 이 API를 쓴다(일 보기는 없음, D-54). 월 보기의 날짜별 건수·상태별 건수는 이 목록이 쪽 나누기라 부족하므로 요약 API 42를 쓴다.
+`from`·`to`는 날짜(둘 다 포함). 최대 42일(월 보기 6주). 취소·노쇼 포함, 시각 순. P0-핵심은 홈의 날짜별 예약 목록(앞뒤 날짜 이동)이, P0-나머지부터는 홈 캘린더의 주 보기와 월 보기의 날짜 목록 패널이 이 API를 쓴다(일 보기는 없음, D-54). 월 보기의 날짜별 건수·상태별 건수는 요약 API 42를 쓴다(15는 쪽 나누기 없이 기간 전체를 돌려준다, 0.1).
+
+| 응답 data | 설명 |
+|---|---|
+| from, to | 요청 기간 그대로 (date) |
+| items | 아래. 기간에 예약이 없으면 `[]` |
 
 | 쿼리 | 타입 | 필수 | 설명 |
 |---|---|---|---|
@@ -748,7 +865,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 | vehicle | `{ vehicleId, plateNumber, model, modelYear, latestMileage }` |
 | recentVisits | 최근 방문 **최대 2회** (11의 항목 모양, D-54가 D-26의 3회를 대체) |
 | totalVisitCount | 그 차량의 전체 방문 횟수(서로 다른 `visit_key` 수, 외부 기록만 있는 방문 제외, 05 POL-45). **3 이상이면 화면이 "상세 이동" 버튼(→ 차량 상세 S-07)을 활성**하고 그 미만은 비활성으로 보인다 |
-| itemStatuses | 10의 `items` 모양 + `highlighted`(예약 목적으로 고른 항목). 값은 10을 **주행거리 없이** 부른 결과와 같다(날짜 기준, `dueReason`은 `DATE`·null만). 같은 차량의 14 `targetItems`와 상태·다음 정비일이 같아야 한다 |
+| itemStatuses | 10의 `items` 모양 + `highlighted`(예약 목적으로 고른 항목). 값은 10을 **주행거리 없이** 부른 결과와 같다(날짜 기준, `dueReason`은 `DATE`·null만). 같은 차량의 14 `targetItems`와 상태·다음 정비일이 같아야 한다. **순서는 정비 항목 `sortOrder` 순**이고 `highlighted` 항목도 자리를 옮기지 않는다(화면이 굵게 등으로만 강조, D-63 B02) |
 
 ```json
 {
@@ -767,20 +884,20 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
     "vehicle": { "vehicleId": 10, "plateNumber": "55차0010", "model": "쏘나타", "modelYear": 2018, "latestMileage": 97000 },
     "recentVisits": [
       {
-        "visitKey": "3f1c2b9e-0000-4000-8000-000000000003",
+        "visitKey": "5eed0000-0000-4000-8000-000000000015",
         "visitDate": "2026-10-24",
-        "mileage": 97000,
+        "mileage": null,
         "staffName": "김정비",
-        "records": [ { "recordId": 31, "itemId": 1, "itemName": "엔진오일", "type": "REPLACE", "date": "2026-10-24", "memo": null } ]
+        "records": [ { "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "REPLACE", "date": "2026-10-24", "memo": null } ]
       },
       {
-        "visitKey": "3f1c2b9e-0000-4000-8000-000000000002",
+        "visitKey": "5eed0000-0000-4000-8000-000000000014",
         "visitDate": "2026-08-24",
         "mileage": null,
         "staffName": "김정비",
         "records": [
-          { "recordId": 21, "itemId": 2, "itemName": "에어클리너", "type": "REPLACE", "date": "2026-08-24", "memo": null },
-          { "recordId": 22, "itemId": 3, "itemName": "에어컨필터", "type": "REPLACE", "date": "2026-08-24", "memo": null }
+          { "recordId": 14, "itemId": 2, "itemName": "에어클리너", "type": "REPLACE", "date": "2026-08-24", "memo": null },
+          { "recordId": 15, "itemId": 3, "itemName": "에어컨필터", "type": "REPLACE", "date": "2026-08-24", "memo": null }
         ]
       }
     ],
@@ -796,8 +913,8 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
       {
         "itemId": 1, "code": "ENGINE_OIL", "name": "엔진오일",
         "status": "AHEAD", "dueReason": null,
-        "baseRecord": { "date": "2026-10-24", "mileage": 97000, "type": "REPLACE" },
-        "nextDueDate": "2027-04-24", "nextDueMileage": 107000,
+        "baseRecord": { "date": "2026-10-24", "mileage": null, "type": "REPLACE" },
+        "nextDueDate": "2027-04-24", "nextDueMileage": null,
         "highlighted": false
       }
     ]
@@ -806,7 +923,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 }
 ```
 
-`itemStatuses`는 예시에서 6개 중 2개만 적었다(실제는 쓰는 항목 전부). 예시의 `assignee`는 P0-나머지부터다. 에러: `NOT_FOUND` (X3)
+`itemStatuses`는 예시에서 6개 중 2개만 적었다(실제는 쓰는 항목 전부, 순서는 `sortOrder` 순, D-63 B02). 예시의 `assignee`는 P0-나머지부터다. 예시 값은 07 7.2 시드(기록 id·`visitKey`, 55차0010 기록은 주행거리 없음)와 같다. 에러: `NOT_FOUND` (X3)
 
 ### 18 POST `/api/reservations/{reservationId}/complete` — 방문 완료
 
@@ -1014,31 +1131,145 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 ## 8. P1 API
 
-요청·응답의 큰 모양만 정한다. **표와 JSON 예시는 그 기능의 P1 착수 PR에서 이 문서에 채운다**(CONTRIBUTING 7장). 남은 ❓ 없음(D-59로 확정). **43~49(D-56)는 05 POL-46(법적 근거 확인, 담당 PM) 확인 후 구현 착수**.
+요청·응답의 큰 모양만 정한다. **표와 JSON 예시는 그 기능의 P1 착수 PR에서 이 문서에 채운다**(CONTRIBUTING 7장, D-63 C07). D-59 항목의 ❓는 없음(51의 ❓1건은 10장). 계정·온보딩 API(24·26·32·35·51·52, 03의 P1 필드)는 D-60~D-62로 8.1에 요청·응답·오류·JSON까지 정했다. **43~49(D-56)는 05 POL-46(법적 근거 확인, 담당 PM) 확인 후 구현 착수**.
 
 | 번호 | 요청 | 응답 data | 메모 |
 |---|---|---|---|
-| 24 | `{ currentPassword, newPassword }` | 없음 | 임시 비밀번호면 이것만 호출 가능 |
+| 24 | `{ currentPassword, newPassword }` | 없음 | 사장·정비사 (D-60 B09). 임시 비밀번호 상태에서도 호출 가능(0.6). 상세 8.1 |
 | 25 | — | `[{ staffId, loginId, name, role }]` | 사장 |
-| 26 | `{ loginId, name, temporaryPassword }` | `{ staffId }` | 사장. 역할 MECHANIC 고정 |
+| 26 | `{ loginId, name, temporaryPassword }` | `{ staffId }` | 사장. 역할 MECHANIC 고정. 신규 아이디 규칙·비밀번호 규칙, 아이디 중복 409 `CONFLICT`, 만든 계정은 `password_change_required = true`. 상세 8.1 |
 | 27 | `{ cycleMonths?, cycleKm?, active? }` | 13의 항목 하나 | 사장. 새 항목은 추가하지 않는다(P2). 6개 항목의 켜기·끄기, 개월·km 수정만 (04 F-ITEM-01) |
 | 28 | — | `{ customerId, phone(전체), text }` | 동의 고객만, 아니면 404 |
 | 29 | `{ customerId, result, memo? }` | `{ contactId }` | `result`는 6개 값: 예약함 `RESERVED`·부재 `ABSENT`·이미 정비함 `ALREADY_DONE`·연락함 `CONTACTED`·번호 오류 `WRONG_NUMBER`·연락 거부 `REFUSED` (04 F-CON-02). "연락 거부"는 화면이 동의 해제 확인 대화상자를 띄우고 자동 해제하지 않는다 |
 | 30 | `?from=&to=` | `{ newCustomers, returningCustomers }` | 재방문 정의는 04 F-STAT-01 한 곳(그 기간에 방문 기록이 있고 그 이전에도 방문 기록이 있는 고객). 화면은 홈(S-02) "고객 집계" 카드 |
 | 31 | — | `[{ shopId, name, status, createdAt }]` | 정비소 안의 숫자는 주지 않음 |
-| 32 | `{ name, phone, owner: { loginId, name, temporaryPassword } }` | `{ shopId, ownerStaffId }` | 기본 기준표 6행을 함께 생성 |
+| 32 | `{ name, phone, owner: { loginId, name, temporaryPassword } }` | `{ shopId, ownerStaffId }` | 기본 기준표 6행을 함께 생성. 사장 아이디·임시 비밀번호는 26과 같은 규칙, 아이디 중복이면 409 `CONFLICT`이고 정비소도 만들지 않음(한 트랜잭션). 상세 8.1 |
 | 33·34 | — | `{ shopId, status }` | 정지·재개 |
-| 35 | `{ temporaryPassword }` | 없음 | 사장 계정 `password_change_required = true` |
+| 35 | `{ temporaryPassword }` | 없음 | 사장 계정 `password_change_required = true`. 임시 비밀번호는 비밀번호 규칙(8.1) |
 | 43·44 | — | (P1 착수 PR에서 확정) | 고객 비활성화·활성화 (F-CUS-10, 사장). 에러 `NOT_FOUND`, `HAS_ACTIVE_RESERVATION`(43), `FORBIDDEN`. POL-46 확인 후 구현 착수 |
 | 45 | — | (P1 착수 PR에서 확정) | 고객 삭제 `DELETE` (F-CUS-10, 사장). 이력(정비 기록·예약)이 없을 때만, 이력 없는 차량도 함께 삭제. 에러 `NOT_FOUND`, `HAS_HISTORY`, `FORBIDDEN`. POL-46 확인 후 구현 착수 |
 | 46·47 | — | (P1 착수 PR에서 확정) | 차량 비활성화·활성화 (F-CUS-10, 사장). 차량은 비활성화만(물리 삭제 없음). 에러 `NOT_FOUND`, `HAS_ACTIVE_RESERVATION`(46), `FORBIDDEN`. POL-46 확인 후 구현 착수 |
 | 48 | `?page=&size=` | `items: [ { customerId, name(마스킹 없음), lastVisitDate, baseDate, vehicles } ]` | 보관 기간 경과 고객 목록 (F-CUS-11, 사장). 쪽 나누기 사용(0.1). POL-46 확인 후 구현 착수 |
 | 49 | — | `{ customerId, anonymizedAt }` | 익명화 (F-CUS-11, 사장, 되돌릴 수 없음). 에러 `NOT_FOUND`, `RETENTION_NOT_REACHED`, `HAS_ACTIVE_RESERVATION`, `FORBIDDEN`. POL-46 확인 후 구현 착수 |
-| 50 | — | (P1 착수 PR에서 확정) | 정비사 비활성화 (F-STF-01, 사장). 에러 `HAS_ACTIVE_RESERVATION`(그 정비사가 담당한 유효 예약이 있음), 사장 본인은 400 `INVALID_INPUT`, `FORBIDDEN`. 비활성 정비사는 로그인할 수 없고(`ACCOUNT_INACTIVE`) 36 담당 후보에서 빠진다 |
+| 50 | — | (P1 착수 PR에서 확정) | 정비사 비활성화 (F-STF-01, 사장). 에러 `HAS_ACTIVE_RESERVATION`(그 정비사가 담당한 유효 예약이 있음), 사장 본인은 400 `INVALID_INPUT`, `FORBIDDEN`. 비활성 정비사는 로그인할 수 없고(`ACCOUNT_INACTIVE`) 36 담당 후보에서 빠진다. **비활성화 전에 받은 토큰으로 부르는 정비소 API도 403 `ACCOUNT_INACTIVE`**(0.6, D-62) |
+| 51 | `{ temporaryPassword }` | 없음 | 정비사 임시 비밀번호 재발급 (F-STF-01, 사장, D-60 A09). 상세 8.1 |
+| 52 | `{ termsVersion }` | `{ shopId, termsVersion, acceptedAt }` | 서비스 이용약관 동의 (F-AUTH-04, 사장, D-61). 상세 8.1 |
+
+### 8.1 계정·온보딩 계약 (P1, D-60~D-62)
+
+**공통 입력 규칙** (화면과 서버가 같은 규칙, 05 11장)
+
+| 대상 | 규칙 | 어긋나면 |
+|---|---|---|
+| 신규 아이디 (26 `loginId`, 32 `owner.loginId`) | 6~20자, `a-z`·`0-9`·`_`만, 첫 글자는 영문 소문자 (`^[a-z][a-z0-9_]{5,19}$`). `staff.login_id`는 정비소를 넘어 전체에서 유일 | 형식 400 `INVALID_INPUT` + `fieldErrors`, 중복 409 `CONFLICT` |
+| 새 비밀번호·임시 비밀번호 (24 `newPassword`, 26·32 `temporaryPassword`, 35·51 `temporaryPassword`) | 8~20자. 허용 문자는 공백을 뺀 ASCII 출력 문자(`!`~`~`, 코드 0x21~0x7E). 영문(`A-Z`·`a-z`) 1자 이상, 숫자 1자 이상, 특수문자(ASCII 문장부호 32자: `` !"#$%&'()*+,-./:;<=>?@[\]^_`{\|}~ ``) 1자 이상. 대·소문자를 따로 요구하지 않는다. 길이는 문자 수 | 400 `INVALID_INPUT` + `fieldErrors` |
+| 현재 비밀번호 (24 `currentPassword`) | 1~100자(01과 같음). 조합 규칙을 적용하지 않는다 | 형식 400. 틀린 비밀번호는 아래 24 |
+| 기존 계정 로그인 (01·02) | 1~50자 / 1~100자 그대로. 신규 규칙을 적용하지 않는다(시연 `1234`, D-44) | 01·02 |
+
+- 비밀번호 원문은 응답·로그·오류 메시지·`fieldErrors`에 넣지 않는다. 저장은 BCrypt 해시(07 3.3). 아래 예시의 비밀번호는 모두 가린 값이다.
+- 임시 비밀번호는 발급자가 직접 만들어 넣는다(자동 생성·이메일·SMS 없음, D-60 A02).
+
+#### 24 POST `/api/me/password` — 내 비밀번호 변경 (사장·정비사)
+
+| 요청 | 타입 | 필수 | 검증 |
+|---|---|---|---|
+| currentPassword | string | ○ | 1~100자. 지금 비밀번호(임시 비밀번호 포함) |
+| newPassword | string | ○ | 비밀번호 규칙(위 표) |
+
+```json
+{ "currentPassword": "********", "newPassword": "********" }
+```
+
+```json
+{ "success": true, "data": null, "error": null }
+```
+
+- 성공하면 해시를 바꾸고 `password_change_required = false`. 토큰은 그대로 쓴다(0.6). 다음 단계는 03을 다시 불러 판단한다(사장이고 약관 동의 전이면 약관 단계).
+- 에러: `INVALID_INPUT`(형식, 또는 현재 비밀번호가 맞지 않음 → `fieldErrors: [{ "field": "currentPassword", "reason": "현재 비밀번호가 맞지 않습니다." }]`. 401로 보내지 않는다 — 화면이 로그아웃되지 않게), (P1 공통) `ACCOUNT_INACTIVE`
+- 새 비밀번호 확인 칸은 화면에만 있다(서버로 보내지 않음, 09 S-01).
+
+#### 26 POST `/api/staff` — 정비사 계정 발급 (사장)
+
+```json
+{ "loginId": "mech_kim01", "name": "이정비", "temporaryPassword": "********" }
+```
+
+```json
+{ "success": true, "data": { "staffId": 4 }, "error": null }
+```
+
+역할은 `MECHANIC` 고정, `shop_id`는 토큰의 정비소, `password_change_required = true`, `active = true`(V3). `name`은 1~50자. 에러: `INVALID_INPUT`, `CONFLICT`(아이디 중복), `FORBIDDEN`(정비사 토큰)
+
+#### 32 POST `/api/admin/shops` — 정비소 개설 + 사장 계정 발급 (서비스 관리자)
+
+```json
+{
+  "name": "새길카센터",
+  "phone": "02-0000-0003",
+  "owner": { "loginId": "owner_new01", "name": "정사장", "temporaryPassword": "********" }
+}
+```
+
+```json
+{ "success": true, "data": { "shopId": 3, "ownerStaffId": 5 }, "error": null }
+```
+
+정비소·사장 계정(`password_change_required = true`)·기본 기준표 6행을 한 트랜잭션으로 만든다. 에러: `INVALID_INPUT`, `CONFLICT`(사장 아이디 중복 — 정비소도 만들지 않음), `FORBIDDEN`(사장·정비사 토큰, X18)
+
+#### 35 POST `/api/admin/shops/{shopId}/owner-password-reset` — 사장 임시 비밀번호 재발급 (서비스 관리자)
+
+```json
+{ "temporaryPassword": "********" }
+```
+
+```json
+{ "success": true, "data": null, "error": null }
+```
+
+- 대상은 경로 정비소의 사장 계정이다. 해시를 바꾸고 `password_change_required = true`. 서비스 관리자는 기존 비밀번호를 볼 수 없다(05 POL-16). 정비소 데이터·사장 계정은 그대로다.
+- 그 사장이 이미 받은 토큰은 다음 요청부터 403 `PASSWORD_CHANGE_REQUIRED`(0.6). 그 정비소에 현재 약관 버전 동의 기록이 있으면 약관은 다시 묻지 않는다.
+- 에러: `NOT_FOUND`(없는 정비소), `INVALID_INPUT`(비밀번호 규칙), `FORBIDDEN`(사장·정비사 토큰, X18)
+
+#### 51 POST `/api/staff/{staffId}/password-reset` — 정비사 임시 비밀번호 재발급 (사장)
+
+```json
+{ "temporaryPassword": "********" }
+```
+
+```json
+{ "success": true, "data": null, "error": null }
+```
+
+- 대상은 **그 정비소의 정비사**다. 해시를 바꾸고 `password_change_required = true`. 계정·정비 기록·담당 예약은 그대로다.
+- 그 정비사가 이미 받은 토큰은 서명이 유효해도 다음 요청부터 403 `PASSWORD_CHANGE_REQUIRED`(0.6) — 새 비밀번호를 정할 때까지 CRM을 쓸 수 없다.
+- 에러: `NOT_FOUND`(없는 계정·다른 정비소 계정, X15), `INVALID_INPUT`(비밀번호 규칙, 대상이 사장 계정 — 사장 본인은 24, 사장 재발급은 서비스 관리자 35), `FORBIDDEN`(정비사 토큰). ❓ 비활성 정비사를 대상으로 했을 때의 처리는 정하지 않았다(10장 ❓7, 착수 PR 전에 정함, D-63 C07).
+
+#### 52 POST `/api/me/terms-agreement` — 서비스 이용약관 동의 (사장)
+
+| 요청 | 타입 | 필수 | 검증 |
+|---|---|---|---|
+| termsVersion | string | ○ | 03이 준 `termsVersion`(서버의 현재 약관 버전)과 같아야 한다 |
+
+```json
+{ "termsVersion": "2026-11-23" }
+```
+
+```json
+{
+  "success": true,
+  "data": { "shopId": 1, "termsVersion": "2026-11-23", "acceptedAt": "2026-11-24T09:10:00" },
+  "error": null
+}
+```
+
+- 서버가 정비소·동의한 사장(토큰)·약관 버전·동의 시각(`Clock`)을 기록한다(07 4.4). 체크박스 상태는 보내지 않는다 — 요청 자체가 동의이고, 화면은 체크 전에는 버튼을 비활성화한다(09 S-01).
+- 같은 정비소가 같은 버전에 이미 동의했으면 새로 기록하지 않고 기존 기록을 200으로 돌려준다(두 번 눌러도 기록 하나).
+- 에러: `INVALID_INPUT`(버전이 현재 버전과 다름 → 화면은 03을 다시 불러 최신 버전을 보여 줌), `PASSWORD_CHANGE_REQUIRED`(비밀번호 변경 전), `FORBIDDEN`(정비사 토큰 — 정비사에게는 필수 동의가 없다, D-61), (P1 공통) `ACCOUNT_INACTIVE`
+- 약관 전문·개인정보 처리방침은 API로 내려주지 않는다. 화면이 버전별 전문(또는 링크)과 처리방침 링크를 보여 준다. 전문 작성·법률 검토는 별도 선행 과제다(04 F-AUTH-04, 05 POL-46).
 
 ## 9. 격리·인증 테스트 (X-xx)
 
-시드: A 정비소 사장 토큰으로 B 정비소 데이터 요청 (07 7.4).
+시드: A 정비소 사장 토큰으로 B 정비소 데이터 요청 (07 7.4). **B 정비소 예약**(X3·X12·X14)은 시연 시드에 넣지 않고 테스트 픽스처로 그 테스트 안에서 만든다(D-63 B12, 07 7.4).
 
 | ID | 요청 | 기대 |
 |---|---|---|
@@ -1048,19 +1279,45 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 | X4 | A 토큰으로 16 `vehicleId = B 차량` | 404 |
 | X5 | A 토큰으로 12 `{B 차량}` 기록 저장 | 404, 저장 안 됨 |
 | X6 | A 토큰으로 10 미리보기 `{B 차량}?mileage=` | 404 |
-| X7 | A 토큰으로 05 `q=12가0001`, 14, 04, 15 | B 데이터가 섞이지 않음 (A의 김민수만) |
+| X7 | A 토큰으로 05 `q=12가0001`, 14, 04, 15, 13 | B 데이터가 섞이지 않음 (A의 김민수만, 13은 A 정비소 항목만 — D-63 B06) |
 | X8 | A 토큰 요청 본문·쿼리에 `shopId=2`를 넣음 | 무시하고 A 기준으로 처리 |
 | X9 | 서비스 관리자 토큰으로 05 고객 목록 | 403 `FORBIDDEN` |
 | X10 | 토큰 없이 / 만료 토큰으로 04 | 401 `AUTH_REQUIRED` |
-| X11 | A 토큰으로 12 `records[].itemId`, 16·19 `purpose.itemIds`에 B 정비소 항목 id | 400 `INVALID_INPUT` (없는 id와 같은 응답), 저장·변경 안 됨 (P0-핵심) |
+| X11 | A 토큰으로 12 `records[].itemId`, 16·19 `purpose.itemIds`, (P0-나머지) 37 `itemId`에 B 정비소 항목 id | 400 `INVALID_INPUT` (없는 id와 같은 응답), 저장·변경 안 됨 (P0-핵심) |
 | X12 | A 토큰으로 18·19 `{B 예약}` (P0-핵심), 20·21 `{B 예약}`, 22 `{B 고객}`, 23 `{B 차량}` (P0-나머지) | 404, B 데이터 그대로 |
 | X13 | 다른 정비소 정비사 id를 `assigneeId`·`mechanicId`로 보냄 (16·19·12·37) (P0-나머지) | 400 `INVALID_INPUT` (없는 id와 같은 응답), 저장·변경 안 됨 |
 | X14 | 다른 정비소 기록 수정·이력 (37·38), 다른 정비소 예약 방문 접수·정정·이력 (39·40·41) (P0-나머지) | 404, B 데이터 그대로 |
-| X15 | 다른 정비소 고객 삭제·익명화·비활성화 (43~49) (P1) | 404 |
-| X16 | 서비스 관리자 토큰으로 36~50 | 403 `FORBIDDEN` |
+| X15 | 다른 정비소 고객·차량 비활성화·활성화·삭제·익명화 (43~47·49), 정비사 비활성화 (50)·임시 비밀번호 재발급 (51) (P1). 48 목록과 25 정비사 목록은 X7처럼 B 데이터가 섞이지 않음 | 404, B 데이터 그대로 |
+| X16 | 서비스 관리자 토큰으로 36~42 (P0-나머지), 43~52 (P1) | 403 `FORBIDDEN` |
+| X17 | A 토큰으로 08 `POST /api/customers/{B 고객}/vehicles` (P0-핵심, D-63 B11) | 404 `NOT_FOUND`, B 고객에 차량이 생기지 않음 |
+| X18 | 사장·정비사 토큰으로 `/api/admin/**` (P0-핵심 경로 규칙, P1의 31~35 포함, D-63 B10) | 403 `FORBIDDEN` |
+| X19 | 비활성화(50) 전에 받은 정비사 토큰으로 정비소 API (03 포함) (P1, D-62) | 403 `ACCOUNT_INACTIVE`, 같은 정비소의 다른 계정은 영향 없음 |
+| X20 | `password_change_required = true` 계정 토큰으로 03·24 밖의 정비소 API (P1, D-60) | 403 `PASSWORD_CHANGE_REQUIRED`. 03·24는 성공, 24 성공 뒤 같은 토큰으로 정상 이용 |
+| X21 | 약관 동의 전 사장 토큰으로 03·24·52 밖의 정비소 API (P1, D-61) | 403 `TERMS_AGREEMENT_REQUIRED`. 52 성공 뒤 같은 토큰으로 정상 이용. 같은 정비소 정비사는 영향 없음 |
 
-X11·X12의 DB 쪽 방어(복합 FK)는 07 6.3 V1-3~V1-5로 따로 확인한다. X13의 DB 쪽 방어(담당 복합 FK)도 07 6.3의 V1 검사로 확인한다.
+X4·X5·X11·X17의 DB 쪽 방어(복합 FK)는 07 6.3 V1-3~V1-5로 따로 확인한다. X17·X12·X14·X15는 경로 id로 B 행을 찾는 경우라 서버의 `getOwned`(07 I-4)로 막는다. X13의 DB 쪽 방어(담당 복합 FK)는 07 6.3 V1-4로 확인한다. X18은 B-1 `EndpointGuardTest` E4로 경로 규칙을 이미 확인한다(chagok-backend#11). X19~X21은 계정 상태 확인(0.6)이고 정비소 격리가 아니다. X와 07 I-xx는 1:1이 아니다(07 5장 I-xx 「지키는 곳」).
 
 ## 10. 결정 필요 (❓)
 
-남은 ❓ 없음. P1 착수 때 정하기로 했던 항목(연락 결과 값, "연락함" 유지 기간, 알림 저장 위치, 재방문 정의, 새 항목 추가)은 D-59로 확정했다(8장 27·29·30, F-NTF-01은 브라우저 저장이라 API 없음).
+P1 착수 때 정하기로 했던 항목(연락 결과 값, "연락함" 유지 기간, 알림 저장 위치, 재방문 정의, 새 항목 추가)은 D-59로 확정했다(8장 27·29·30, F-NTF-01은 브라우저 저장이라 API 없음).
+
+P0-핵심 API 계약 점검(chagok-docs#56)에서 남긴 ❓ 6건과 chagok-docs#50(API 24 역할, 사장·정비사 → 서비스 관리자 API 403, 격리 시험 범위·B 정비소 예약 데이터)은 **D-63(2026-11-23 팀 회의, chagok-docs#65)으로 확정**했다. 이번 반영에서 새로 생긴 ❓는 아래 7번 하나다.
+
+| 옛 ❓ | 위치 | 확정 (D-63) | 반영 |
+|---|---|---|---|
+| 1 | 07 `dueCount`·`soonCount` | 오늘 기준 사용하는 항목 중 `DUE`·`SOON` 수 (B01) | 07 표 |
+| 2 | 17 `itemStatuses` | `sortOrder` 순, `highlighted`는 강조만 (B02) | 17 표 |
+| 3 | 주행거리 상한 | 정수 0~2,000,000 (B03) | 0.1 |
+| 4 | `modelYear` | 1980 ~ 현재 연도 + 1 (B04) | 0.1 |
+| 5 | 04 `todayReservations` | 취소 포함, 건수는 취소 제외 (B05) | 04 표 |
+| 6 | API 13 격리 | X7에 13 추가 (B06) | 9장 |
+| #50 1 | API 24 역할 | 사장·정비사 (B09 = D-60 A05) | 1장·8.1 |
+| #50 2 | 서비스 관리자 API 역방향 403 | X18 (B10) | 0.1·0.3·9장 |
+| #50 3a | API 08 격리 | X17 (B11) | 08·9장 |
+| #50 3b | B 정비소 예약 | 테스트 픽스처 (B12) | 9장, 07 7.4 |
+
+| ❓ | 위치 | 정할 것 | 막는 이슈 (12 백로그) |
+|---|---|---|---|
+| 7 | 8.1 51 | 비활성 정비사를 재발급 대상으로 했을 때 응답(허용 / 400 / 404 등). D-60·D-62는 정하지 않았다 | 정비사 계정 BE(32) |
+
+D-19(화면 세부)는 그 후속(00 D-19)에서 정한다.

@@ -71,7 +71,7 @@ description: 차곡에서 새 기능 아이디어, 범위 추가·확장 제안,
 - P1을 빼는 것은 MVP를 줄이는 일이다. 판정은 항상 **결정 이슈**이고, 진행 중인 P2가 있으면 그것부터 빼자고 제안한다.
 
 ```markdown
-## AI 사용 기록 (chagok-docs `docs/etc/AI_USAGE_AI활용기록.md`에 추가할 줄)
+## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | - | chagok-scope-guard | 범위 판정: 무엇 → 판정 | 사람이 바꾼 것: (사람이 채움) |
 ```
 
