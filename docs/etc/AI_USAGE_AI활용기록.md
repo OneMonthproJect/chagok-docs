@@ -44,3 +44,11 @@
 | 2026-11-24 | chagok-docs#72 | Claude Code (스킬·에이전트 없음) | 세 저장소 스킬·협업 정책·브랜치 42개·PR 41개 읽기 전용 조사, 설계안 및 정책 충돌 4건 분석, 결정 이슈 작성 | 사용자 승인에 따른 이슈 생성, 스킬·설정 파일 변경 없음 |
 | 2026-11-24 | chagok-docs#73 | Claude Code (스킬·에이전트 없음) | 세 레포 settings.json deny·ask 비교, 브랜치·worktree·GitHub 상태 변경 명령 누락 확인, L3 보강 이슈 작성 | 사용자 요청에 따른 이슈 생성, settings.json 변경 없음 |
 | 2026-11-24 | chagok-docs#74 | Claude Code (스킬·에이전트 없음) | CONTRIBUTING 5장·ai-rules·#60·이슈 템플릿 대조로 PR 없는 작업 기록 규정 공백 확인, 사례(#72·#73·PR #70 리뷰) 정리, 결정 이슈 작성 | 사용자 요청에 따른 이슈 생성, 규칙·템플릿 변경 없음 |
+| 2026-11-24 | chagok-docs#66 (PR #67) | Claude Code, chagok-pr-reviewer (에이전트) | #65 팀 확정 정책 D-60~D-65를 00~13·TEST에 반영, #50·#64 결정 결과 기록, 공식 출처 URL 확인, 자가 점검(major 2)·독립 리뷰(major 1) 반영, chore 이슈 #68 분리 | (사람이 채움) |
+| 2026-11-24 | chagok-docs#69 (PR #70) | Claude Code, chagok-pr-reviewer (에이전트) | 2026-11-23~24 머지 PR 「AI 사용」 대조, B-1·B-2 정정 줄 2개·머지 전 통합 검증 줄 1개 통합, #72·#73·#74 이슈 작업 줄 3개 추가, pr-reviewer 1차 리뷰(blocker 0·major 2) 반영 | (사람이 채움) |
+| 2026-11-24 | chagok-docs#69 (PR #70) | chagok-pr-reviewer (에이전트) | PR #70 1차 리뷰: blocker 0·major 2·minor 6, 메인 대화가 major 2건 원문(backend #16·frontend #13 본문) 재확인 | 반영 범위 결정(major 2·minor 3 수정, 이슈 #69 제목·할 일 수정), 결정 이슈 #74 생성 요청 |
+| 2026-11-24 | chagok-docs#69 (PR #70) | chagok-pr-reviewer (에이전트) | PR #70 2차 재점검: 1차 major 2 해소, blocker 0·major 0·minor 3, 메인 대화가 develop 이동(#67 머지) 후 merge-tree 충돌 없음 확인 | minor 3 처리 결정(D-50 갈음 문구 추가, #74 선반영 유지, 42행 (사람이 채움) 유지), done-verified·머지는 사람 |
+| 2026-11-24 | chagok-docs#68 (PR #76) | Claude Code, chagok-pr-reviewer (에이전트) | X 테스트 범위 표기를 08 9장 기준으로 9개 파일 갱신, 머지 금지 범위 선택지 정리, 자가 점검(major 1) 반영 | 머지 금지 범위를 (b) 08 9장 X 전체로 결정 |
+| 2026-11-24 | chagok-docs#71 (PR #75) | chagok-pr-reviewer (에이전트), web-fetch (에이전트) | 자가 점검 major 5건 중 4건 수정. v15 기획안·상세 기획안 D-60~D-65 반영 정리, 유사서비스·후기 조사 문서 분리, 약관 동의 기록 모델 검토안, 후기 URL 재확인 시도(403), 이슈·PR 작성 | (사람이 검토 후 적음) |
+| 2026-11-24 | chagok-docs#77 (PR #78) | Claude Code, general-purpose (에이전트, 04·06·07·08·09·10 명세 매핑 읽기 전용) | 세 레포 원격 상태 전수 조회, STARTER 초안 7개를 최신 상태와 대조해 갱신, 개인 가이드 5개 작성, ID·링크·경로 정합성 스크립트 검증, 이슈·PR 작성 | (사람이 검토 후 적음) |
+| 2026-11-24 | chagok-docs#77 (릴리스 PR docs #80·backend #18·frontend #15) | Claude Code (스킬·에이전트 없음) | 세 레포 main·develop 차이·merge-tree 확인, 릴리스 PR 3개 본문 작성(Refs만·태그 없음), CI·CodeRabbit 요청 결과 확인 댓글 | 일회성 형상관리 예외로 사람이 확인·머지, 태그 없이 동기화만 하기로 결정 |
