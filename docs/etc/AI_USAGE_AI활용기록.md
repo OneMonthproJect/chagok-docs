@@ -60,3 +60,20 @@
 | 2026-11-24 | chagok-docs#86 (릴리스 PR #88) | Claude Code + chagok-release-check (스킬 절차) | main·develop 차이·merge-tree·닫는 키워드 사전 확인, 동기화 릴리스 PR 작성, 머지 후 tree 일치 검증 | 동기화·머지 진행 지시, 서브 형상관리 머지 결정 |
 | 2026-11-24 | chagok-docs#89 (PR #90) | Claude Code (스킬·에이전트 없음) | STARTER·PERSONAL 7개 파일의 결정 전·FU 표기를 D-66~D-68·이슈 번호에 맞춤, 링크·표 검사 | 정리 범위 지시, develop 경유 main까지 한 번에 진행 결정 |
 | 2026-11-24 | chagok-docs#89 (릴리스 PR #91) | Claude Code (스킬·에이전트 없음) | main 동기화 사전 확인·릴리스 PR 작성·머지 후 tree 검증 | develop 경유 main까지 한 번에 진행 결정 |
+| 2026-11-24 | chagok-docs#92 | Claude Code (스킬·에이전트 없음) | 오늘 머지 PR 15개·「AI 사용」 이슈 7개 조회(누락 방지 ⑤ 첫 적용), 미통합 8줄 원문 추출·통합, 이미 통합된 이슈 줄 3개 중복 제외 | 통합 PR 생성 요청 |
+| 2026-11-24 | chagok-docs#92 (릴리스 PR) | Claude Code (스킬·에이전트 없음) | main 동기화 사전 확인·릴리스 PR 작성·머지 후 tree 검증 | 머지·main 동기화 진행 지시 |
+| 2026-11-24 | chagok-docs#95 | chagok-issue-writer | 이슈 분할·담당 추천·프론트 설계(07)·파일 소유(08) 초안, GitHub 이슈 49개 작성·수정 | PM이 분할·담당 방향 결정, 지정은 PM이 직접 |
+| 2026-11-24 | chagok-docs#95 (릴리스 PR) | Claude Code (스킬·에이전트 없음) | main·develop 차이 확인, 릴리스 PR 작성 | 릴리스 PR 생성 지시 |
+| 2026-11-24 | chagok-backend#19 | chagok-pr-reviewer (에이전트) | 구현 전 계획 보고, `cycle/api` 계약 작성, 자가 점검 1차 리뷰(blocker 0·major 2): 진입점 interface 추가·`ItemCycleResult` 검증·Javadoc 완화를 반영 | 진입점을 interface로 둘지(A)와 `CycleRecord`를 지금 확장하지 않을지는 사람이 결정 |
+| 2026-11-24 | chagok-backend#46 | 없음 | 08 문서 4장 기준 주석 전용 뼈대 93개 생성(#47과 겹치는 cycle/api 제외), 빌드 확인, 이슈·PR 작성 | 담당·예외 승인(PM 김예린) 확인, 진행 승인 |
+| 2026-11-24 | chagok-backend#19 | chagok-pr-reviewer (에이전트) | 구현 전 계획 보고, 계산 구현·T1~T13 테스트 작성, 자가 점검 1차 리뷰(blocker 0·major 1·minor 3): package-info 예외 문구·T11 근거 검증·테스트 id 카운터를 반영, 문서 기록은 문서 PR로 남김 | 정적 팩토리(B)와 `ArchitectureTest` 규칙 추가는 사람이 결정 |
+| 2026-11-24 | chagok-docs#99 | (스킬·에이전트 없음, 메인 대화) | 결정 이슈·문서 PR 초안 작성, CONVENTIONS·13 changelog 수정안 반영 | 사람이 바꾼 것: (사람이 채움) |
+| 2026-11-24 | chagok-backend#26 (1/3) | chagok-issue-coder, chagok-pr-reviewer (에이전트) | reservation/api 계약 구현, 빌드·ArchitectureTest 확인, 1차 리뷰(blocker·major 0) | (사람이 채움) |
+| 2026-11-24 | chagok-backend#26 (2/3, #27 일부) | chagok-issue-coder, chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | reservation Entity·Repository·ReservationReader·API 18 구현, 계약 점검(❌ 0·❓ 2), 1차 리뷰(blocker 0·major 1: DB 테스트 미검증), 리뷰 반영 | (사람이 채움) |
+| 2026-11-24 | chagok-backend#20 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | 구현 전 계획 보고(L3), 로그인·내 계정·토큰 발급 구현과 테스트 작성, API 계약 점검(백엔드, 불일치 0건), 자가 점검 1차 리뷰(blocker 0·major 0·minor 3: `me` 주석의 08 0.6 근거 정정, `Authorization` 무시 동작을 「결정」에 기록, AI 공동 작성자 표기 제외) | 로그인 요청의 `Authorization` 무시를 추가할지, 03의 401, `PasswordEncoder` 위치, `AdminLoginRequest` 삭제는 사람이 승인 (`Authorization` 무시는 구현 중 추가한 것이라 사람이 사후 확인) |
+| 2026-11-24 | chagok-backend#26 (3/3) | chagok-issue-coder, chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | API 15·16 구현, 계약 점검(❌ 2·❓ 3), 1차 리뷰(머지 순서 blocker 1·DB 테스트 부재 major 1), 리뷰 반영 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#60 | chagok-pr-reviewer (에이전트) | account.api StaffReader 계약·구현·테스트 작성, 자가 점검 리뷰(blocker 1·major 1: 이슈 번호 미정, dbTest 미실행) | (사람이 채움) |
+| 2026-11-25 | chagok-docs#104 (#99 마무리) | (스킬·에이전트 없음, 메인 대화) | D-69 번호 부여 위치 확인, 00·13·CONVENTIONS 번호 표기 수정, 이슈·PR 작성 | 사람이 바꾼 것: (사람이 채움) |
+| 2026-11-25 | chagok-backend#26 (PR #58 원인 확인) | Claude Code (스킬·에이전트 없음) | 실패 run 로그·db-test XML(34개 실행·34개 실패·SKIPPED 0) 분석, `CustomerReader`·`ItemReader` 구현 위치 대조, develop merge-tree 충돌 확인, 원인 댓글 작성 | 원인 댓글 게시 요청 |
+| 2026-11-25 | chagok-docs#96 (Q14 추천안) | Claude Code (스킬·에이전트 없음) | 08·CONVENTIONS·STARTER 08·ArchitectureTest·`screen/visit` 뼈대 읽기 전용 대조, (a) `screen/visit` 추천 근거·영향 범위 정리, 추천 댓글 작성 | 추천 댓글 게시 요청 (결정은 형상관리·PM) |
+| 2026-11-25 | chagok-docs#103 | Claude Code (스킬·에이전트 없음) | 사전 합의 지시문 기준 세 레포 이슈·PR·CI·문서 읽기 전용 확인, 개발 차단 사항·M3 전 미결정·P2 규칙 충돌 문서 정리, 범위 동결 결정 이슈 초안 작성·게시, 제안 번호 D-69 → D-70 수정 | 사전 합의 사항·지시문 제공, 이슈 게시 요청 |

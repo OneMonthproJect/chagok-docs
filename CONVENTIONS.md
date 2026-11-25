@@ -46,7 +46,7 @@ com.wanted.chagok
 │   ├── item/                service_item (정비 항목·주기)
 │   ├── maintenance/         maintenance_record
 │   ├── reservation/         reservation
-│   └── cycle/               주기 상태 계산만. 표 없음, Spring·JPA 없음
+│   └── cycle/               주기 상태 계산만. 표 없음, Spring·JPA 없음. api/에 값 타입과 ItemCycleCalculator
 │
 └── screen/                  화면 조립 전용. 표 없음. 아무도 import하지 않음
     ├── target/              재점검 대상 목록 (시나리오 A)
@@ -69,6 +69,8 @@ domain/customer/
 ```
 
 - `api` 안에는 **interface, record, enum만** 둔다. 구현은 `service`가 한다.
+  - **예외 1건 (D-69, chagok-docs#99):** `cycle`은 Spring Bean을 만들 수 없어(`cycle은_순수_계산이다`) `api`의 `ItemCycleCalculator`에 정적 팩토리 `standard()`를 둔다. 구현 클래스를 만들어 돌려주는 한 줄 위임만 허용하고 계산 규칙은 두지 않는다. 호출하는 쪽은 `standard()`로만 얻고 `cycle.service`를 import하지 않는다(필요하면 자기 설정에서 `@Bean`으로 감싼다).
+  - 이 예외가 만드는 `cycle` 안쪽 `api` ↔ `service` 순환은 ArchUnit이 잡지 못한다. `standard()` 외에 `api`에서 `service`를 부르는 곳을 늘리지 않는다.
 - 다른 도메인에 값이 필요해지면 `api`에 메서드를 **추가**한다(기존 메서드 시그니처는 바꾸지 않는다).
 - `controller/dto`의 응답 record는 그 화면 전용이다. 다른 도메인이 계산 재료로 쓰지 않는다(그럴 땐 `api`).
 
@@ -133,7 +135,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | service | 유스케이스 흐름 조립, `@Transactional`(요청 하나 = 트랜잭션 하나, 실패하면 전부 롤백), 소속 확인(`getOwned`), DTO 변환 | 응답 모양 만들기, 다른 도메인 Repository·Entity·Service 사용, 같은 규칙을 다른 service에 복사 |
 | entity | 칼럼 매핑, 상태 전이와 도메인 불변식(자기 상태로 판단하는 규칙과 거절), `@Version` | public setter, 다른 도메인 Entity 참조(ID로만), 양방향 연관, cascade |
 | repository | 조회 메서드 (정비소 데이터는 shopId 조건 포함) | 업무 판단 |
-| api | interface·record·enum | 구현, Entity 노출 |
+| api | interface·record·enum | 구현, Entity 노출 (예외: `cycle`의 `standard()` 한 줄 위임, 2장) |
 | screen | 여러 `api`를 읽어 화면 하나의 응답 조립, cycle 호출 | 저장·상태 변경, 표 소유 |
 | global | 인증·오류·공통 응답·시각 같은 기술 기반 | 업무 규칙, domain·screen import(ArchitectureTest) |
 
@@ -255,7 +257,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 |---|---|
 | `global은_domain과_screen을_모른다` | global → domain·screen 의존 금지 |
 | `screen은_아무도_import하지_않는다` | screen 밖에서 screen 의존 금지 (domain → screen 포함) |
-| `다른_도메인은_api로만` (도메인별) | 다른 도메인의 `api` 밖(Entity·Repository·Service·DTO) 의존 금지 |
+| `다른_도메인은_api로만` (도메인별, `cycle` 포함) | 다른 도메인의 `api` 밖(Entity·Repository·Service·DTO) 의존 금지. `cycle`도 `cycle.api`로만 부른다 |
 | `도메인_의존_방향` (도메인별) | 3장 표에 없는 도메인 간 의존 금지 (`reservation → account.api`, `maintenance → account.api` 허용 포함) |
 | `도메인_사이_순환_없음` | 도메인 사이 순환 금지 |
 | `cycle은_순수_계산이다` | cycle → 다른 도메인·Spring·JPA 금지 |
