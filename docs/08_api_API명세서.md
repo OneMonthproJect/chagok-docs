@@ -878,8 +878,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
       "status": "RESERVED",
       "needsAction": true,
       "version": 0,
-      "purpose": { "items": [ { "itemId": 6, "name": "배터리" } ], "other": false, "memo": null },
-      "assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }
+      "purpose": { "items": [ { "itemId": 6, "name": "배터리" } ], "other": false, "memo": null }
     },
     "customer": { "customerId": 10, "name": "오세훈", "phone": "010-0000-0010", "consent": true },
     "vehicle": { "vehicleId": 10, "plateNumber": "55차0010", "model": "쏘나타", "modelYear": 2018, "latestMileage": 97000 },
@@ -905,18 +904,18 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
     "totalVisitCount": 3,
     "itemStatuses": [
       {
-        "itemId": 6, "code": "BATTERY", "name": "배터리",
-        "status": "SOON", "dueReason": null,
-        "baseRecord": { "date": "2023-12-14", "mileage": null, "type": "REPLACE" },
-        "nextDueDate": "2026-12-14", "nextDueMileage": null,
-        "highlighted": true
-      },
-      {
         "itemId": 1, "code": "ENGINE_OIL", "name": "엔진오일",
         "status": "AHEAD", "dueReason": null,
         "baseRecord": { "date": "2026-10-24", "mileage": null, "type": "REPLACE" },
         "nextDueDate": "2027-04-24", "nextDueMileage": null,
         "highlighted": false
+      },
+      {
+        "itemId": 6, "code": "BATTERY", "name": "배터리",
+        "status": "SOON", "dueReason": null,
+        "baseRecord": { "date": "2023-12-14", "mileage": null, "type": "REPLACE" },
+        "nextDueDate": "2026-12-14", "nextDueMileage": null,
+        "highlighted": true
       }
     ]
   },
@@ -924,7 +923,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 }
 ```
 
-`itemStatuses`는 예시에서 6개 중 2개만 적었다(실제는 쓰는 항목 전부, 순서는 `sortOrder` 순, D-63 B02). 예시의 `assignee`는 P0-나머지부터다. 예시 값은 07 7.2 시드(기록 id·`visitKey`, 55차0010 기록은 주행거리 없음)와 같다. 에러: `NOT_FOUND` (X3)
+`itemStatuses`는 예시에서 6개 중 2개만 적었다(실제는 쓰는 항목 전부, 순서는 `sortOrder` 순, D-63 B02). 강조(`highlighted`)된 배터리도 `sortOrder`대로 뒤에 있다. P0-나머지부터는 `reservation`에 `assignee`가 더해진다(위 표). 예: `"assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }`. 예시 값은 07 7.2 시드(기록 id·`visitKey`, 55차0010 기록은 주행거리 없음)와 같다. 에러: `NOT_FOUND` (X3)
 
 ### 18 POST `/api/reservations/{reservationId}/complete` — 방문 완료
 
