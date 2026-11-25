@@ -69,7 +69,7 @@ domain/customer/
 ```
 
 - `api` 안에는 **interface, record, enum만** 둔다. 구현은 `service`가 한다.
-  - **예외 1건 (chagok-docs#99):** `cycle`은 Spring Bean을 만들 수 없어(`cycle은_순수_계산이다`) `api`의 `ItemCycleCalculator`에 정적 팩토리 `standard()`를 둔다. 구현 클래스를 만들어 돌려주는 한 줄 위임만 허용하고 계산 규칙은 두지 않는다. 호출하는 쪽은 `standard()`로만 얻고 `cycle.service`를 import하지 않는다(필요하면 자기 설정에서 `@Bean`으로 감싼다).
+  - **예외 1건 (D-69, chagok-docs#99):** `cycle`은 Spring Bean을 만들 수 없어(`cycle은_순수_계산이다`) `api`의 `ItemCycleCalculator`에 정적 팩토리 `standard()`를 둔다. 구현 클래스를 만들어 돌려주는 한 줄 위임만 허용하고 계산 규칙은 두지 않는다. 호출하는 쪽은 `standard()`로만 얻고 `cycle.service`를 import하지 않는다(필요하면 자기 설정에서 `@Bean`으로 감싼다).
   - 이 예외가 만드는 `cycle` 안쪽 `api` ↔ `service` 순환은 ArchUnit이 잡지 못한다. `standard()` 외에 `api`에서 `service`를 부르는 곳을 늘리지 않는다.
 - 다른 도메인에 값이 필요해지면 `api`에 메서드를 **추가**한다(기존 메서드 시그니처는 바꾸지 않는다).
 - `controller/dto`의 응답 record는 그 화면 전용이다. 다른 도메인이 계산 재료로 쓰지 않는다(그럴 땐 `api`).
