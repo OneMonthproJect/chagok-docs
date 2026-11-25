@@ -51,7 +51,7 @@
 
 ```text
 이슈(해당 레포) → 최신 develop에서 브랜치 → (Claude면 계획 → 승인) → 구현 + 테스트 → 로컬 검증
-→ develop으로 PR (Closes #n, 명세가 바뀌면 문서 PR 링크) → 자동 검사(❌면 머지하지 않음) + 팀원 확인
+→ develop으로 PR (Closes #n, 일부 완료면 Refs #n, 명세가 바뀌면 문서 PR 링크) → 자동 검사(❌면 머지하지 않음) + 팀원 확인
 → done-verified → Squash merge → issue-close가 이슈를 닫음
                  ↓ (M2 · M3 · M4 · M5)
 형상관리자: 세 레포 develop → main 릴리스 PR(Refs #n) → (코드 레포) CodeRabbit 점검 → Merge commit + 같은 태그
@@ -259,7 +259,7 @@ P1(MVP)과 M3 MVP 검증 뒤의 P2를 더할 때도 대부분 "새 패키지를 
 
 ## 6. Git 협업 — 브랜치 · 이슈 · 커밋 · PR
 
-원본: `CONTRIBUTING.md` 2~5장 (**확정**, D-46·D-49). 다섯 줄 요약: **이슈 먼저, 해당 레포의 `develop`에서 브랜치, `develop`으로 PR, 본문에 `Closes #`, 명세가 바뀌면 문서 PR 링크.**
+원본: `CONTRIBUTING.md` 2~5장 (**확정**, D-46·D-49). 다섯 줄 요약: **이슈 먼저, 해당 레포의 `develop`에서 브랜치, `develop`으로 PR, 본문에 `Closes #`(일부 완료면 `Refs #`, D-71), 명세가 바뀌면 문서 PR 링크.**
 
 ### 6.1 브랜치
 
@@ -274,7 +274,7 @@ P1(MVP)과 M3 MVP 검증 뒤의 P2를 더할 때도 대부분 "새 패키지를 
 
 - 세 레포 모두 같은 규칙. 번호는 **그 레포의** 이슈 번호. 이름은 영문 소문자 · 숫자 · 하이픈 (예: `feature/#12-cycle-calc`).
 - clone 직후에는 기본 브랜치 `main`에 있으므로 `git switch develop`부터 합니다. 작업 브랜치는 항상 **최신 develop**에서 만듭니다.
-- 이슈 하나 = 브랜치 하나 = PR 하나. 하루 안에 머지할 크기로 쪼갭니다.
+- 이슈 하나 = 브랜치 하나 = PR 하나가 기본입니다. 하루 안에 머지할 크기로 쪼갭니다. 필요하면 같은 이슈로 `Refs` 부분 PR을 여러 개 올립니다(D-71, CONTRIBUTING 2·5장). `main` ↔ `develop` 차이는 정상입니다.
 - `main` · `develop`에 직접 push하지 않습니다. GitHub Free 기준이라 GitHub이 막아 주지 않으므로 팀원이 지키는 규칙입니다. AI(Claude Code)에게는 settings.json이 `git push origin main…`·`git push origin develop…`·`git push --force…`·`git push -f…` 형태를 deny로 막고, 그 밖의 push는 확인(ask)만 묻습니다 — 예: upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`은 deny에 걸리지 않으므로 확인 창에서 사람이 거절해야 합니다(26장).
 - Squash merge 뒤 같은 브랜치에서 이어 작업하면 충돌이 나므로 항상 새 브랜치에서 시작합니다.
 
@@ -311,11 +311,11 @@ git branch -D feature/#12-cycle-calc
 - 커밋: `타입: 무엇을 했는지 (#번호)` — 타입 `feat` `fix` `docs` `test` `refactor` `chore`, 한국어 50자 이내, 마침표 없음. 커밋 메시지에 `Closes #`·`Fixes #`·`Resolves #`를 쓰지 않습니다(릴리스 때 이슈가 닫힐 수 있음).
 - **AI를 공동 작성자로 올리지 않습니다.** 커밋·PR 본문에 `Co-authored-by: Claude`, `noreply@anthropic.com`, "Generated with Claude Code"를 넣지 않습니다(pr-check가 막음). 도구가 기본으로 붙이라고 안내해도 이 규칙이 우선입니다.
 - PR 대상은 **`develop`**(`gh pr create --base develop`). 기본 브랜치가 `main`이라 화면에서 base를 꼭 고릅니다.
-- PR 제목 `[#번호] 이슈 제목`(제목에 닫는 키워드 금지), 본문 첫 줄 `Closes #번호`, PR 템플릿 전부 채우기.
+- PR 제목 `[#번호] 이슈 제목`(제목에 닫는 키워드 금지), 본문 첫 줄 `Closes #번호`(이슈 전체 완료) 또는 `Refs #번호`(일부 완료), PR 템플릿 전부 채우기. PR Assignee는 비워 둡니다(D-71).
 - 코드 레포 PR은 「문서 PR」 칸: 명세(07·08·09)가 바뀌면 `OneMonthproJect/chagok-docs#번호`, 아니면 「문서 변경 없음」.
 - push 전 `git pull origin develop`, 충돌은 올린 사람이 해결.
 - 확인하는 사람은 브랜치를 받아 **다른 코드 레포의 develop과 함께 띄워** 실제로 실행합니다. 남의 패키지를 건드렸다면 그 주인의 확인을 받습니다.
-- 확인한 팀원이 완료 정의를 확인하고 `done-verified` 라벨을 붙인 뒤 Squash merge → `issue-close`가 이슈를 닫습니다(develop 머지 + `done-verified` + 검사 ✅, 같은 레포 이슈만).
+- `Closes` 최종 PR은 확인한 팀원이 완료 정의를 확인하고 `done-verified` 라벨을 붙인 뒤 Squash merge → `issue-close`가 이슈를 닫습니다(develop 머지 + `done-verified` + 검사 ✅, 같은 레포 이슈만).
 - 승인 인원은 강제하지 않지만 머지 전 팀원 1명 확인이 기본입니다(작은 문서·오타는 생략 가능). 작성자 자가 점검은 L2·L3에서 `chagok-pr-reviewer` 필수(20장).
 
 ## 7. CI와 자동 검사
@@ -324,7 +324,7 @@ PR을 열면 형식·비밀값·DB 규칙·빌드를 GitHub Actions가 자동으
 
 | 무엇 | 레포 | 결과 |
 |---|---|---|
-| 브랜치 이름 · PR 제목 · `Closes #` 검사 (다른 레포 이슈도 인정) | 세 레포 | ❌ |
+| 브랜치 이름 · PR 제목 · 본문 `Closes #`/`Refs #` 검사 (다른 레포 이슈도 인정) | 세 레포 | ❌ |
 | 커밋 · PR 본문의 AI 공동 작성자 표기 | 세 레포 | ❌ |
 | M4 기능 동결 이후 `feature/` 브랜치 PR (`FEATURE_FREEZE=true`) | 세 레포 | ❌ |
 | 비밀값·민감 파일 | 세 레포 | ❌ |
@@ -382,7 +382,7 @@ PR을 열면 형식·비밀값·DB 규칙·빌드를 GitHub Actions가 자동으
 | 누가 머지 | 확인한 팀원 | 형상관리자만 |
 | CodeRabbit | 필요할 때 수동 요청 | 코드 레포는 자동 1회 (`release` 라벨) |
 | 머지 방식 | Squash | Merge commit |
-| 이슈 표기 | 본문 `Closes #번호` | 본문 `Refs #번호` 또는 링크 (`Closes`·`Fixes`·`Resolves` 금지) |
+| 이슈 표기 | 본문 `Closes #번호`(최종) 또는 `Refs #번호`(부분, 이슈 열림 유지) | 본문 `Refs #번호` 또는 링크 (`Closes`·`Fixes`·`Resolves` 금지) |
 | 브랜치 삭제 | 6.1 참고 | 누르지 않음 (develop 유지) |
 | 이슈 close | `issue-close`가 닫음 | 없음 (열려 있으면 릴리스 점검에서 확인) |
 
@@ -881,7 +881,7 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 12. **pr-reviewer**: L2·L3는 필수, L1은 선택.
 13. **문서 변경 필요 여부**: 07·08·09가 바뀌어야 하면 chagok-docs `결정` 이슈 → 문서 PR 먼저(10장).
 14. **결과 보고**를 받고 미검증 항목을 확인합니다.
-15. **사람이 확인한 뒤** 커밋 → push → PR(base `develop`, 제목 `[#번호] …`, 본문 첫 줄 `Closes #번호`, 「문서 PR」, 「AI 사용」).
+15. **사람이 확인한 뒤** 커밋 → push → PR(base `develop`, 제목 `[#번호] …`, 본문 첫 줄 `Closes #번호` 또는 일부 완료면 `Refs #번호`, 「문서 PR」, 「AI 사용」).
 16. **CI ✅와 팀원 리뷰**: 확인하는 팀원이 다른 코드 레포 develop과 함께 띄워 실행.
 17. **완료 정의 확인 → `done-verified`** (확인한 팀원, 작성자가 아닌 사람 권장).
 18. **사람이 Squash merge** → `issue-close`가 이슈를 닫음.

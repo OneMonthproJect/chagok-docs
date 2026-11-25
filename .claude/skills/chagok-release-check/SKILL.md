@@ -7,7 +7,7 @@ description: 차곡 형상관리자가 세 레포(chagok-docs·chagok-backend·c
 
 > 경로 표기: `docs/…`·`CONVENTIONS.md`·`CONTRIBUTING.md`는 `chagok-docs` 기준(코드 레포에서는 `../chagok-docs/…`), `chagok-backend/…`·`chagok-frontend/…`는 각 레포 루트 기준이다(`.claude/rules/ai-rules.md`「작업 폴더와 경로」). 필요한 레포가 작업 폴더에 없으면 지어내지 말고 읽지 못한 것으로 보고한다.
 
-CodeRabbit은 코드 품질을 본다. 이 스킬은 **"이 상태로 main에 올려도 되는가"**를 프로젝트 규칙 기준으로 본다. 판단은 형상관리자가 하고, 이 스킬은 근거를 모은다.
+CodeRabbit은 코드 품질을 본다. 이 스킬은 **"이 상태로 main에 올려도 되는가"**를 프로젝트 규칙 기준으로 본다. 판단은 형상관리자가 하고, 이 스킬은 근거를 모은다. `main` 머지도 형상관리자가 한다. 이 스킬을 쓰는 AI는 사용자가 대상 레포·PR을 지정해 명시적으로 지시하지 않으면 `main` 대상 PR을 머지하지 않는다(`ai-rules.md` 「AI만의 규칙」, D-71). `main` ↔ `develop` 차이 자체는 문제가 아니다. 단순 최신화·동기화 요청이면 릴리스 PR을 만들지 않고, 마일스톤 릴리스인지 예외 선반영인지 먼저 확인한다.
 
 **세 레포를 한 릴리스로 본다.** 같은 날 세 레포에 같은 태그를 달기 때문에, 한 레포라도 막는 항목이 있으면 릴리스 전체가 보류다. 작업 폴더에 세 레포가 모두 있어야 한다(없으면 그 레포는 "점검 못 함"으로 표시하고 판정을 조건부 이하로).
 
@@ -19,6 +19,7 @@ CodeRabbit은 코드 품질을 본다. 이 스킬은 **"이 상태로 main에 �
 | M3 MVP 검증 | `v0.8-m3-mvp` | P0·P1 전부 완료 정의 충족, T·X 테스트 통과, 시나리오 A·B·격리 시연. 통과해야 P2 착수 |
 | M4 기능 동결 | `v0.9-m4-freeze` | 완료 정의를 충족한 기능만 남았는가 (P2 포함) |
 | M5 최종 시연 | `v1.0-m5-demo` | 동결 이후 `fix/`·`docs/`만 들어왔는가 |
+| 예외 선반영 (D-71) | 없음 | 형상관리자가 판단. 확정 문서·협업 규칙·독립 검증된 필수 변경만이고, `origin/main..origin/develop`에 미완료 기능이 섞여 있지 않은가(pr-check는 `main` PR의 head를 `develop`만 허용하므로 섞여 있으면 선반영하지 않고 다음 릴리스로). 그 변경 범위만 점검하고 무관한 전체 재검증은 하지 않는다 |
 
 M1 설계 확정 태그 `v0.1-m1-design`(CONTRIBUTING 9장)은 릴리스 PR이 없는 문서 확정 태그다. 이 스킬로 점검하라는 요청이면 2장 대신 `chagok-spec-sync` 모드 B를 문서끼리 대조(00·04·07·08 ID 일치)로만 돌리고, 태그 명령만 준다.
 
@@ -42,7 +43,7 @@ gh issue list --repo OneMonthproJect/chagok-backend --state open --label "P1" --
 
 **A. 완료 정의** — 머지된 기능 PR마다 PR 본문의 완료 정의 체크박스를 읽는다. 체크 안 된 항목이 있는 PR을 표로 모은다. 백엔드 이슈와 프론트 「짝 이슈」가 둘 다 머지돼야 그 기능이 완료다. 한쪽만 머지된 기능을 모은다. 코드 PR의 「문서 PR」 링크가 가리키는 `chagok-docs` PR이 머지됐는지도 본다.
 
-**A-2. 이슈 닫힘 (D-49)** — 기본 브랜치가 `main`이라 이슈는 develop 머지 때 `issue-close`가 닫는다. 이번 릴리스에 포함된 PR마다 본문 `Closes #번호`의 같은 레포 이슈가 닫혔는지 본다(`gh issue view <번호> --repo OneMonthproJect/<레포> --json state`). 열려 있으면 PR에 `done-verified` 라벨이 없는지, 검사가 실패했는지 확인해 표로 모은다. 완료가 맞으면 원래 PR에 `done-verified`를 붙여 develop 기준으로 닫으라고 안내하고, 미완이면 "확인 필요"에 적는다. 다른 레포 이슈를 가리킨 `Closes`는 자동으로 닫히지 않으므로 그 레포에서 닫혔는지 따로 본다. 포함 커밋 메시지(`git log origin/main..origin/develop`)에 `Closes`·`Fixes`·`Resolves #번호`가 있으면 릴리스 PR의 pr-check가 열린 이슈에 대해 ❌를 내므로 미리 표시한다.
+**A-2. 이슈 닫힘 (D-49)** — 기본 브랜치가 `main`이라 이슈는 develop 머지 때 `issue-close`가 닫는다. 이번 릴리스에 포함된 PR마다 본문 `Closes #번호`의 같은 레포 이슈가 닫혔는지 본다(`gh issue view <번호> --repo OneMonthproJect/<레포> --json state`). `Refs #번호` 부분 PR만 머지된 이슈가 열려 있는 것은 정상이다(미완료로 「확인 필요」에 적고 `done-verified`를 안내하지 않는다, D-71). 열려 있으면 PR에 `done-verified` 라벨이 없는지, 검사가 실패했는지 확인해 표로 모은다. 완료가 맞으면 원래 PR에 `done-verified`를 붙여 develop 기준으로 닫으라고 안내하고, 미완이면 "확인 필요"에 적는다. 다른 레포 이슈를 가리킨 `Closes`는 자동으로 닫히지 않으므로 그 레포에서 닫혔는지 따로 본다. 포함 커밋 메시지(`git log origin/main..origin/develop`)에 `Closes`·`Fixes`·`Resolves #번호`가 있으면 릴리스 PR의 pr-check가 열린 이슈에 대해 ❌를 내므로 미리 표시한다.
 
 **B. 범위**
 - M2 통합 검증: 열린 `P0-핵심` 이슈가 있으면 미달. P1·P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시.
@@ -141,7 +142,7 @@ gh release create v0.5-m2-integration --repo OneMonthproJect/chagok-backend --ge
 
 릴리스 PR 본문에는 판정, 포함 PR 목록, 포함 이슈(`Refs #12`처럼. **`Closes`·`Fixes`·`Resolves`는 쓰지 않는다** — 기본 브랜치가 `main`이라 머지 때 이슈가 닫히고, pr-check가 ❌로 막는다. D-49), 해결한 막는 항목, 미룬 CodeRabbit 지적과 사유, 다른 두 레포의 릴리스 PR 링크를 넣는다. 제목에도 닫는 키워드를 넣지 않는다. 릴리스 PR을 머지한 뒤 화면의 Delete branch는 누르지 않는다(`develop` 유지). 코드 레포는 `release` 라벨이 자동으로 붙고 CodeRabbit이 리뷰를 시작한다(`chagok-docs`는 CodeRabbit 없음). 시작하지 않으면 `@coderabbitai full review` 댓글을 안내한다.
 
-명령은 모두 사람이 실행한다. `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻고, `main`으로의 직접 push는 막혀 있다.
+명령은 모두 사람이 실행한다. 릴리스 PR 머지는 형상관리자가 GitHub에서 한다. AI는 대상 레포·PR을 지정한 사용자의 명시적 지시 없이 `gh pr merge`를 실행하지 않고, 자동 머지도 켜지 않는다(D-71). `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻고, `main`으로의 직접 push는 막혀 있다.
 
 M3 MVP 검증 릴리스가 "머지 가능"이면 P2를 `chagok-scope-guard`로 하나씩 고를 수 있다고 알린다. M4 기능 동결 릴리스 뒤에는 `FEATURE_FREEZE=true`(Organization 변수, 또는 세 레포 각각)로 바꾸라고 알린다.
 

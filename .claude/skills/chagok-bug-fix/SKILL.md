@@ -61,7 +61,7 @@ description: 차곡에서 명세와 다르게 동작하는 버그를 재현하�
 - 커밋: fix: 무엇을 고쳤는지 (#번호)
 - push 전: git pull origin develop
 - PR 제목: [#번호] 이슈 제목
-- PR 본문: (이 레포 `.github/PULL_REQUEST_TEMPLATE.md` 초안, 첫 줄 Closes #번호, 「문서 PR」 칸: 링크 또는 「문서 변경 없음」)
+- PR 본문: (이 레포 `.github/PULL_REQUEST_TEMPLATE.md` 초안, 첫 줄 Closes #번호(버그 전체 해결) 또는 Refs #번호(일부만, D-71), PR Assignee 지정 안 함, 「문서 PR」 칸: 링크 또는 「문서 변경 없음」)
 
 ## 트러블슈팅 기록 후보 (chagok-docs `docs/etc/DEV_REVIEW_트러블슈팅.md`)
 - 에러 / 원인 / 해결 각 한 줄 (팀에 남길 만한 버그일 때만)

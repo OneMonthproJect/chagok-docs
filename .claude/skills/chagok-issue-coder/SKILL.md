@@ -1,6 +1,6 @@
 ---
 name: chagok-issue-coder
-description: 차곡 GitHub 이슈 번호나 이슈 본문을 받아, CONVENTIONS.md 구조 규칙(도메인 api 경계, 의존 방향, screen 조립, cycle 단일 모듈, 정비소 격리)과 완료 정의에 맞춰 Spring Boot 백엔드·React 프론트 코드와 테스트를 작성하고 브랜치 이름·커밋 메시지·PR 본문(Closes #)까지 만든다. "#12 구현해줘", "이 이슈 코딩", "F-CYC 만들어줘", "PR 본문 써줘"처럼 차곡 기능 구현 요청이면 이 스킬을 사용한다.
+description: 차곡 GitHub 이슈 번호나 이슈 본문을 받아, CONVENTIONS.md 구조 규칙(도메인 api 경계, 의존 방향, screen 조립, cycle 단일 모듈, 정비소 격리)과 완료 정의에 맞춰 Spring Boot 백엔드·React 프론트 코드와 테스트를 작성하고 브랜치 이름·커밋 메시지·PR 본문(Closes # 또는 Refs #)까지 만든다. "#12 구현해줘", "이 이슈 코딩", "F-CYC 만들어줘", "PR 본문 써줘"처럼 차곡 기능 구현 요청이면 이 스킬을 사용한다.
 ---
 
 # 차곡 이슈 → 코드
@@ -110,11 +110,11 @@ CONVENTIONS의 규칙 중 실수가 잦은 것만 다시 짚는다.
 - pr-reviewer: blocker n · major n / 미실행
 
 ## 브랜치·커밋·PR
-- 브랜치: feature/#12-cycle-calc (영문 소문자·숫자·하이픈, pr-check 형식)
+- 브랜치: feature/#12-cycle-calc (영문 소문자·숫자·하이픈, pr-check 형식). 같은 이슈의 다음 PR은 새 브랜치(예: feature/#12-cycle-calc-part2) — Squash 머지된 브랜치는 다시 쓰지 않음
 - 커밋: feat: … (#12)  — 한국어 50자 이내, 마침표 없음
 - push 전: git pull origin develop
 - PR 제목: [#12] 이슈 제목
-- PR 본문: 이 레포 `.github/PULL_REQUEST_TEMPLATE.md`를 채운 초안. 첫 줄 Closes #12, 「문서 PR」 칸(링크 또는 「문서 변경 없음」), 「AI 사용」에 쓴 스킬·에이전트 이름
+- PR 본문: 이 레포 `.github/PULL_REQUEST_TEMPLATE.md`를 채운 초안. 첫 줄은 이슈 전체 완료 조건을 채웠으면 Closes #12, 이번 PR이 일부만 끝내면 Refs #12(이슈 열림 유지, done-verified 안내하지 않음), PR 자체가 미완이면 Draft로 올리자고 제안(CONTRIBUTING 5장, D-71). PR Assignee는 지정하지 않음. 「문서 PR」 칸(링크 또는 「문서 변경 없음」), 「AI 사용」에 쓴 스킬·에이전트 이름
 
 ## AI 사용 기록 (형식·제출 위치는 `ai-rules.md` 「AI만의 규칙」)
 | 날짜 | backend#12 | chagok-issue-coder (+ 쓴 에이전트) | 한 일 | 사람이 바꾼 것: (사람이 채움) |
