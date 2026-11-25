@@ -344,8 +344,7 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
         "customerId": 4,
         "customerName": "최지은",
         "phone": "010-0000-0004",
-        "purposeSummary": "엔진오일",
-        "assignee": { "staffId": 2, "name": "김정비", "colorIndex": 1 }
+        "purposeSummary": "엔진오일"
       },
       {
         "reservationId": 2,
@@ -358,14 +357,15 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
         "customerId": 7,
         "customerName": "서민준",
         "phone": "010-0000-0007",
-        "purposeSummary": "기타",
-        "assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }
+        "purposeSummary": "기타"
       }
     ]
   },
   "error": null
 }
 ```
+
+P0-나머지부터는 `todayReservations[]`의 각 항목에 `assignee`가 더해진다(위 표). 예: `"assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }`
 
 ## 4. 고객·차량
 
