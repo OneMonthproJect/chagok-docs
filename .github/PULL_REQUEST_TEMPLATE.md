@@ -1,6 +1,10 @@
 Closes #
 
-<!-- 제목: [#이슈번호] 이슈 제목 (제목에는 Closes를 쓰지 않음) / 위 Closes 줄은 지우지 마세요: PR 대상은 develop. develop 머지 + done-verified 라벨 + 검사 ✅이면 issue-close가 이 레포 이슈를 닫습니다 (D-49) -->
+<!-- 제목: [#이슈번호] 이슈 제목 (제목에는 Closes를 쓰지 않음). PR 대상은 develop. 위 줄은 PR 유형에 맞게 고칩니다 (D-71, CONTRIBUTING 5장):
+  · 이슈 전체 완료 조건을 채운 최종 PR → Closes #번호 (develop 머지 + done-verified 라벨 + 검사 ✅이면 issue-close가 이 레포 이슈를 닫음, D-49)
+  · 이슈 일부만 끝냈고 혼자 검토·머지할 수 있는 PR → Refs #번호 (머지돼도 이슈는 열림, done-verified를 붙이지 않음)
+  · PR 자체가 미완·리뷰 준비 전·필수 의존성 미충족 → Draft PR (이슈 전체가 미완이라는 이유만으로 Draft로 하지 않음)
+  PR Assignee는 비워 둡니다(인수인계·담당 변경 때만 지정). -->
 
 ## 바뀐 문서·설정
 -
