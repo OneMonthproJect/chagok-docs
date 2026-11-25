@@ -56,7 +56,7 @@
 }
 ```
 
-`fieldErrors`는 `INVALID_INPUT`일 때만 채우고, 그 밖에는 빈 배열. `details`는 화면이 다음 행동을 안내하는 데 필요한 값만 담는다(`RESERVATION_ACTIVE_EXISTS`·`MECHANIC_SLOT_CONFLICT`의 `{ "reservationId": 3 }`). 그 밖에는 `null`.
+`fieldErrors`는 `INVALID_INPUT`일 때만 채우고, 그 밖에는 빈 배열. 요청 본문을 읽을 수 없을 때(JSON 형식이 깨졌거나 값의 타입이 맞지 않음. 예: `reservedAt` 형식 오류, `version`이 숫자가 아님)는 400 `INVALID_INPUT`이고 어느 필드인지 알려 주지 않으므로 `fieldErrors`도 빈 배열이다. `details`는 화면이 다음 행동을 안내하는 데 필요한 값만 담는다(`RESERVATION_ACTIVE_EXISTS`·`MECHANIC_SLOT_CONFLICT`의 `{ "reservationId": 3 }`). 그 밖에는 `null`.
 
 **오류 응답과 화면 처리 (05 POL-120~129)**
 
@@ -760,14 +760,15 @@ P0-나머지 요청 예시:
         "version": 0,
         "vehicleId": 10, "plateNumber": "55차0010",
         "customerId": 10, "customerName": "오세훈", "phone": "010-0000-0010",
-        "purposeSummary": "배터리",
-        "assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }
+        "purposeSummary": "배터리"
       }
     ]
   },
   "error": null
 }
 ```
+
+P0-나머지부터는 `items[]`의 각 항목에 `assignee`가 더해진다(위 표). 예: `"assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }`
 
 에러: `INVALID_INPUT` (`from`·`to` 누락, `from` > `to`, 42일 초과)
 
@@ -834,7 +835,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
   "data": null,
   "error": {
     "code": "RESERVATION_ACTIVE_EXISTS",
-    "message": "이 차량에는 유효한 예약이 있습니다. 기존 예약을 확인하고 변경해 주세요.",
+    "message": "이 차량에는 이미 유효한 예약이 있습니다.",
     "fieldErrors": [],
     "details": { "reservationId": 3 }
   }
@@ -931,7 +932,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
-| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·17 응답). 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·17 응답). 누락이거나 숫자가 아니면 400 `INVALID_INPUT`. 숫자이면(음수 포함) 서버 값과 다를 때 409 `CONCURRENT_MODIFICATION` |
 
 ```json
 { "version": 0 }
@@ -964,17 +965,19 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 
 | 요청 | 타입 | 필수 | 검증 |
 |---|---|---|---|
-| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·16·17 응답). 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+| version | number | ○ | 화면이 읽은 예약의 `version` (04·15·16·17 응답). 누락이거나 숫자가 아니면 400 `INVALID_INPUT`. 숫자이면(음수 포함) 서버 값과 다를 때 409 `CONCURRENT_MODIFICATION` |
 | reservedAt | datetime | | 16과 같음: 30분 단위, 날짜 ≥ 오늘 |
-| purpose.itemIds | number[] | | 보내면 예약 목적 항목 전체를 이 목록으로 바꾼다 |
+| purpose.itemIds | number[] | | 보내면 예약 목적 항목 전체를 이 목록으로 바꾼다. 빈 목록 `[]`이면 항목을 모두 지운다. 목록 안에 null이 있으면 400 `INVALID_INPUT`(`purpose.itemIds`) |
 | purpose.other | boolean | | |
-| purpose.memo | string | | ~200자 |
+| purpose.memo | string | | ~200자. 보내지 않거나 null이면 그대로, 빈 문자열 `""`이면 비운다 |
 | assigneeId | number | | P0-나머지. 담당 재배정. 그 정비소의 활성 사장·정비사 (X13). 재배정 규칙은 아래 |
 | reassignReason | string | 당일 사장 재배정이면 ○ | P0-나머지. 재배정 사유, ~200자 💡. 없으면 400 `INVALID_INPUT` |
 
-`version` 밖에 바꿀 필드(`reservedAt`, `purpose.itemIds`·`other`·`memo`, P0-나머지부터 `assigneeId`)가 하나도 없으면 400 `INVALID_INPUT`이고, 예약과 `version`을 바꾸지 않는다(R14, M1 설계 확정). 이 검사는 요청 형식 검증이라 소유 확인보다 먼저 한다.
+`version` 밖에 바꿀 필드(`reservedAt`, `purpose.itemIds`·`other`·`memo`, P0-나머지부터 `assigneeId`)가 하나도 없으면 400 `INVALID_INPUT`(`fieldErrors`는 `reservedAt`)이고, 예약과 `version`을 바꾸지 않는다(R14, M1 설계 확정). 이 검사는 요청 형식 검증이라 소유 확인보다 먼저 한다.
 
-서버가 확인하는 것: 정비소 소유(`getOwned`, 아니면 404) → 상태가 `RESERVED`인지 → `version` 일치 → 시각·날짜 규칙 → (P0-나머지) 담당 재배정 마감 → 같은 차량 유효 예약 1건(자기 자신 제외) → (P0-나머지) 담당 중복(같은 담당 + 같은 시작 시각의 다른 유효 예약, 자기 자신 제외). 하나라도 어긋나면 아무것도 바꾸지 않는다.
+서버가 확인하는 것: 정비소 소유(`getOwned`, 아니면 404) → 상태가 `RESERVED`인지 → `version` 일치 → 입력 검증(30분 단위 → 항목, 16과 같은 순서) → 날짜 규칙 → (P0-나머지) 담당 재배정 마감 → 같은 차량 유효 예약 1건(자기 자신 제외, **`reservedAt`을 보낼 때만**) → (P0-나머지) 담당 중복(같은 담당 + 같은 시작 시각의 다른 유효 예약, 자기 자신 제외). 하나라도 어긋나면 아무것도 바꾸지 않는다.
+
+날짜 규칙(`RESERVATION_PAST_DATE`)과 같은 차량 유효 예약 확인은 일시를 바꿀 때(`reservedAt`을 보낼 때)만 적용한다. 유효 예약이 둘이 되는 길은 일시를 바꿔 지난 예약을 오늘 이후로 옮기는 것뿐이기 때문이다. 그래서 날짜가 어제 이전인 `RESERVED` 예약("처리 필요")도 일시를 바꾸지 않는 변경(예약 목적·메모)은 할 수 있고, 같은 차량에 다른 유효 예약이 있어도 막히지 않는다. 지난 예약의 정정은 P0-나머지에서 별도(40번).
 
 **담당 재배정 규칙 (P0-나머지, D-53)**: 마감 기준 날짜는 **변경 전 예약 날짜**다(일시와 담당을 한 요청에 같이 보내도 변경 전 날짜로 판정).
 - 사장·정비사 모두: 오늘 < 예약 날짜(= 예약 날짜 전날까지)일 때만. 아니면 409 `ASSIGNEE_CHANGE_CLOSED`.
