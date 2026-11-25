@@ -174,7 +174,7 @@ erDiagram
 - 인덱스: (shop_id, vehicle_id, service_item_id, record_date) — 주기 계산 조회이자 vehicle 복합 FK 인덱스 (이전 `(vehicle_id, service_item_id, record_date)` 앞에 `shop_id`를 붙임), (shop_id, service_item_id) — service_item 복합 FK 인덱스, (shop_id, staff_id) — staff 복합 FK 인덱스, (shop_id, visit_key)
 - 한 저장 요청의 행은 모두 같은 `visit_key`·`vehicle_id`·`staff_id`다. `record_date`는 외부면 고객이 말한 정비일, 나머지는 방문일. `mileage`는 외부면 확인된 주행거리(없으면 NULL), 나머지는 방문 주행거리. 같은 방문에 같은 항목 두 번 불가(05 POL-57)는 서버가 검증한다(요청 안의 중복이고 `visit_key`를 다시 쓰지 않으므로 DB 제약을 두지 않음).
 - **수정은 F-MNT-04로 한다. 삭제는 없다**(잘못 넣은 기록의 무효 처리는 후속 P2). V1에는 `updated_at`·`version`이 없고, P0-나머지(V2)부터 `updated_at`·`version`이 있으며 수정 전 값은 `maintenance_record_revision`에 남는다(4.1).
-- **P0-나머지에 추가 (D-36)**: `inspect_result VARCHAR(20) NULL, CHECK IN ('GOOD','CAUTION')` + CHECK `inspect_result IS NULL OR record_type = 'INSPECT'`. V1에는 만들지 않고 `V2`로 더한다(6장).
+- **P0-나머지에 추가 (D-36)**: `inspect_result VARCHAR(20) NULL, CHECK IN ('GOOD','CAUTION')`(`ck_maintenance_record_inspect_result`) + CHECK `inspect_result IS NULL OR record_type = 'INSPECT'`(`ck_maintenance_record_inspect_result_record_type`). V1에는 만들지 않고 `V2`로 더한다(6장).
 - **P0-나머지에 추가 (D-55)**: `updated_at DATETIME NOT NULL`, `version INT NOT NULL DEFAULT 0`, `UNIQUE(shop_id, id)`(이력 표의 복합 FK 부모 키), 이력 표 `maintenance_record_revision`. 모두 `V2`.
 
 ### 3.8 `reservation` — 예약
@@ -249,7 +249,8 @@ erDiagram
 | prev_staff_id | BIGINT | NOT NULL | 수정 전 담당 정비사 |
 | created_at | DATETIME | NOT NULL | 수정 시각 |
 
-- UNIQUE(record_id, revision_no), 인덱스 (shop_id, record_id)
+- UNIQUE(record_id, revision_no), 인덱스 (shop_id, record_id) — `record_id` 복합 FK 인덱스, (changed_by_staff_id) — 수정자 FK 인덱스. 이름을 붙여 명시한다(6.1, 6.4).
+- 스냅샷 칼럼 `prev_service_item_id`·`prev_staff_id`에는 FK를 걸지 않는다. 이미 복합 FK가 걸린 원본 행(`maintenance_record`)에서 복사한 값이고, `service_item`·`staff`는 삭제하지 않는다(5.1 "불필요한 제약을 늘리지 않음").
 
 ### 4.2 `reservation_revision` — 예약 정정·재배정 이력 (P0-나머지, V2, D-53)
 
@@ -265,6 +266,11 @@ erDiagram
 | prev_memo, new_memo | VARCHAR(200) | NULL | 〃 |
 | prev_assignee_id, new_assignee_id | BIGINT | NULL | 〃 |
 | created_at | DATETIME | NOT NULL | |
+
+- 인덱스: (shop_id, reservation_id, created_at) — `reservation_id` 복합 FK 인덱스이자 API 41 이력 목록(시간순) 조회용, (changed_by_staff_id) — 수정자 FK 인덱스. 이름은 6.4.
+- 번호 칼럼(`revision_no`)은 두지 않는다. 순서는 `created_at`, 같으면 `id`(API 41 응답에 번호 없음).
+- CHECK: `kind` 값(`ck_reservation_revision_kind`), `kind = 'STATUS'`이면 `prev_status`·`new_status` NOT NULL, `kind = 'ASSIGNEE'`이면 `prev_assignee_id`·`new_assignee_id` NOT NULL(예약의 `status`·`assignee_staff_id`가 NOT NULL이라 이전·이후 값이 항상 있음). `kind = 'MEMO'`는 이전 메모가 NULL일 수 있어 CHECK로 막지 않고 서버가 검증한다. 다른 `kind`의 칼럼이 NULL인지도 서버가 검증한다.
+- 스냅샷 칼럼 `prev_assignee_id`·`new_assignee_id`에는 FK를 걸지 않는다(4.1과 같은 이유. 새 담당은 예약 변경 때 `reservation`의 복합 FK로 이미 검사됨).
 
 ### 4.3 `contact_log` — 연락 기록 (P1, V3, D-59)
 
@@ -353,7 +359,7 @@ erDiagram
 | 버전 💡 | 단계 | 내용 |
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
-| `V2__…` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`. **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
+| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`. **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
 V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
@@ -429,6 +435,23 @@ V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 �
 
 V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(TEST 명세서 6.1).
 
+### 6.4 V2 이름 (2026-11-25 DB 담당 확정, #114)
+
+6.1 규칙을 그대로 따른다. 모두 64자 이하라 예외 이름은 없다. V2 파일은 기존 표 변경(ALTER)을 먼저, 이력 표 생성(CREATE)을 나중에 쓴다(이력 표의 복합 FK가 `maintenance_record`의 UNIQUE(shop_id, id)를 참조하므로).
+
+| 표 | 대상 | 이름 |
+|---|---|---|
+| maintenance_record | `inspect_result IN ('GOOD','CAUTION')` | `ck_maintenance_record_inspect_result` |
+| maintenance_record | `inspect_result IS NULL OR record_type = 'INSPECT'` | `ck_maintenance_record_inspect_result_record_type` |
+| maintenance_record_revision | (changed_by_staff_id) — 수정자 FK 인덱스 | `idx_maintenance_record_revision_changed_by_staff_id` |
+| reservation_revision | `kind IN ('STATUS','MEMO','ASSIGNEE')` | `ck_reservation_revision_kind` |
+| reservation_revision | `kind <> 'STATUS' OR (prev_status IS NOT NULL AND new_status IS NOT NULL)` | `ck_reservation_revision_kind_status` |
+| reservation_revision | `kind <> 'ASSIGNEE' OR (prev_assignee_id IS NOT NULL AND new_assignee_id IS NOT NULL)` | `ck_reservation_revision_kind_assignee` |
+| reservation_revision | (shop_id, reservation_id, created_at) — 복합 FK·이력 목록 인덱스 | `idx_reservation_revision_shop_id_reservation_id_created_at` |
+| reservation_revision | (changed_by_staff_id) — 수정자 FK 인덱스 | `idx_reservation_revision_changed_by_staff_id` |
+
+나머지 UNIQUE·FK·인덱스 이름은 6.1 규칙으로 짓는다(예: `uk_maintenance_record_revision_record_id_revision_no`, `fk_reservation_revision_reservation`).
+
 ## 7. 시드 구성 (시연·테스트)
 
 시연 데이터 정책 (D-43·D-44):
@@ -441,6 +464,7 @@ V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남
 | 다시 넣기 | 시드는 지우지 않는다(`DELETE`·`TRUNCATE`·`DROP`·`ALTER`·`CREATE`·`UPDATE` 금지). 시연 DB를 새로 만들고 Flyway 적용 → 시드 순서로 다시 한다 |
 | 작성 | ERD 확정과 `V1__init.sql` 뒤 DB 담당자 |
 | 날짜 | 모두 **오늘(D) 기준 상대값**. 경계에서 1주 이상 떨어뜨리고, 월말·윤년은 시드에 쓰지 않는다(T6·T7은 단위 테스트) |
+| 오늘(D) | **서울 날짜**(앱의 오늘과 같음, 1장). MySQL 세션 시간대에 기대지 않도록 `CURDATE()` 대신 `DATE(CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+09:00'))`로 구한다(숫자 오프셋이라 시간대 테이블 없이 동작). 데이터 값에 9시간을 더하지 않는다. 시드 테스트도 같은 식을 쓴다(#110) |
 | 생성·수정 시각 | 모든 행에 `created_at`(있으면 `updated_at`)을 직접 적는다. DB 기본값이 없으므로 빠뜨리면 INSERT가 실패한다(V1-13). 값은 그 행의 날짜 칼럼과 어긋나지 않게 💡 |
 
 ### 7.1 정비소·계정
