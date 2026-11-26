@@ -71,9 +71,10 @@ erDiagram
 | created_by_admin_id | BIGINT | NULL, FK → platform_admin.id | 시드 정비소는 NULL |
 | created_at | DATETIME | NOT NULL | |
 
-- **P0-나머지에 추가 (#122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호) 💡, `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소) 💡. 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장). 칼럼 이름·길이·기본값은 제안값이고, S-10·F-ADM-01은 P1이라 이 칼럼을 V2에 둘지 V3으로 미룰지도 PM 확인 전이다.
-  - 기존 정비소와 시드 정비소는 두 칼럼이 빈 문자열 `''`이다. DB는 NULL만 막고, 값이 있는지(필수)와 형식(`brn`은 숫자 10자리, 하이픈 허용)은 서버가 검증한다.
-  - `brn`에는 UNIQUE를 두지 않는다(같은 사업자가 정비소를 여러 곳 낼 수 있음). 정비소 개설 API와 화면 반영은 08·09에서 정한다.
+- **P0-나머지에 추가 (D-73, #122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호) 💡, `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소) 💡. 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장). 두 값을 쓰는 화면·API(S-10, API 32, F-ADM-01)는 P1이지만 칼럼만 V2에 먼저 만든다(D-73, 00 2장 예외). 칼럼 이름·타입·기본값·UNIQUE 없음은 DB관리 제안값(💡, #122)이고 V2는 이 값을 따른다. 07 담당(DB관리)이 확인하면 V2 머지 전에 💡를 뗀다(V2 머지 뒤에는 V3 없이 바꿀 수 없음).
+  - 기존 정비소와 시드 정비소는 두 칼럼이 빈 문자열 `''`이다. DB는 NULL만 막는다. 필수 여부·형식 검증을 할지와 그 규칙(API 필드 이름 포함)은 P1 API 32에서 정한다(08 10장 ❓8, P1 정비소 개설 착수 전).
+  - `brn`에는 UNIQUE를 두지 않는다 💡(DB관리 제안 이유: 같은 사업자가 정비소를 여러 곳 낼 수 있음).
+  - P0-나머지에서는 두 칼럼을 읽거나 쓰는 API·화면·Entity 매핑을 만들지 않는다(00 2장). 정비소 개설 API(08 32)와 화면(09 S-10)은 P1에서 만든다.
 
 ### 3.3 `staff` — 사장·정비사 계정
 
@@ -227,7 +228,7 @@ erDiagram
 | P0-나머지 (V2) | `customer.version`, `vehicle.version` | 고객·차량 수정(F-CUS-06)을 만들 때 동시 수정 확인용 (POL-124) |
 | P0-나머지 (V2) | `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision` | 정비 기록 수정 이력 (D-55), 4.1 |
 | P0-나머지 (V2) | `reservation_revision` | 지난 예약 정정·담당 재배정 이력 (D-53), 4.2 |
-| P0-나머지 (V2) | `shop.brn`·`shop.shop_address` | 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력하는 사업자등록번호·정비소 주소 (#122, PM 확인 💡), 3.2 |
+| P0-나머지 (V2) | `shop.brn`·`shop.shop_address` | 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력하는 사업자등록번호·정비소 주소. 쓰는 화면·API는 P1, 칼럼만 V2에 먼저 (D-73, #122), 3.2 |
 | P1 (V3) | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active` | 고객·차량 비활성화·익명화, 정비사 비활성화 (D-56·D-57) |
 | P1 (V3) | 연락 기록 표 💡 `contact_log` | 4.3. F-CON-02 착수 때 |
 | P1 (V3 또는 별도 버전, **DB 담당자 결정**) | 약관 동의 기록 표 💡 `terms_agreement` | 4.4 초안. F-AUTH-04 착수 전 DB 담당자 검토 (D-61) |
@@ -364,7 +365,7 @@ erDiagram
 | 버전 💡 | 단계 | 내용 |
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
-| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, #122, 💡). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
+| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, D-73, #122). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
 V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
