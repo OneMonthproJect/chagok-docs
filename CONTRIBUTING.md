@@ -8,7 +8,7 @@
 
 | 레포 | 담는 것 | 이슈로 만드는 것 |
 |---|---|---|
-| `chagok-docs` | 기획 문서 00~13, 이 문서, `CONVENTIONS.md`, 공용 AI 설정(`.claude/rules·skills·agents`) | 문서, `결정`(명세 변경·범위 추가·P2 착수·규칙 변경) |
+| `chagok-docs` | 기획 문서 00~13, 이 문서, `CONVENTIONS.md`, 공용 AI 설정(`.claude/rules·skills·agents`) | 문서, `결정`(명세 변경·범위 추가·규칙 변경) |
 | `chagok-backend` | Spring Boot API, Flyway 마이그레이션, 시연 시드(`db/seed/`) | 백엔드 기능(도메인 패키지 하나), 백엔드 버그, 백엔드 `기반` |
 | `chagok-frontend` | React 화면 | 프론트 기능(화면 하나), 프론트 버그, 프론트 `기반` |
 

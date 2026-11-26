@@ -48,7 +48,7 @@ gh issue list --repo OneMonthproJect/chagok-backend --state open --label "P1" --
 **B. 범위**
 - M2 통합 검증: 열린 `P0-핵심` 이슈가 있으면 미달. P1·P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시(P2는 항상 위반, D-70).
 - M3 MVP 검증: 열린 `P0-핵심`·`P0-나머지`·`P1` 이슈가 있으면 미달. P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시(D-70).
-- M4 기능 동결: 완료 정의 미충족 기능은 "시연 제외" 후보로 표시. P2·Non-goal 기능, 미리 만든 빈 화면·API·테이블이 있으면 표시.
+- M4 기능 동결: 완료 정의 미충족 기능은 "시연 제외" 후보로 표시. P2·Non-goal 기능 PR이 머지돼 있거나 미리 만든 빈 화면·API·테이블이 있으면 규칙 위반으로 표시(D-70).
 - M5 최종 시연: 동결 이후 머지된 `feature/` 브랜치가 있으면 표시.
 
 **C. 자동 검사 상태** — 릴리스 PR이 이미 있으면 레포마다 `gh pr checks <번호> --repo OneMonthproJect/<레포>`. 없으면 develop 최신 커밋의 CI 결과를 본다(backend-ci·frontend-ci·pr-check). `ArchitectureTest`·`EndpointGuardTest`가 빌드에 포함돼 통과했는지 따로 확인한다(구조 규칙을 사람 대신 지키는 장치라 꺼져 있으면 막는 항목).
