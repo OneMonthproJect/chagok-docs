@@ -71,9 +71,9 @@ erDiagram
 | created_by_admin_id | BIGINT | NULL, FK → platform_admin.id | 시드 정비소는 NULL |
 | created_at | DATETIME | NOT NULL | |
 
-- **P0-나머지에 추가 (D-73, #122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호) 💡, `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소) 💡. 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장). 두 값을 쓰는 화면·API(S-10, API 32, F-ADM-01)는 P1이지만 칼럼만 V2에 먼저 만든다(D-73, 00 2장 예외). 칼럼 이름·타입·기본값·UNIQUE 없음은 DB관리 제안값(💡, #122)이고 V2는 이 값을 따른다. 07 담당(DB관리)이 확인하면 V2 머지 전에 💡를 뗀다(V2 머지 뒤에는 V3 없이 바꿀 수 없음).
+- **P0-나머지에 추가 (D-73, #122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호), `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소). 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장). 두 값을 쓰는 화면·API(S-10, API 32, F-ADM-01)는 P1이지만 칼럼만 V2에 먼저 만든다(D-73, 00 2장 예외). 칼럼 이름·타입·기본값·UNIQUE 없음은 DB관리 제안(#122)이었고, DB관리 softy20이 chagok-docs#129 리뷰(Approve, 2026-11-26)에서 V2(chagok-backend#31 ⓐ 구역 4) 구현과 같음을 확인했으며, PM paaaraaaeaaa가 #128 댓글(2026-11-26)에서 같은 값에 동의했다. godgeul-glitch의 추가 확인은 #128에서 받는다(이 표기 정리 시점에는 없음). V2는 develop에 머지됐으므로(chagok-backend PR #92) 칼럼을 바꾸려면 V3이 필요하다.
   - 기존 정비소와 시드 정비소는 두 칼럼이 빈 문자열 `''`이다. DB는 NULL만 막는다. 필수 여부·형식 검증을 할지와 그 규칙(API 필드 이름 포함)은 P1 API 32에서 정한다(08 10장 ❓8, P1 정비소 개설 착수 전).
-  - `brn`에는 UNIQUE를 두지 않는다 💡(DB관리 제안 이유: 같은 사업자가 정비소를 여러 곳 낼 수 있음).
+  - `brn`에는 UNIQUE를 두지 않는다(DB관리 제안 이유: 같은 사업자가 정비소를 여러 곳 낼 수 있음. #129 리뷰에서 확인).
   - P0-나머지에서는 두 칼럼을 읽거나 쓰는 API·화면·Entity 매핑을 만들지 않는다(00 2장). 정비소 개설 API(08 32)와 화면(09 S-10)은 P1에서 만든다.
 
 ### 3.3 `staff` — 사장·정비사 계정
