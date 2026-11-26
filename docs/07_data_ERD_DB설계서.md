@@ -71,7 +71,7 @@ erDiagram
 | created_by_admin_id | BIGINT | NULL, FK → platform_admin.id | 시드 정비소는 NULL |
 | created_at | DATETIME | NOT NULL | |
 
-- **P0-나머지에 추가 (#122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호), `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소). 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장).
+- **P0-나머지에 추가 (#122)**: `brn VARCHAR(20) NOT NULL DEFAULT ''`(사업자등록번호) 💡, `shop_address VARCHAR(200) NOT NULL DEFAULT ''`(정비소 주소) 💡. 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력받는다. V1에는 만들지 않고 `V2`로 더한다(6장). 칼럼 이름·길이·기본값은 제안값이고, S-10·F-ADM-01은 P1이라 이 칼럼을 V2에 둘지 V3으로 미룰지도 PM 확인 전이다.
   - 기존 정비소와 시드 정비소는 두 칼럼이 빈 문자열 `''`이다. DB는 NULL만 막고, 값이 있는지(필수)와 형식(`brn`은 숫자 10자리, 하이픈 허용)은 서버가 검증한다.
   - `brn`에는 UNIQUE를 두지 않는다(같은 사업자가 정비소를 여러 곳 낼 수 있음). 정비소 개설 API와 화면 반영은 08·09에서 정한다.
 
@@ -227,7 +227,7 @@ erDiagram
 | P0-나머지 (V2) | `customer.version`, `vehicle.version` | 고객·차량 수정(F-CUS-06)을 만들 때 동시 수정 확인용 (POL-124) |
 | P0-나머지 (V2) | `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision` | 정비 기록 수정 이력 (D-55), 4.1 |
 | P0-나머지 (V2) | `reservation_revision` | 지난 예약 정정·담당 재배정 이력 (D-53), 4.2 |
-| P0-나머지 (V2) | `shop.brn`·`shop.shop_address` | 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력하는 사업자등록번호·정비소 주소 (#122), 3.2 |
+| P0-나머지 (V2) | `shop.brn`·`shop.shop_address` | 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력하는 사업자등록번호·정비소 주소 (#122, PM 확인 💡), 3.2 |
 | P1 (V3) | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active` | 고객·차량 비활성화·익명화, 정비사 비활성화 (D-56·D-57) |
 | P1 (V3) | 연락 기록 표 💡 `contact_log` | 4.3. F-CON-02 착수 때 |
 | P1 (V3 또는 별도 버전, **DB 담당자 결정**) | 약관 동의 기록 표 💡 `terms_agreement` | 4.4 초안. F-AUTH-04 착수 전 DB 담당자 검토 (D-61) |
@@ -364,7 +364,7 @@ erDiagram
 | 버전 💡 | 단계 | 내용 |
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
-| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, #122). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
+| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, #122, 💡). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
 V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
@@ -435,7 +435,7 @@ V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 �
 | V1-9 | 같은 정비소 `service_item.code` 중복, 같은 예약에 같은 항목 두 번 | 실패 (UNIQUE) |
 | V1-10 | 같은 정비소 같은 `plate_number` 차량 2대 | 성공 (중복 허용, POL-32) |
 | V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용 | 성공, 07 7.5 기대값 |
-| V1-12 | V1에 P0-나머지·P1 칼럼·값·표(`inspect_result`, `IN_PROGRESS`, `NO_SHOW`, `customer.version`·`vehicle.version`, `maintenance_record.updated_at`·`version`, `maintenance_record_revision`·`reservation_revision`, `customer.status`·`vehicle.active`·`staff.active`, `contact_log`)이 없고, `reservation.assignee_staff_id`는 있음 | 없음 / 있음 |
+| V1-12 | V1에 P0-나머지·P1 칼럼·값·표(`inspect_result`, `IN_PROGRESS`, `NO_SHOW`, `customer.version`·`vehicle.version`, `maintenance_record.updated_at`·`version`, `maintenance_record_revision`·`reservation_revision`, `shop.brn`·`shop.shop_address`, `customer.status`·`vehicle.active`·`staff.active`, `contact_log`)이 없고, `reservation.assignee_staff_id`는 있음 | 없음 / 있음 |
 | V1-13 | `created_at`(·`updated_at`)을 빼고 INSERT / `SHOW CREATE TABLE`의 타임스탬프 칼럼 | 실패(1364, 기본값 없음) / `DEFAULT`·`ON UPDATE` 없음 |
 
 V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(TEST 명세서 6.1).
