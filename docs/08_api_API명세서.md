@@ -1124,7 +1124,20 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 공통: 정비소 API라 토큰의 `shop_id`만 쓰고, 서비스 관리자 토큰은 403(X16). 남의 정비소 id는 404(X14).
 
-- **36** `GET /api/staff/assignees` (담당 후보). 응답 `items: [ { staffId, name, role, colorIndex } ]`, 활성 사장·정비사만. `colorIndex`는 그 정비소 정비사 계정 id 순서(비활성 포함)를 8로 나눈 나머지(8색 순환, 첫 계정이 0)이며 15·17·04의 `assignee.colorIndex`와 같은 값이다. 쪽 나누기 없음(정비소 직원 수 상한이 작음, `// LIMIT:`).
+- **36** `GET /api/staff/assignees` (담당 후보). 응답 `items: [ { staffId, name, role, colorIndex } ]`, 활성 사장·정비사만(비활성 제외는 `staff.active`가 생기는 P1(V3)부터이고, P0-나머지는 그 정비소의 사장·정비사 전원). `items`는 `staffId` 오름차순(= `colorIndex` 순번 순서)이고 직원이 없으면 빈 배열이다. `colorIndex`는 그 정비소 사장·정비사 계정 id 순서(비활성 포함)를 8로 나눈 나머지(8색 순환, 첫 계정이 0)이며 15·17·04의 `assignee.colorIndex`와 같은 값이다. 쪽 나누기 없음(정비소 직원 수 상한이 작음, `// LIMIT:`). 요청 파라미터 없음(정비소는 토큰의 `shop_id`로만 정한다).
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "items": [
+        { "staffId": 1, "name": "박사장", "role": "OWNER", "colorIndex": 0 },
+        { "staffId": 2, "name": "김정비", "role": "MECHANIC", "colorIndex": 1 }
+      ]
+    },
+    "error": null
+  }
+  ```
 - **37** `PATCH /api/records/{recordId}` (정비 기록 수정, D-55). 요청 `version`(필수), `recordDate`·`mileage`·`type`·`itemId`·`inspectResult`·`memo`·`mechanicId`(바꿀 것만), `reason`(선택). 차량은 바꿀 수 없다. 응답: 수정된 기록(`version` +1). 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(미래 방문일·같은 방문의 같은 항목 중복·바뀐 필드 없음·`itemId`/`mechanicId` 오류 X11·X13), `FORBIDDEN`(정비사가 남이 담당한 기록), `EDIT_PERIOD_EXPIRED`(정비사가 방문일 기준 3일 초과. 외부 기록은 저장일 기준, 수정 전 값 기준), `CONCURRENT_MODIFICATION`. 수정할 때마다 `maintenance_record_revision`에 수정자·수정 시각·수정 전 값을 남긴다.
 - **38** `GET /api/records/{recordId}/revisions`. 응답 `items: [ { revisionNo, changedAt, changedBy { staffId, name }, reason, changes: [ { field, before, after } ] } ]`(수정 전 값과 다음 값을 서버가 비교해 `changes`를 만든다).
 - **39** `POST /api/reservations/{reservationId}/start` (방문 접수, D-52). 요청 `{ version, modelYear?, mileage? }`. 차량의 연식·최근 주행거리가 비어 있으면 `modelYear`·`mileage`가 필수이고 차량에 저장한다(D-58, 없으면 400). 응답: 17과 같은 예약 요약(`status = IN_PROGRESS`, `version` +1). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`. 접수 뒤 정비 기록은 별도로 저장한다(05 POL-95).
