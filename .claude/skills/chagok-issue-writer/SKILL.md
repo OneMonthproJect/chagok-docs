@@ -36,9 +36,9 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 - 담당(Assignee)은 반드시 정한다(CONTRIBUTING 3장). CODEOWNERS의 패키지 주인이 1순위, 비어 있으면 `❓ 담당`으로 두고 마지막에 모아 묻는다.
 - **레포가 나뉘어 있으므로 API와 화면은 항상 다른 이슈다.** 백엔드 이슈는 `chagok-backend`에, 프론트 이슈는 `chagok-frontend`에 만들고, 서로 「짝 이슈」 칸에 링크한다. 화면 이슈의 선행에 API 이슈를 둔다(08 JSON 예시로 목업을 먼저 만들 수 있으면 선행 없이 병행 가능).
 - 담당 방식(같은 사람이 짝 이슈 둘을 맡을지, 나눠 맡을지)은 12 백로그(결정 14)를 따른다. 정해져 있지 않으면 사용자에게 묻는다.
-- 순서: `기반` → cycle → 고객·차량 → 정비 기록 → 재점검 대상·방문 중 안내 → 예약·날짜별 목록·방문 완료 → (M2 통합 검증) → P0-나머지 → P1 → (M3 MVP 검증) → P2.
+- 순서: `기반` → cycle → 고객·차량 → 정비 기록 → 재점검 대상·방문 중 안내 → 예약·날짜별 목록·방문 완료 → (M2 통합 검증) → P0-나머지 → P1 → (M3 MVP 검증).
 - MVP = P0 + P1. P1 이슈는 사용자가 "M2 통합 검증 통과"를 확인해 주기 전에는 만들지 않는다.
-- P2 이슈는 "M3 MVP 검증 통과"와 그 기능의 `chagok-docs` `결정` 이슈 합의를 사용자가 확인해 준 뒤, 한 기능씩만 만든다. 이슈 본문 「결정 이슈」 칸에 링크한다.
+- P2 이슈는 만들지 않는다(D-70, M3 MVP 검증을 통과한 뒤에도 같다). 요청이 오면 scope-guard로 넘긴다.
 - 00의 Non-goal 기능은 이슈를 만들지 않는다. 요청받으면 이유를 말하고 멈춘다.
 - 기반 이슈 세트를 요청받으면 CONTRIBUTING 9장의 3개를 만든다(라벨 `기반`, 마일스톤 M2 통합 검증):
   1. (`chagok-backend`) 백엔드 생성 + `global`(SecurityConfig 기본 거부, LoginStaff, ErrorCode·전역 처리기(표준 예외 포함), ApiResponse, Clock, RequestIdFilter, OSIV off) + `ArchitectureTest` + `EndpointGuardTest` (`chagok-backend/README.md`「지금 상태」)
@@ -62,7 +62,7 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 
 ### 레포 / 라벨 / 마일스톤 / 담당
 chagok-backend · P0-핵심 · M2 통합 검증 · @담당 (모르면 ❓ 담당)
-(단계 라벨 하나는 필수, 마일스톤은 M1 설계 확정 / M2 통합 검증 / M3 MVP 검증 / M4 기능 동결 / M5 최종 시연 중 하나. P0 → M2 통합 검증·M3 MVP 검증, P1 → M3 MVP 검증, P2 → M4 기능 동결)
+(단계 라벨 하나는 필수, 마일스톤은 M1 설계 확정 / M2 통합 검증 / M3 MVP 검증 / M4 기능 동결 / M5 최종 시연 중 하나. P0 → M2 통합 검증·M3 MVP 검증, P1 → M3 MVP 검증. P2·Non-goal은 이슈를 만들지 않는다 — D-70)
 
 ### 본문
 ## 기능 ID / 단계
@@ -86,7 +86,7 @@ chagok-backend · P0-핵심 · M2 통합 검증 · @담당 (모르면 ❓ 담당
 - 테이블: (07)
 - 규칙 근거: 04 §… / 05 §…
 - 짝 이슈: OneMonthproJect/chagok-frontend#번호 (또는 chagok-backend)
-- 결정 이슈 (P2·명세 변경 시): OneMonthproJect/chagok-docs#번호
+- 결정 이슈 (명세 변경 시): OneMonthproJect/chagok-docs#번호
 
 ## 할 일
 - [ ] 구현:

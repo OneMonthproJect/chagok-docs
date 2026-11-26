@@ -61,7 +61,7 @@
 
 | 언제 | 누가 | 어느 레포에서 | 스킬 | 에이전트 (Claude Code) |
 |---|---|---|---|---|
-| 새 아이디어 · 범위 추가 · P2 착수 | PM | docs | `chagok-scope-guard` | `chagok-scope-keeper` |
+| 새 아이디어 · 범위 추가 (P2 착수 의견은 거절, D-70) | PM | docs | `chagok-scope-guard` | `chagok-scope-keeper` |
 | 이슈 만들기 | 형상관리 · PM (도메인관리는 분할 추천) | docs | `chagok-issue-writer` | — |
 | 이슈 구현 (PR 본문 초안까지) | 구현 담당 | backend · frontend | `chagok-issue-coder` | — (메인 대화) |
 | 버그 | 구현 담당 | backend · frontend | `chagok-bug-fix` | — (메인 대화) |
@@ -148,7 +148,7 @@ chagok-backend/                          chagok-frontend/
 | `scripts/sync-claude.sh` | `chagok-docs`의 공용 AI 설정을 코드 레포 `.claude/`로 복사 | Claude Code 쓰는 팀원 |
 | `scripts/setup-labels.sh` | 세 레포 라벨 한 번에 생성 | 형상관리 |
 | 레포마다 `.github/CODEOWNERS` | 패키지 주인. PR이 그 경로를 건드리면 주인에게 자동 리뷰 요청. docs는 D-14로 기입됨, **코드 레포 두 곳은 아직 전부 주석(미기입)** — 영역별 담당이 정해지면 채움 | 형상관리 |
-| 레포마다 `.github/ISSUE_TEMPLATE/` | docs: 문서 · 결정(P2 착수 칸 포함) / 코드 레포: 기능(짝 이슈 칸 포함) · 버그 | 전원 |
+| 레포마다 `.github/ISSUE_TEMPLATE/` | docs: 문서 · 결정 / 코드 레포: 기능(짝 이슈 칸 포함) · 버그 | 전원 |
 | 레포마다 `.github/PULL_REQUEST_TEMPLATE.md` | `Closes #`, 「문서 PR」 칸, 테스트 결과, 완료 정의, 구조 체크, AI 사용 | 전원 |
 | `.gitattributes` | 줄바꿈을 LF로 통일. Windows에서 생기는 가짜 변경 방지 | 자동 |
 
@@ -162,7 +162,7 @@ chagok-backend/                          chagok-frontend/
 2. **기준 문서** 00 · 04 · 07 · 08: 문서마다 자기 영역의 원본입니다. 00은 범위 · 단계(MVP = P0 + P1), 04는 기능 ID · 규칙 · 테스트, 07은 테이블 · 제약 · 시드표, 08은 API · 응답 · 에러 코드 · X 테스트 · JSON 예시.
 3. **나머지 문서**(01 · 02 · 03 · 05 · 06 · 09 · 10 · 11 · 12 · `etc/`): 위에 맞춰 고치는 대상입니다. 이 GUIDE와 STARTER도 여기에 속합니다.
 
-기준 문서끼리 다르면 어느 쪽도 고르지 않고 `결정` 이슈로 올립니다. 단, 00에서 P2(M3 MVP 검증 전) · Non-goal인 기능이 다른 문서에 구현 대상으로 들어와 있으면 00이 맞습니다.
+기준 문서끼리 다르면 어느 쪽도 고르지 않고 `결정` 이슈로 올립니다. 단, 00에서 P2 · Non-goal인 기능이 다른 문서에 구현 대상으로 들어와 있으면 00이 맞습니다.
 
 ## 4. 코드 구조와 설계 원칙
 
@@ -240,7 +240,7 @@ flowchart TB
 | P1 정비소 개설 · 정지 | shop 내부 + shop.api + 보안 설정 1줄 | shop + 1줄 |
 | P1 정비소별 항목 설정 화면 | item 내부 + 화면 1개 | item만 |
 
-P1(MVP)과 M3 MVP 검증 뒤의 P2를 더할 때도 대부분 "새 패키지를 만들고 기존 코드에는 한 줄"로 끝나도록 설계했습니다.
+P1(MVP)을 더할 때도 대부분 "새 패키지를 만들고 기존 코드에는 한 줄"로 끝나도록 설계했습니다. P2는 이번 프로젝트에서 착수하지 않습니다(D-70).
 
 ## 5. 팀 역할 — 개발 역할과 운영 역할
 
@@ -301,7 +301,7 @@ git branch -D feature/#12-cycle-calc
 - 기능 이슈 제목은 `[F-기능ID] 무엇을`(04 그대로), 단계 라벨(`P0-핵심` / `P0-나머지` / `P1` / `P2` / `기반`) 하나 필수, 마일스톤 5개 중 하나, 담당자(Assignee) 지정(CONTRIBUTING 3장. 지금은 5장대로 담당 확정 후 지정).
 - 기능 하나가 API와 화면을 모두 가지면 **백엔드 이슈와 프론트 이슈로 나누고** 「짝 이슈」 칸으로 서로 링크합니다. 백엔드 이슈는 도메인 패키지 하나(또는 screen 하나), 프론트 이슈는 화면 하나가 본체입니다. 도메인 3개 이상이면 쪼갭니다.
 - 다른 레포의 이슈 · PR은 `OneMonthproJect/chagok-docs#12`처럼 레포 이름을 붙여 적습니다.
-- **단계 순서**: P1 이슈는 M2 통합 검증 통과 전에 열지 않습니다. P2 이슈는 M3 MVP 검증 통과 + `결정` 이슈 합의 전에 열지 않으며 한 번에 하나씩, A 묶음부터입니다. Non-goal 기능은 이슈도 만들지 않습니다.
+- **단계 순서**: P1 이슈는 M2 통합 검증 통과 전에 열지 않습니다. P2·Non-goal 기능은 이번 프로젝트에서 이슈도 만들지 않습니다(D-70, M3 MVP 검증 통과 뒤에도 같음).
 - 개발 시작 후 범위 추가는 `결정` 이슈 + 전원 합의가 먼저입니다. 합의 전에 브랜치를 열지 않습니다. 추가 의견은 PM이 `chagok-scope-guard`로 먼저 판정합니다.
 - 범위를 줄이면 기능을 통째로 빼고, 같은 날 `chagok-docs`에서 00 · 04 · 08에 "보류"로 표시합니다.
 - P0-핵심 이슈 생성 계획(순서·선행·짝 이슈)은 [STARTER 02](STARTER/02_P0_개발이슈_생성계획.md), 12 4장이 기준입니다.
@@ -371,7 +371,7 @@ PR을 열면 형식·비밀값·DB 규칙·빌드를 GitHub Actions가 자동으
 |---|---|---|
 | M1 설계 확정 | `v0.1-m1-design` | 주기표·ERD·API 확정. **통과**(2026-11-23) |
 | M2 통합 검증 | `v0.5-m2-integration` | P0-핵심 순환이 BE·FE develop에서 끝까지 시연됨. 미달이면 P0-나머지·P1 이슈 열지 않음 |
-| M3 MVP 검증 | `v0.8-m3-mvp` | P0·P1 완료 정의 + T·X 테스트 + 빈 DB 시나리오 A·B·격리 시연. 통과해야 P2 `결정` 이슈 |
+| M3 MVP 검증 | `v0.8-m3-mvp` | P0·P1 완료 정의 + T·X 테스트 + 빈 DB 시나리오 A·B·격리 시연. 통과 뒤에도 P2 착수 없음(D-70) |
 | M4 기능 동결 | `v0.9-m4-freeze` | 완료 정의를 충족한 기능만. 이후 `FEATURE_FREEZE=true`, `fix/`·`docs/`만 |
 | M5 최종 시연 | `v1.0-m5-demo` | 동결 이후 수정분만. 다른 팀원 PC에서 시연 |
 
@@ -561,7 +561,7 @@ ls ~/.claude/skills 2>/dev/null | grep chagok || echo "개인 스킬 폴더에 c
 | 에이전트 | `.claude/agents` 4개 사용 가능 | **없음.** 대신 스킬로 같은 절차: contract-checker → `chagok-spec-sync` 모드 C, pr-reviewer → `chagok-pr-review`(작성자 자가 점검), scope-keeper → `chagok-scope-guard`, seed-builder → `chagok-seed-data` (issue-coder·bug-fix 원문 기준) |
 | 레포 파일 읽기 | 작업 폴더의 세 레포를 직접 읽음(`additionalDirectories`) | 못 읽음. 필요한 문서(08 해당 절, `source-of-truth.md`, `ai-rules.md` 등)를 대화에 붙여 넣음 |
 | 실행·검증 | 빌드·테스트·git·gh 명령 실행 가능 (settings.json의 deny·ask 적용) | 실행 불가. 검증은 사람이 로컬에서 |
-| 권한 장치 | settings.json deny: Read 도구로 `.env`류·`secrets/`·`*.pem` 읽기, `git push origin main/develop…`·`git push --force/-f…` 형태. ask: 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release (정확한 패턴은 19.1) | 없음. 사람이 판단 |
+| 권한 장치 | settings.json deny: Read 도구로 `.env`류·`secrets/`·`*.pem` 읽기, `git push origin main/develop…`·`git push --force/-f…` 형태, `gh issue delete`·`gh api` DELETE. ask: 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기 (정확한 패턴은 19.1) | 없음. 사람이 판단 |
 
 **claude.ai용 `.skill` 배포 현황 (2026-11-24)**: `.claude/`를 고친 PR이 머지되면 공지와 `.skill` 재배포가 필요합니다(docs `CLAUDE.md`, docs PR 템플릿·pr-check 경고). `.claude/`의 주인은 형상관리(CONTRIBUTING 8장)이므로 배포 확인도 형상관리자에게 합니다. PR #76 이후 `chagok-issue-coder`·`chagok-bug-fix` 재배포가 필요하다고 기록됐으나 **재배포 완료 근거는 확인되지 않았습니다(미확인).** claude.ai를 쓰는 팀원은 형상관리자에게 최신 `.skill`을 받았는지 확인합니다. Claude Code만 쓰면 `.skill`은 필요 없습니다.
 
@@ -597,7 +597,7 @@ ls ~/.claude/skills 2>/dev/null | grep chagok || echo "개인 스킬 폴더에 c
 | 결과 | 판정 하나(진행 / 쪼개기 / 결정 이슈 / 보류 / 거절) + 근거 + 대신 할 수 있는 것. 결정 이슈면 `decision.md` 양식 초안. 축소 요청은 통째로 빼기 / 유지 |
 | 선행 · 연계 | 진행 → `chagok-issue-writer`, 빼기 → `chagok-spec-sync` 모드 A. 에이전트판: `chagok-scope-keeper`(같은 스킬을 별도 맥락에서 실행) |
 | 읽기 · 쓰기 | 읽기만. 코드·문서·이슈를 만들지 않음 |
-| 승인 · 검증 | 결정은 사람(전원 합의). 열린 P0-핵심이 있으면 새 기능을 "진행"으로 판정하지 않음. P2는 M3 통과 후에도 "결정 이슈" |
+| 승인 · 검증 | 결정은 사람(전원 합의). 열린 P0-핵심이 있으면 새 기능을 "진행"으로 판정하지 않음. P2 착수 의견은 M3 통과 후에도 "거절"(D-70) |
 | 금지 · 주의 | 애매하면 보류. 지금 단계는 추정이면 "추정"으로 표시. 이슈 생성은 사람이 `gh issue create --repo OneMonthproJect/chagok-docs` |
 
 ```text
@@ -617,7 +617,7 @@ chagok-scope-guard로 "고객에게 문자 자동 발송" 기능을 지금 단�
 | 선행 · 연계 | (범위 밖이면) scope-guard 먼저 → 결과를 issue-coder가 사용 |
 | 읽기 · 쓰기 | 초안만. 이슈 생성은 사람이 확인 후 (`gh issue create`는 ask) |
 | 승인 · 검증 | 담당이 정해지지 않았으면 `❓ 담당`으로 두고 Assignee 없이. ID는 문서 그대로, 없으면 ❓ |
-| 금지 · 주의 | P1은 M2 통과 확인 전, P2는 M3 통과 + 결정 이슈 확인 전 만들지 않음. Non-goal 금지. 기준 문서끼리 다르면 이슈를 만들지 않고 결정 이슈 제안 |
+| 금지 · 주의 | P1은 M2 통과 확인 전 만들지 않음. P2·Non-goal 이슈는 만들지 않음(D-70). 기준 문서끼리 다르면 이슈를 만들지 않고 결정 이슈 제안 |
 
 ```text
 chagok-issue-writer로 12 백로그 4장 4번(F-CUS-01~05 백엔드)과 5번(프론트) 이슈 초안을 써줘. 짝 이슈로 연결하고, 담당은 확정 전이니 ❓로 둬. 실제 생성은 하지 마.
@@ -633,7 +633,7 @@ chagok-issue-writer로 12 백로그 4장 4번(F-CUS-01~05 백엔드)과 5번(프
 | 기준 문서 | 이슈 「연결」에 적힌 04·05·06·07·08·09 절, 13·결정 이슈, CONVENTIONS(BE 1~6·11장, FE 1·7장), 기존 `api`·`getOwned`·`ErrorCode`·`cycle`·`client.ts` |
 | 입력 | 이슈 번호 또는 본문 |
 | 결과 | ① 등급(L0~L3) + 계획 보고(범위·파일·책임 배치·의존·재사용·DB·API 영향·테스트·위험·결정 필요) ② 승인 후 코드·테스트 ③ 결과 보고(상태·빌드·테스트 결과·문서 동기화·PR 전 점검·브랜치·커밋·PR 본문·AI 기록) |
-| 선행 · 연계 | 선행 이슈가 열려 있으면 알림. P2인데 결정 이슈·M3 통과가 없으면 멈추고 scope-guard. 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/` → contract-checker, L2·L3 → pr-reviewer |
+| 선행 · 연계 | 선행 이슈가 열려 있으면 알림. P2·Non-goal 이슈면 멈추고 scope-guard(D-70). 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/` → contract-checker, L2·L3 → pr-reviewer |
 | 읽기 · 쓰기 | 승인된 범위의 코드·테스트만. 문서는 고치지 않고 문서 PR 초안만 |
 | 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
 | 금지 · 주의 | 관련 없는 리팩터링·임시방편 금지. 계획과 달라지면 멈추고 다시 보고. 도메인 3개 이상 내부 수정·표 밖 의존이면 멈춤. 테스트 ID는 04·08 표기 그대로(**번호 범위는 원본에서 확인** — PR #76 반영). 결과 없이 "통과" 금지 → "구현 완료(미검증)" |
@@ -751,7 +751,7 @@ chagok-release-check로 M2 통합 검증(v0.5-m2-integration) 릴리스 가능 �
 | `chagok-scope-keeper` | Read · Grep · Glob · Bash | 없음 (읽기 전용) | `gh issue create`는 ask |
 | `chagok-seed-builder` | Read · Grep · Glob · **Edit · Write** · Bash | **`chagok-backend/db/seed/demo_seed.sql`만** | **이 파일로만 제한하는 설정은 없음** — 지시문으로만 제한. 결과 diff를 사람이 확인 |
 
-세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)` (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: `.env.development`·`.env.test`, Bash로 파일 읽기, upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`, `git push origin <브랜치> --force`(이 push들은 아래 ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`. **어디에도 없는 명령**(예: `git branch -D`, `git worktree remove`, `gh issue close·edit`, `gh label`, `gh api` 쓰기)은 확인 없이 실행될 수 있습니다. 읽기 전용 스킬·에이전트에서는 지시문으로 금지되지만, 메인 대화에 대해서는 원본(ai-rules)에 명시된 금지가 없습니다 — 이 GUIDE는 AI에게 맡기지 말 것을 권장하며, 설정 보강은 chagok-docs#73(미완료)입니다.
+세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)`, `Bash(gh issue delete *)`, `gh api`의 DELETE(`-X DELETE`·`-XDELETE`·`--method DELETE`·`--method=DELETE` 글자 그대로. 소문자·따옴표 변형과 graphql 삭제 mutation은 아래 ask로만 걸림) (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: `.env.development`·`.env.test`, Bash로 파일 읽기, upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`, `git push origin <브랜치> --force`(이 push들은 아래 ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`, 그리고 #73에서 더한 `git branch -d·-D·--delete·-m·-M·--move`, `git worktree remove·prune`, `git stash drop·clear`, `git fetch`·`git pull`의 prune 옵션(`--prune`·`-p`), `git remote prune`, `gh pr close·reopen·edit·ready`, `gh issue close·reopen·edit·transfer`, `gh label create·edit·delete·clone`, `gh api`의 `-X`·`--method`·`graphql … mutation`. 일반 `git fetch`·`git pull`은 절차(issue-coder·pr-review)가 쓰므로 묻지 않습니다. **패턴 밖이라 확인 없이 실행될 수 있는 것**(명령 문자열 매칭의 한계, 예시이며 전체 목록이 아님): ① 위에 없는 `gh` 쓰기 — `gh repo delete·archive·rename·edit`, `gh release delete·edit`, `gh secret·variable set·delete`, `gh workflow disable·run`, `gh run cancel·delete`, `gh issue lock·pin` ② 작업 내용을 지울 수 있는 git 명령 — `git restore`, `git checkout -- <경로>`·`-f`, `git switch -f·-C`, `git branch -f·-C`, `git reset`(`--hard` 외), `git update-ref -d`, `git reflog expire`, `git gc --prune`, `git remote remove·set-url`, `git config` ③ 옵션 순서·묶음 — `git -C <경로> …`처럼 앞에 옵션을 붙인 형태, `git branch -dr`·`-q -D`, `git fetch -P` ④ `-X` 없이 `-f`·`-F`·`--field`·`--raw-field`·`--input`만 준 `gh api`(POST가 됨), `gh api graphql -F query=@파일`(mutation이 파일 안에 있음) ⑤ 셸 별칭·스크립트 안의 명령. 이것들은 지시문으로 금지합니다(읽기 전용 스킬·에이전트, ai-rules).
 
 ### 19.2 에이전트별 상세
 
@@ -952,7 +952,7 @@ chagok-scope-guard로 "<기능 설명>"을 지금 단계(M2 통합 검증 전)�
 chagok-scope-keeper 에이전트로 "P1 연락 결과 기록을 지금 시작해도 되나?"를 판정해줘. 읽기 전용으로, 판정·근거·대안만.
 ```
 ```text
-P0-나머지·P1·P2 중 지금 착수할 수 있는 단계가 있는지 00·CONTRIBUTING 9장·태그·열린 이슈로 확인해줘. 추정이면 추정이라고 표시해줘.
+P0-나머지·P1 중 지금 착수할 수 있는 단계가 있는지 00·CONTRIBUTING 9장·태그·열린 이슈로 확인해줘. 추정이면 추정이라고 표시해줘.
 ```
 ```text
 "<새 기능 요청>"에 대한 chagok-docs 결정 이슈 초안을 decision.md 양식으로 써줘. 영향받는 곳(00·04·07·08·13, 코드 레포)과 이 결정이 깨지는 상황을 채우고, 생성은 하지 마.
@@ -1142,8 +1142,8 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 |---|---|---|
 | 비밀 파일 | `.env`·`secrets/`·키 파일을 AI가 읽거나 출력하지 않음. 설정은 "있음/없음"까지만 | Read 도구의 `.env`류·`secrets/**`·`*.pem` 패턴은 settings.json deny, 그 밖(다른 `.env.*`, Bash 경유)은 ai-rules 지시문 |
 | Git 보호 | force push, `main`·`develop` 직접 push 금지 | AI: `git push origin main/develop…`·`git push --force/-f…` 형태는 settings.json deny, 그 밖의 push는 ask(확인 창에서 거절) / 사람: 팀 규칙 |
-| 사람 확인 | 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release | settings.json ask + 팀 규칙 |
-| 설정에 없음 | `git branch -D`, worktree 제거, `gh issue close·edit`, `gh label`, `gh api` 쓰기 등 | 확인 없이 실행될 수 있음. 읽기 전용 스킬·에이전트는 지시문으로 금지, 메인 대화는 원본에 명시 금지 없음 → AI에게 맡기지 않기를 권장(정책 아님). 보강은 #73 |
+| 사람 확인 | 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기(#73) | settings.json ask + 팀 규칙. `gh issue delete`·`gh api` DELETE는 deny |
+| 설정 패턴 밖 | 예: `gh repo delete` 등 목록에 없는 `gh` 쓰기, `git restore`·`git checkout -f` 등, `-X` 없이 `-f`·`-F`만 준 `gh api`, `git -C <경로> …`처럼 앞에 옵션을 붙인 형태, 셸 별칭·스크립트 (전체 목록 아님, 19.1) | 확인 없이 실행될 수 있음(명령 문자열 매칭의 한계). 지시문으로 금지 유지 |
 | 복사본 | 코드 레포 `.claude/rules·skills·agents`를 고치지 않음 | 코드 레포 settings.json deny(Edit) + 동기화 때 덮어씀 |
 | DB | DB를 직접 실행·변경하지 않음. Flyway를 거치지 않는 스키마·데이터 변경 금지. 시연 데이터는 `db/seed/`에만 | 지시문 + pr-check |
 | 범위 | 이슈 범위 밖, 차례가 오지 않은 단계, Non-goal을 빈 화면·버튼·API·테이블로 미리 만들지 않음 | 지시문 + 리뷰 |
@@ -1151,7 +1151,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 | 문서 | 문서는 `chagok-docs`에서만 고침. 코드에 맞춰 문서를 고치지 않음 | 지시문 |
 | ID | 기능·화면·API·테이블·테스트 ID를 지어내지 않음. 없으면 ❓ | 지시문 |
 | 머지 | AI는 머지하지 않음. CI·에이전트 리뷰가 통과해도 사람이 확인·머지 | ask + 팀 규칙 |
-| 브랜치·worktree 삭제 | 6.1 기준. AI가 임의로 지우지 않음 | 지시문 |
+| 브랜치·worktree 삭제 | 6.1 기준. AI가 임의로 지우지 않음 | 지시문 + settings.json ask(#73) |
 
 ## 27. 미구현 스킬과 미확정 정책
 
@@ -1162,7 +1162,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 | 사후 리뷰 정의 | **확정** (D-66 ②, CONTRIBUTING 5장) | 6.1 |
 | `done-verified` 검증 근거 기준 | **확정** (D-66 ③) | 6.1, 22장 |
 | develop PR의 CodeRabbit 필요 판정 | **확정** (D-66 ④) | 8장 |
-| settings.json ask 보강 | **미착수** (#73, L3, 형상관리) | 지시문으로 금지 유지 |
+| settings.json ask 보강 | **반영** (#73, L3, 세 레포 같은 패턴) | 패턴 밖 명령(19.1)은 지시문으로 금지 유지 |
 | PR 없는 AI 작업 기록 | **확정** (D-67) | 25장 |
 | 프론트 인증 운영(토큰 저장 위치·401 이동·CORS·배포 출처) | **확정** (D-68) — 코드 반영 대기 | 05 POL-11·126, 09 S-01. 코드는 12 4장 3번(S-01) 이슈에서 |
 | 마일스톤 날짜·담당 | **결정 대기** (D-15, PM) | 임의 일정 없음 |

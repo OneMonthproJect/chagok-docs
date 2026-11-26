@@ -50,7 +50,7 @@ com.wanted.chagok
 │
 └── screen/                  화면 조립 전용. 표 없음. 아무도 import하지 않음
     ├── target/              재점검 대상 목록 (시나리오 A)
-    ├── visit/               방문 접수 시 항목 상태·추가 점검 안내 (시나리오 B), 차량 상세의 항목 상태
+    ├── visit/               방문 접수 시 항목 상태·추가 점검 안내 (시나리오 B), 차량 상세의 항목 상태, 고객 상세 API 07(차량별 dueCount·soonCount, chagok-docs#96)
     └── booking/             예약 상세 패널: 예약 + 고객·차량 + 최근 정비 이력 + 점검 주기 요약 (기획안 v9)
 ```
 
@@ -290,7 +290,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | P1 정비소 개설·정지 | 새 `screen/admin` 또는 `domain/shop` 내부 + `shop.api` + SecurityConfig 규칙 1줄 | shop + 1줄 |
 | P1 정비소별 항목 설정 화면 | `item` 내부 + 화면 1개 | item만 |
 | P1 고객 비활성화·삭제·익명화 | customer 내부 + reservation.api·maintenance.api 조회 메서드 2개 | customer + 추가 2개 |
-| P2 (M3 MVP 검증 후, 결정 이슈로 하나씩) | 상세 기획안 13장 「추가할 것」 기준. 새 패키지·새 마이그레이션 위주 | 이 표보다 많이 건드리면 결정 이슈에서 다시 판단 |
+| P2 (이번 프로젝트에서 착수하지 않음, D-70) | 이후 별도 프로젝트용 참고: 상세 기획안 13장 「추가할 것」 기준. 새 패키지·새 마이그레이션 위주 | 해당 없음 |
 
 ---
 

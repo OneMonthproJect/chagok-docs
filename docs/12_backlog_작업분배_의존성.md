@@ -13,7 +13,7 @@
 - 백엔드 이슈 = 도메인 패키지 하나(또는 screen 하나), 프론트 이슈 = 화면 하나. 하루 안에 PR 하나.
 - 기능 하나가 API와 화면을 가지면 BE·FE 두 이슈로 나누고 「짝 이슈」로 잇는다. 08 JSON 예시가 있으므로 FE는 목업으로 먼저 시작할 수 있다.
 - 레포 표기: BE = `chagok-backend`, FE = `chagok-frontend`, DOC = `chagok-docs`.
-- 마일스톤: P0-핵심 → M2 통합 검증, P0-나머지·P1 → M3 MVP 검증, P2 → M4 기능 동결.
+- 마일스톤: P0-핵심 → M2 통합 검증, P0-나머지·P1 → M3 MVP 검증. P2는 이번 프로젝트에서 착수하지 않는다(D-70).
 
 ## 2. M1 설계 확정까지 (DOC)
 
@@ -43,7 +43,7 @@
 | 3 | F-AUTH-01 | FE | [F-AUTH-01] 로그인 화면 S-01 | pages/S01 | B-2 | frontend#16 |
 | 3-1 | — | FE | [기반] 앱 골격: 라우트 수집·AppLayout·공통 머리·메뉴·로그아웃 (STARTER 02·07) | app | 3 | frontend#17 |
 | 3-2 | — | FE | [기반] shared UI 공통 5종 (Modal·FormField·EmptyState·ErrorNotice·ItemStatusList) | shared/ui | B-2 | frontend#18 |
-| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록(차종 필수, D-58)·차량 추가·상세 (API 05~09, 주행거리 0~2,000,000·연식 1980~현재 연도+1·`dueCount`·`soonCount` 정의는 D-63 B01·B03·B04) + X1·X2·X7·X17 | domain/customer | 2 | backend#21(4-1: API 05·06), backend#24(4-2: API 08·09), backend#43(API 07 고객 상세, ❓ Q14) |
+| 4 | F-CUS-01~05 | BE | [F-CUS-01] 고객·차량 검색·등록(차종 필수, D-58)·차량 추가·상세 (API 05~09, 주행거리 0~2,000,000·연식 1980~현재 연도+1·`dueCount`·`soonCount` 정의는 D-63 B01·B03·B04) + X1·X2·X7·X17 | domain/customer | 2 | backend#21(4-1: API 05·06), backend#24(4-2: API 08·09), backend#43(API 07 고객 상세, `screen/visit`에서 조립 — Q14 (a), chagok-docs#96) |
 | 5 | F-CUS-01·02 | FE | [F-CUS-01] 고객·차량 목록 S-05 + 등록 M-01(차종 필수) | pages/S05, features/customer | 3 | frontend#19 |
 | 6 | F-CUS-04 | FE | [F-CUS-04] 고객 상세 S-06 | pages/S06 | 5 | frontend#20 |
 | 6-1 | F-CUS-03 | FE | [F-CUS-03] 기존 고객에 차량 추가 (S-06 인라인) | pages/S06 | 6 | frontend#21 |
@@ -67,7 +67,7 @@
 
 | 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 선행 | GitHub 이슈 |
 |---|---|---|---|---|---|
-| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, 한 파일) — DB 담당자 | 18 | backend#31 |
+| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73), 한 파일) — DB 담당자 | 18 | backend#31 |
 | V2-1 | — | BE | [기반] P0-나머지 `ErrorCode` 일괄 추가 (08 0.3, `global/error`) — 기능 이슈가 `ErrorCode`를 고치지 않게 먼저 머지 | 18 | backend#45 |
 | 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 | backend#32(maintenance), backend#41(T14·T15 cycle) |
 | 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-02·04·07·08) | 19 | frontend#29 |
