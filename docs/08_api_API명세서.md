@@ -1008,6 +1008,9 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 - 사장·정비사 모두: 오늘 < 예약 날짜(= 예약 날짜 전날까지)일 때만. 아니면 409 `ASSIGNEE_CHANGE_CLOSED`.
 - **사장만** 예약 날짜 = 오늘도 재배정할 수 있고, 이때 `reassignReason`이 필수다. 지난 날짜(예약 날짜 < 오늘)는 사장도 409 `ASSIGNEE_CHANGE_CLOSED`, 진행중은 상태 확인에서 409 `INVALID_STATUS_TRANSITION`이다.
 - 재배정은 `reservation_revision`(`kind = ASSIGNEE`)에 새 담당·이전 담당·사유·수정자·시각을 남긴다(조회는 41).
+- **지금 담당과 같은 `assigneeId`는 재배정이 아니다.** 마감 판정도 이력도 없이 넘긴다. 일시·예약 목적 변경을 함께 보냈으면 그 변경만 적용하고, 바뀌는 것이 하나도 없으면 R14처럼 400 `INVALID_INPUT`(`fieldErrors`는 `assigneeId`)이다.
+- `reassignReason`은 당일 사장 재배정에서만 필수다. 그 밖의 재배정에서 보내면 이력의 사유로 남기고, 공백뿐인 값은 사유 없음으로 본다.
+- 입력 검증 안의 순서는 16과 같다: 30분 단위 → 항목 → `assigneeId`(X13) → 날짜. 담당 중복(R18)은 재배정이면 **새 담당**과 새 시각(안 바꾼 쪽은 지금 값)으로 본다.
 
 - `version` 일치는 요청의 `version`과 DB에서 읽은 값을 서버가 직접 비교한다(JPA `@Version`은 읽은 뒤 저장 사이의 충돌만 잡으므로 둘 다 필요). 상태 확인이 먼저라, 다른 직원이 이미 끝낸 예약에 낡은 `version`으로 보내면 `INVALID_STATUS_TRANSITION`이 난다.
 - 성공하면 바꾼 필드와 상관없이 `version`을 1 올린다. **예약 목적 항목(`purpose.itemIds`)만 바뀌어 `reservation` 행의 칼럼이 그대로여도 올린다**(`OPTIMISTIC_FORCE_INCREMENT` 또는 `updated_at` 갱신). 그렇지 않으면 목적만 바꾼 두 요청이 서로를 덮어쓴다.
@@ -1188,8 +1191,92 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 - **37** `PATCH /api/records/{recordId}` (정비 기록 수정, D-55). 요청 `version`(필수), `recordDate`·`mileage`·`type`·`itemId`·`inspectResult`·`memo`·`mechanicId`(바꿀 것만), `reason`(선택). 차량은 바꿀 수 없다. 응답: 수정된 기록(`version` +1). 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(미래 방문일·같은 방문의 같은 항목 중복·바뀐 필드 없음·`itemId`/`mechanicId` 오류 X11·X13), `FORBIDDEN`(정비사가 남이 담당한 기록), `EDIT_PERIOD_EXPIRED`(정비사가 방문일 기준 3일 초과. 외부 기록은 저장일 기준, 수정 전 값 기준), `CONCURRENT_MODIFICATION`. 수정할 때마다 `maintenance_record_revision`에 수정자·수정 시각·수정 전 값을 남긴다.
 - **38** `GET /api/records/{recordId}/revisions`. 응답 `items: [ { revisionNo, changedAt, changedBy { staffId, name }, reason, changes: [ { field, before, after } ] } ]`(수정 전 값과 다음 값을 서버가 비교해 `changes`를 만든다).
 - **39** `POST /api/reservations/{reservationId}/start` (방문 접수, D-52). 요청 `{ version, modelYear?, mileage? }`. 차량의 연식·최근 주행거리가 비어 있으면 `modelYear`·`mileage`가 필수이고 차량에 저장한다(D-58, 없으면 400). 응답: 17과 같은 예약 요약(`status = IN_PROGRESS`, `version` +1). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`. 접수 뒤 정비 기록은 별도로 저장한다(05 POL-95).
-- **40** `POST /api/reservations/{reservationId}/correct` (지난 예약 정정, D-53). 요청 `{ version, status?, purposeMemo?, reason? }`. 응답: 정정된 예약(`version` +1). 허용: 취소↔노쇼, 취소·노쇼→완료(정비 기록은 자동 생성 안 함), 모두 사장만. 완료→취소·노쇼는 409 `INVALID_STATUS_TRANSITION`. 메모 정정은 사장 또는 담당 정비사(예약 날짜 + 3일 이내, 넘으면 403 `EDIT_PERIOD_EXPIRED`, 담당이 아니면 403 `FORBIDDEN`). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `FORBIDDEN`, `EDIT_PERIOD_EXPIRED`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`(바뀐 것 없음). 모든 정정은 `reservation_revision`에 남는다.
-- **41** `GET /api/reservations/{reservationId}/revisions`. 응답: 예약 이력 목록(`kind`, 변경자, 시각, 사유, 변경 전·후).
+- **40** `POST /api/reservations/{reservationId}/correct` (지난 예약 정정, D-53, F-RSV-10). **끝난 예약(`COMPLETED`·`CANCELED`·`NO_SHOW`)의 상태·예약 메모**를 사후에 고친다. `RESERVED`·`IN_PROGRESS`는 정정 대상이 아니라 409 `INVALID_STATUS_TRANSITION`이다("처리 필요"인 예약의 정리는 정정이 아니라 18·20·21). 사장·정비사가 호출할 수 있고 할 수 있는 일은 아래처럼 갈린다.
+
+  | 요청 | 타입 | 필수 | 검증 |
+  |---|---|---|---|
+  | version | number | ○ | 18~21과 같음. 누락이거나 숫자가 아니면 400 `INVALID_INPUT`, 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+  | status | enum | | 바꿀 상태: `COMPLETED`·`CANCELED`·`NO_SHOW` 중 하나. 그 밖의 값은 400 `INVALID_INPUT` |
+  | purposeMemo | string | | 바꿀 예약 메모, ~200자. 빈 문자열 `""`이면 메모를 비운다(19와 같음) |
+  | reason | string | | 정정 사유, ~200자. 공백뿐이면 사유 없음으로 본다 |
+
+  - **상태 정정 허용표**: 취소→노쇼, 노쇼→취소, 취소→완료, 노쇼→완료. 모두 **사장만**이고 정비사가 `status`를 보내면 403 `FORBIDDEN`(R27). 완료→취소·노쇼를 포함한 그 밖의 전이는 409 `INVALID_STATUS_TRANSITION`(R26). 완료로 정정해도 정비 기록은 자동으로 만들지 않는다.
+  - **메모 정정**: 사장은 기간 제한이 없다. 정비사는 **그 예약의 담당**일 때만 가능하고 **예약 날짜 + 3일 이내**(오늘 ≤ 예약 날짜 + 3일)여야 한다. 담당이 아니면 403 `FORBIDDEN`(R29), 기간이 지났으면 403 `EDIT_PERIOD_EXPIRED`(R28)이며 담당 여부를 먼저 본다.
+  - 지금 값과 같은 `status`·`purposeMemo`는 바꾸는 것이 아니다. 바뀌는 필드가 하나도 없으면(둘 다 없거나 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 `status`를 보냈으면 `status`, 아니면 `purposeMemo`이다.
+  - `status`와 `purposeMemo`를 함께 보내면 둘 다 허용될 때만 적용하고, 하나라도 안 되면 아무것도 바꾸지 않는다. 정비사가 메모만 고치려고 `status`를 함께 보내면 `status` 때문에 403이다.
+  - **서버가 확인하는 순서**: 형식(400) → 정비소 소유(`getOwned`, 아니면 404, X14) → 지금 상태가 끝난 예약인지(409) → `version` 일치(409) → 권한(403) → 지금 값과 같은 필드를 뺀 뒤 바뀐 것이 있는지(400) → 상태 허용표(409) → `@Version` 조건으로 저장. 하나라도 어긋나면 상태·메모·`version`·이력 모두 그대로다.
+  - **응답**: 18·20·21과 같은 `{ reservationId, status, vehicleId, version }`(`version` +1, `status`는 정정 뒤 상태. 메모만 고쳤으면 지금 상태 그대로). 화면은 정정 뒤 17을 다시 조회해 최신 값을 보여 준다.
+  - 모든 정정은 `reservation_revision`에 남긴다. 상태를 고치면 `kind = STATUS`(이전·이후 상태), 메모를 고치면 `kind = MEMO`(이전·이후 메모) 한 행씩이고, 둘 다 고치면 같은 `reason`·수정자·시각으로 두 행을 같은 트랜잭션에 남긴다.
+  - 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(`version` 누락, `status` 값 오류, 바뀐 것 없음, 사유·메모 길이), `INVALID_STATUS_TRANSITION`(끝난 예약이 아님, 허용표 밖), `FORBIDDEN`(정비사의 상태 정정, 담당이 아닌 정비사의 메모 정정), `EDIT_PERIOD_EXPIRED`(담당 정비사가 예약 날짜 + 3일 초과), `CONCURRENT_MODIFICATION`.
+
+  요청·응답 예시(예약 4 노쇼를 사장이 취소로 정정, 시드 예약 4와 같은 값):
+
+  ```json
+  { "version": 1, "status": "CANCELED", "reason": "고객이 전날 전화로 취소함" }
+  ```
+
+  ```json
+  { "success": true, "data": { "reservationId": 4, "status": "CANCELED", "vehicleId": 10, "version": 2 }, "error": null }
+  ```
+
+  메모 정정 요청 예시(담당 정비사, 예약 날짜 + 3일 이내):
+
+  ```json
+  { "version": 2, "purposeMemo": "배터리 교체, 단자 청소 요청", "reason": "통화 내용 반영" }
+  ```
+- **41** `GET /api/reservations/{reservationId}/revisions` (예약 이력 조회, D-53). 사장·정비사 모두 볼 수 있다. 남의 예약은 404(X14). 이력은 쓰기만 하고 고치거나 지우지 않는다.
+
+  | 응답 data | 설명 |
+  |---|---|
+  | items | 아래 목록. 이력이 없으면 `[]` |
+
+  | 응답 items[] | 설명 |
+  |---|---|
+  | kind | `STATUS`(상태 정정, 40) · `MEMO`(메모 정정, 40) · `ASSIGNEE`(담당 재배정, 19) |
+  | changedAt | 이력이 남은 일시 (datetime) |
+  | changedBy | 바꾼 사람 `{ staffId, name }` |
+  | reason | 사유. 없으면 `null` |
+  | changes | `[ { field, before, after } ]`. 한 이력에 한 항목: `STATUS`는 `status`(이전·이후 상태 enum), `MEMO`는 `purposeMemo`(이전·이후 메모, 없으면 `null`), `ASSIGNEE`는 `assignee`(이전·이후 담당 `{ staffId, name }`) |
+
+  순서는 `changedAt` 오름차순(오래된 것부터)이고 같으면 이력 번호 순이다(07 4.2). 번호 필드는 응답에 주지 않는다. 쪽 나누기는 없다. 바꾼 사람과 담당의 `name`은 그 계정의 현재 이름이고, 비활성 계정(P1)이어도 이름은 보인다.
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "kind": "ASSIGNEE",
+          "changedAt": "2026-11-21T16:20:00",
+          "changedBy": { "staffId": 1, "name": "박사장" },
+          "reason": null,
+          "changes": [
+            { "field": "assignee", "before": { "staffId": 2, "name": "김정비" }, "after": { "staffId": 1, "name": "박사장" } }
+          ]
+        },
+        {
+          "kind": "STATUS",
+          "changedAt": "2026-11-25T09:10:00",
+          "changedBy": { "staffId": 1, "name": "박사장" },
+          "reason": "고객이 전날 전화로 취소함",
+          "changes": [
+            { "field": "status", "before": "NO_SHOW", "after": "CANCELED" }
+          ]
+        },
+        {
+          "kind": "MEMO",
+          "changedAt": "2026-11-25T09:10:00",
+          "changedBy": { "staffId": 1, "name": "박사장" },
+          "reason": "고객이 전날 전화로 취소함",
+          "changes": [
+            { "field": "purposeMemo", "before": null, "after": "배터리 교체, 단자 청소 요청" }
+          ]
+        }
+      ]
+    },
+    "error": null
+  }
+  ```
 - **42** `GET /api/reservations/summary?from=&to=`. 응답 `data: { from, to, items: [ { date, total, reserved, inProgress, completed, canceled, noShow } ] }`(15와 같은 규칙: `from`·`to`는 요청 그대로). `total`은 취소만 제외(진행중·노쇼 포함)이고 나머지 다섯 값은 그 날짜의 상태별 건수다. **예약이 한 건도 없는 날짜는 `items`에 없다**(없는 날은 0건으로 본다). 취소만 있는 날은 예약이 있는 날이라 `items`에 들어가고 `total`은 0, `canceled`는 그 건수다(화면이 `total` 0인 칸을 어떻게 보일지는 화면이 정한다). `items`는 `date` 오름차순이다. `from`·`to` 규칙은 15와 같다(둘 다 필수·포함, 최대 42일). 위반은 400 `INVALID_INPUT`이고 `fieldErrors`의 필드는 누락·형식 오류가 그 파라미터(`from`·`to`), `from` > `to`가 `from`, 42일 초과가 `to`다. 요청에 `assigneeId`는 없다(담당 필터는 15만). 정비소는 토큰의 `shop_id`로만 정한다.
 
   ```json
