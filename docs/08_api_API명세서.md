@@ -521,8 +521,8 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 | baseRecord | object/null | 기준 기록 `{ date, mileage, type }` |
 | nextDueDate | date/null | 다음 정비일 (P1부터 월평균 반영) |
 | nextDueMileage | number/null | 기준 km + 주기 km (기준 기록 km 없으면 null) |
-| lastDecline | object/null | P0-나머지부터. `{ date, memo }` |
-| lastCaution | object/null | P0-나머지부터. `{ date, memo }` |
+| lastDecline | object/null | P0-나머지부터. 지난 방문 거절 `{ date, memo }`(F-CYC-02). `date`(date)는 그 거절 기록의 날짜, `memo`(string/null)는 그 기록의 메모. 조건(그 항목의 가장 최근 기록이 거절이고 기준 기록보다 늦음)이 아니면 null |
+| lastCaution | object/null | P0-나머지부터. 지난 점검 주의 `{ date, memo }`(F-CYC-02). `date`(date)는 그 점검 기록의 날짜, `memo`(string/null)는 그 기록의 메모. 조건(그 항목의 가장 최근 기록이 점검이고 결과가 `CAUTION`)이 아니면 null |
 
 ```json
 {
@@ -551,6 +551,19 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 
 예시는 6개 중 2개만 적었다. 실제 응답은 쓰는 항목 전부(`sortOrder` 순). 에러: `NOT_FOUND` (X6), `INVALID_INPUT`(음수)
 
+P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해당 없으면 `null`). 두 값은 상태를 바꾸지 않는다(F-CYC-02). 예: 07 7.2 시드 11바0006(차량 6)의 엔진오일 — 기준은 교체 D-8M이라 도래이고, 그 뒤 거절 D-1M이 있어 `lastDecline`이 붙는다(오늘 D = 2026-11-24 기준 값).
+
+```json
+{
+  "itemId": 1, "code": "ENGINE_OIL", "name": "엔진오일",
+  "status": "DUE", "dueReason": "DATE",
+  "baseRecord": { "date": "2026-03-24", "mileage": null, "type": "REPLACE" },
+  "nextDueDate": "2026-09-24", "nextDueMileage": null,
+  "lastDecline": { "date": "2026-10-24", "memo": null },
+  "lastCaution": null
+}
+```
+
 ### 11 GET `/api/vehicles/{vehicleId}/visits?page=&size=` — 방문 단위 정비 이력
 
 `visit_key`로 묶어 최신순(`visitDate` 내림차순, 같으면 나중에 저장한 방문 먼저). 쪽 나누기와 `totalElements`는 **방문 묶음 수** 기준이다(기록 행 수가 아님). 기록마다 자기 날짜가 있다(외부는 고객이 말한 날짜). 에러: `NOT_FOUND` (X2)
@@ -562,6 +575,8 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 | mileage | number/null | 방문 주행거리. 비어 있을 수 있음(07 3.7) |
 | staffName | string | 기록 담당 정비사 이름 |
 | records[] | array | `{ recordId, itemId, itemName, type, date, memo }`. `type`은 0.4의 4개 값, `memo`는 null 가능 |
+| records[].source | enum | P0-나머지부터. `SHOP`·`CUSTOMER_STATEMENT`(0.4). 외부(`EXTERNAL`)면 `CUSTOMER_STATEMENT`, 그 밖은 `SHOP`(07 3.7 CHECK) |
+| records[].inspectResult | enum/null | P0-나머지부터. 점검(`INSPECT`)이고 결과를 남겼을 때만 `GOOD`·`CAUTION`, 그 밖은 null(07 3.7 CHECK) |
 
 페이지 필드(`page`·`size`·`totalElements`·`totalPages`)는 05와 같다. 차량에 기록이 없으면 `items: []`.
 
@@ -589,7 +604,13 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 }
 ```
 
-P0-나머지부터 `records[]`에 `source`, `inspectResult`, `version`(수정 확인용 번호), `edited`(수정 이력 있음, F-MNT-04), `staff { staffId, name }`(그 기록의 담당 정비사)이 붙는다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜).
+P0-나머지부터 `records[]`에 `source`, `inspectResult`, `version`(수정 확인용 번호), `edited`(수정 이력 있음, F-MNT-04), `staff { staffId, name }`(그 기록의 담당 정비사)이 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). `version`·`edited`·`staff`의 표·예시는 F-MNT-04 착수 PR에서 확정한다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜).
+
+P0-나머지 `records[]` 예: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). `version`·`edited`·`staff`는 F-MNT-04 확정 전이라 적지 않았다.
+
+```json
+{ "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null, "source": "CUSTOMER_STATEMENT", "inspectResult": null }
+```
 
 ### 12 POST `/api/vehicles/{vehicleId}/visits` — 방문·정비 기록 저장
 
@@ -686,7 +707,7 @@ P0-나머지 요청 예시:
 |---|---|
 | customerId, customerName, phone | phone은 P0-나머지부터 마스킹 |
 | vehicleId, plateNumber | |
-| targetItems[] | 도래·임박 항목만 `{ itemId, name, status, nextDueDate, baseDate }`. P0-나머지부터 `lastDecline`·`lastCaution` |
+| targetItems[] | 도래·임박 항목만 `{ itemId, name, status, nextDueDate, baseDate }`. P0-나머지부터 `lastDecline`·`lastCaution`(10과 같은 모양·조건) |
 | activeReservation | 유효 예약 `{ reservationId, reservedAt }` 또는 null ("예약 있음"). 유효 예약 = `RESERVED` + 예약 날짜 ≥ 오늘, 또는 `IN_PROGRESS`(P0-나머지) (D-22, D-52, 16의 R3과 같은 기준) |
 
 `targetItems[]`의 `status`·`nextDueDate`는 10을 주행거리 없이 부른 결과와 같고(`baseDate` = 10의 `baseRecord.date`), 대상 판정은 날짜 기준이다(F-CYC-01: P0에서 km만 넘은 차량은 뜨지 않음).
