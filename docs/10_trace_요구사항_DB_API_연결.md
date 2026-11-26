@@ -110,5 +110,5 @@ X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 �
 | 버전 | 단계 | 담는 것 (07 6장) | 쓰는 기능 |
 |---|---|---|---|
 | `V1__init.sql` | P0-핵심 (B-3) | 9개 테이블, 복합 FK 8개(+ `reservation`·`maintenance_record`의 담당 정비사 → `staff`), 부모 UNIQUE(shop_id, id) 5개(`staff` 추가), `reservation.assignee_staff_id`, CHECK·인덱스 | P0-핵심 전부 |
-| `V2__…` | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision` | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06 |
+| `V2__…` | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73) | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06, F-ADM-01(P1, 칼럼만 먼저) |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, `contact_log` 등. 약관 동의 기록(07 4.4)은 V3 또는 별도 버전 — DB 담당자 결정 | F-CUS-10·11, F-STF-01, F-CON-02, F-AUTH-04 등 |

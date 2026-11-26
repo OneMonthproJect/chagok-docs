@@ -1145,7 +1145,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 | 29 | `{ customerId, result, memo? }` | `{ contactId }` | `result`는 6개 값: 예약함 `RESERVED`·부재 `ABSENT`·이미 정비함 `ALREADY_DONE`·연락함 `CONTACTED`·번호 오류 `WRONG_NUMBER`·연락 거부 `REFUSED` (04 F-CON-02). "연락 거부"는 화면이 동의 해제 확인 대화상자를 띄우고 자동 해제하지 않는다 |
 | 30 | `?from=&to=` | `{ newCustomers, returningCustomers }` | 재방문 정의는 04 F-STAT-01 한 곳(그 기간에 방문 기록이 있고 그 이전에도 방문 기록이 있는 고객). 화면은 홈(S-02) "고객 집계" 카드 |
 | 31 | — | `[{ shopId, name, status, createdAt }]` | 정비소 안의 숫자는 주지 않음 |
-| 32 | `{ name, phone, owner: { loginId, name, temporaryPassword } }` | `{ shopId, ownerStaffId }` | 기본 기준표 6행을 함께 생성. 사장 아이디·임시 비밀번호는 26과 같은 규칙, 아이디 중복이면 409 `CONFLICT`이고 정비소도 만들지 않음(한 트랜잭션). 상세 8.1 |
+| 32 | `{ name, phone, owner: { loginId, name, temporaryPassword } }` | `{ shopId, ownerStaffId }` | 기본 기준표 6행을 함께 생성. 사장 아이디·임시 비밀번호는 26과 같은 규칙, 아이디 중복이면 409 `CONFLICT`이고 정비소도 만들지 않음(한 트랜잭션). 사업자등록번호·정비소 주소 필드는 10장 ❓8. 상세 8.1 |
 | 33·34 | — | `{ shopId, status }` | 정지·재개 |
 | 35 | `{ temporaryPassword }` | 없음 | 사장 계정 `password_change_required = true`. 임시 비밀번호는 비밀번호 규칙(8.1) |
 | 43·44 | — | (P1 착수 PR에서 확정) | 고객 비활성화·활성화 (F-CUS-10, 사장). 에러 `NOT_FOUND`, `HAS_ACTIVE_RESERVATION`(43), `FORBIDDEN`. POL-46 확인 후 구현 착수 |

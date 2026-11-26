@@ -67,7 +67,7 @@
 
 | 순서 | 기능 ID | 레포 | 이슈 제목 (안) | 선행 | GitHub 이슈 |
 |---|---|---|---|---|---|
-| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, 한 파일) — DB 담당자 | 18 | backend#31 |
+| V2 | — | BE | [기반] Flyway `V2` (07 6장: `inspect_result`, `NO_SHOW`, `customer`·`vehicle` version 4건 + `IN_PROGRESS`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73), 한 파일) — DB 담당자 | 18 | backend#31 |
 | V2-1 | — | BE | [기반] P0-나머지 `ErrorCode` 일괄 추가 (08 0.3, `global/error`) — 기능 이슈가 `ErrorCode`를 고치지 않게 먼저 머지 | 18 | backend#45 |
 | 19 | F-MNT-02·03, F-CYC-02 | BE | [F-MNT-02] 외부·거절·점검 결과 저장 + 거절·주의 표시 + T14·T15 | 18, V2 | backend#32(maintenance), backend#41(T14·T15 cycle) |
 | 20 | F-MNT-02·03 | FE | [F-MNT-02] S-08 외부·거절·점검 결과 입력 + 꼬리표(S-02·04·07·08) | 19 | frontend#29 |
