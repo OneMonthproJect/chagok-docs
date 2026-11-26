@@ -38,7 +38,7 @@ description: 차곡 프로젝트에서 04 기능명세서의 기능 ID(F-AUTH, F
 - 담당 방식(같은 사람이 짝 이슈 둘을 맡을지, 나눠 맡을지)은 12 백로그(결정 14)를 따른다. 정해져 있지 않으면 사용자에게 묻는다.
 - 순서: `기반` → cycle → 고객·차량 → 정비 기록 → 재점검 대상·방문 중 안내 → 예약·날짜별 목록·방문 완료 → (M2 통합 검증) → P0-나머지 → P1 → (M3 MVP 검증).
 - MVP = P0 + P1. P1 이슈는 사용자가 "M2 통합 검증 통과"를 확인해 주기 전에는 만들지 않는다.
-- P2·Non-goal 이슈는 만들지 않는다(D-70, M3 MVP 검증을 통과한 뒤에도 같다). 요청이 오면 scope-guard로 넘긴다.
+- P2 이슈는 만들지 않는다(D-70, M3 MVP 검증을 통과한 뒤에도 같다). 요청이 오면 scope-guard로 넘긴다.
 - 00의 Non-goal 기능은 이슈를 만들지 않는다. 요청받으면 이유를 말하고 멈춘다.
 - 기반 이슈 세트를 요청받으면 CONTRIBUTING 9장의 3개를 만든다(라벨 `기반`, 마일스톤 M2 통합 검증):
   1. (`chagok-backend`) 백엔드 생성 + `global`(SecurityConfig 기본 거부, LoginStaff, ErrorCode·전역 처리기(표준 예외 포함), ApiResponse, Clock, RequestIdFilter, OSIV off) + `ArchitectureTest` + `EndpointGuardTest` (`chagok-backend/README.md`「지금 상태」)
