@@ -735,7 +735,7 @@ P0-나머지 요청 예시:
 | 쿼리 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | from, to | date | ○ | 기간 (둘 다 포함) |
-| assigneeId | number | | P0-나머지. 그 담당의 예약만("내 담당만" 보기, 화면 필터일 뿐 데이터 권한이 아님) |
+| assigneeId | number | | P0-나머지. 그 담당의 예약만("내 담당만" 보기, 화면 필터일 뿐 데이터 권한이 아님). 없는 id나 다른 정비소 직원의 id는 오류가 아니라 200과 빈 `items`이고(정비소 조건은 그대로라 다른 정비소 예약은 나오지 않음, 본문 안의 담당 id가 400인 X13과 다름), 숫자가 아니면 400 `INVALID_INPUT` |
 
 | 응답 items[] | 설명 |
 |---|---|
@@ -1143,7 +1143,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 - **39** `POST /api/reservations/{reservationId}/start` (방문 접수, D-52). 요청 `{ version, modelYear?, mileage? }`. 차량의 연식·최근 주행거리가 비어 있으면 `modelYear`·`mileage`가 필수이고 차량에 저장한다(D-58, 없으면 400). 응답: 17과 같은 예약 요약(`status = IN_PROGRESS`, `version` +1). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`. 접수 뒤 정비 기록은 별도로 저장한다(05 POL-95).
 - **40** `POST /api/reservations/{reservationId}/correct` (지난 예약 정정, D-53). 요청 `{ version, status?, purposeMemo?, reason? }`. 응답: 정정된 예약(`version` +1). 허용: 취소↔노쇼, 취소·노쇼→완료(정비 기록은 자동 생성 안 함), 모두 사장만. 완료→취소·노쇼는 409 `INVALID_STATUS_TRANSITION`. 메모 정정은 사장 또는 담당 정비사(예약 날짜 + 3일 이내, 넘으면 403 `EDIT_PERIOD_EXPIRED`, 담당이 아니면 403 `FORBIDDEN`). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `FORBIDDEN`, `EDIT_PERIOD_EXPIRED`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`(바뀐 것 없음). 모든 정정은 `reservation_revision`에 남는다.
 - **41** `GET /api/reservations/{reservationId}/revisions`. 응답: 예약 이력 목록(`kind`, 변경자, 시각, 사유, 변경 전·후).
-- **42** `GET /api/reservations/summary?from=&to=`. 응답 `data: { from, to, items: [ { date, total, reserved, inProgress, completed, canceled, noShow } ] }`(15와 같은 규칙: `from`·`to`는 요청 그대로). `total`은 취소만 제외(진행중·노쇼 포함)이고 나머지 다섯 값은 그 날짜의 상태별 건수다. **예약이 한 건도 없는 날짜는 `items`에 없다**(없는 날은 0건으로 본다). `items`는 `date` 오름차순이다. `from`·`to` 규칙은 15와 같다(둘 다 필수·포함, 최대 42일, 누락·`from` > `to`·42일 초과는 400 `INVALID_INPUT`). 요청에 `assigneeId`는 없다(담당 필터는 15만). 정비소는 토큰의 `shop_id`로만 정한다.
+- **42** `GET /api/reservations/summary?from=&to=`. 응답 `data: { from, to, items: [ { date, total, reserved, inProgress, completed, canceled, noShow } ] }`(15와 같은 규칙: `from`·`to`는 요청 그대로). `total`은 취소만 제외(진행중·노쇼 포함)이고 나머지 다섯 값은 그 날짜의 상태별 건수다. **예약이 한 건도 없는 날짜는 `items`에 없다**(없는 날은 0건으로 본다). 취소만 있는 날은 예약이 있는 날이라 `items`에 들어가고 `total`은 0, `canceled`는 그 건수다(화면이 `total` 0인 칸을 어떻게 보일지는 화면이 정한다). `items`는 `date` 오름차순이다. `from`·`to` 규칙은 15와 같다(둘 다 필수·포함, 최대 42일). 위반은 400 `INVALID_INPUT`이고 `fieldErrors`의 필드는 누락·형식 오류가 그 파라미터(`from`·`to`), `from` > `to`가 `from`, 42일 초과가 `to`다. 요청에 `assigneeId`는 없다(담당 필터는 15만). 정비소는 토큰의 `shop_id`로만 정한다.
 
   ```json
   {
