@@ -92,7 +92,7 @@ Claude Code에서: 코드 레포 루트에서 `claude` → 신뢰 확인 수락 
 
 | 스킬 | 언제 | 주로 | 레포 |
 |---|---|---|---|
-| `chagok-scope-guard` | 새 기능·범위 추가·축소, P1·P2 착수 의견 → 진행/쪼개기/결정 이슈/보류/거절 | PM | docs |
+| `chagok-scope-guard` | 새 기능·범위 추가·축소, P1 착수 의견(P2 착수 의견은 거절, D-70) → 진행/쪼개기/결정 이슈/보류/거절 | PM | docs |
 | `chagok-issue-writer` | 기능 ID → BE·FE 짝 이슈 초안(생성은 사람) | 형상관리·PM, 도메인(분할 추천) | docs |
 | `chagok-issue-coder` | 이슈 구현: 등급·계획 → **승인** → 구현·검증 → PR 본문 | 구현 담당 | backend·frontend |
 | `chagok-bug-fix` | 명세와 다른 동작: 재현 → 원인 한 곳 → 최소 수정 + 재발 방지 테스트 | 구현 담당 | backend·frontend |
