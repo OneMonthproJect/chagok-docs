@@ -561,7 +561,7 @@ ls ~/.claude/skills 2>/dev/null | grep chagok || echo "개인 스킬 폴더에 c
 | 에이전트 | `.claude/agents` 4개 사용 가능 | **없음.** 대신 스킬로 같은 절차: contract-checker → `chagok-spec-sync` 모드 C, pr-reviewer → `chagok-pr-review`(작성자 자가 점검), scope-keeper → `chagok-scope-guard`, seed-builder → `chagok-seed-data` (issue-coder·bug-fix 원문 기준) |
 | 레포 파일 읽기 | 작업 폴더의 세 레포를 직접 읽음(`additionalDirectories`) | 못 읽음. 필요한 문서(08 해당 절, `source-of-truth.md`, `ai-rules.md` 등)를 대화에 붙여 넣음 |
 | 실행·검증 | 빌드·테스트·git·gh 명령 실행 가능 (settings.json의 deny·ask 적용) | 실행 불가. 검증은 사람이 로컬에서 |
-| 권한 장치 | settings.json deny: Read 도구로 `.env`류·`secrets/`·`*.pem` 읽기, `git push origin main/develop…`·`git push --force/-f…` 형태. ask: 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release (정확한 패턴은 19.1) | 없음. 사람이 판단 |
+| 권한 장치 | settings.json deny: Read 도구로 `.env`류·`secrets/`·`*.pem` 읽기, `git push origin main/develop…`·`git push --force/-f…` 형태, `gh issue delete`·`gh api` DELETE. ask: 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기 (정확한 패턴은 19.1) | 없음. 사람이 판단 |
 
 **claude.ai용 `.skill` 배포 현황 (2026-11-24)**: `.claude/`를 고친 PR이 머지되면 공지와 `.skill` 재배포가 필요합니다(docs `CLAUDE.md`, docs PR 템플릿·pr-check 경고). `.claude/`의 주인은 형상관리(CONTRIBUTING 8장)이므로 배포 확인도 형상관리자에게 합니다. PR #76 이후 `chagok-issue-coder`·`chagok-bug-fix` 재배포가 필요하다고 기록됐으나 **재배포 완료 근거는 확인되지 않았습니다(미확인).** claude.ai를 쓰는 팀원은 형상관리자에게 최신 `.skill`을 받았는지 확인합니다. Claude Code만 쓰면 `.skill`은 필요 없습니다.
 
@@ -751,7 +751,7 @@ chagok-release-check로 M2 통합 검증(v0.5-m2-integration) 릴리스 가능 �
 | `chagok-scope-keeper` | Read · Grep · Glob · Bash | 없음 (읽기 전용) | `gh issue create`는 ask |
 | `chagok-seed-builder` | Read · Grep · Glob · **Edit · Write** · Bash | **`chagok-backend/db/seed/demo_seed.sql`만** | **이 파일로만 제한하는 설정은 없음** — 지시문으로만 제한. 결과 diff를 사람이 확인 |
 
-세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)` (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: `.env.development`·`.env.test`, Bash로 파일 읽기, upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`, `git push origin <브랜치> --force`(이 push들은 아래 ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`. **어디에도 없는 명령**(예: `git branch -D`, `git worktree remove`, `gh issue close·edit`, `gh label`, `gh api` 쓰기)은 확인 없이 실행될 수 있습니다. 읽기 전용 스킬·에이전트에서는 지시문으로 금지되지만, 메인 대화에 대해서는 원본(ai-rules)에 명시된 금지가 없습니다 — 이 GUIDE는 AI에게 맡기지 말 것을 권장하며, 설정 보강은 chagok-docs#73(미완료)입니다.
+세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)`, `Bash(gh issue delete *)`, `gh api`의 DELETE(`-X DELETE`·`-XDELETE`·`--method DELETE`·`--method=DELETE`) (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: `.env.development`·`.env.test`, Bash로 파일 읽기, upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`, `git push origin <브랜치> --force`(이 push들은 아래 ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`, 그리고 #73에서 더한 `git branch -d·-D·--delete·-m·-M`, `git worktree remove·prune`, `git stash drop·clear`, `git fetch`·`git pull`의 prune 옵션(`--prune`·`-p`), `git remote prune`, `gh pr close·reopen·edit·ready`, `gh issue close·reopen·edit·transfer`, `gh label create·edit·delete·clone`, `gh api`의 `-X`·`--method`·`graphql … mutation`. 일반 `git fetch`·`git pull`은 절차(issue-coder·pr-review)가 쓰므로 묻지 않습니다. **패턴 밖이라 확인 없이 실행될 수 있는 것**(명령 문자열 매칭의 한계): `-X` 없이 `-f`·`-F`만 준 `gh api`(POST가 됨), `git -C <경로> branch -D`처럼 명령 앞에 옵션을 붙인 형태, 셸 별칭·스크립트 안의 명령. 이것들은 지시문으로 금지합니다(읽기 전용 스킬·에이전트, ai-rules).
 
 ### 19.2 에이전트별 상세
 
@@ -1142,8 +1142,8 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 |---|---|---|
 | 비밀 파일 | `.env`·`secrets/`·키 파일을 AI가 읽거나 출력하지 않음. 설정은 "있음/없음"까지만 | Read 도구의 `.env`류·`secrets/**`·`*.pem` 패턴은 settings.json deny, 그 밖(다른 `.env.*`, Bash 경유)은 ai-rules 지시문 |
 | Git 보호 | force push, `main`·`develop` 직접 push 금지 | AI: `git push origin main/develop…`·`git push --force/-f…` 형태는 settings.json deny, 그 밖의 push는 ask(확인 창에서 거절) / 사람: 팀 규칙 |
-| 사람 확인 | 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release | settings.json ask + 팀 규칙 |
-| 설정에 없음 | `git branch -D`, worktree 제거, `gh issue close·edit`, `gh label`, `gh api` 쓰기 등 | 확인 없이 실행될 수 있음. 읽기 전용 스킬·에이전트는 지시문으로 금지, 메인 대화는 원본에 명시 금지 없음 → AI에게 맡기지 않기를 권장(정책 아님). 보강은 #73 |
+| 사람 확인 | 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기(#73) | settings.json ask + 팀 규칙. `gh issue delete`·`gh api` DELETE는 deny |
+| 설정 패턴 밖 | `-X` 없이 `-f`만 준 `gh api`, `git -C <경로> …`처럼 앞에 옵션을 붙인 형태, 셸 별칭·스크립트 | 확인 없이 실행될 수 있음(명령 문자열 매칭의 한계). 지시문으로 금지 유지(19.1) |
 | 복사본 | 코드 레포 `.claude/rules·skills·agents`를 고치지 않음 | 코드 레포 settings.json deny(Edit) + 동기화 때 덮어씀 |
 | DB | DB를 직접 실행·변경하지 않음. Flyway를 거치지 않는 스키마·데이터 변경 금지. 시연 데이터는 `db/seed/`에만 | 지시문 + pr-check |
 | 범위 | 이슈 범위 밖, 차례가 오지 않은 단계, Non-goal을 빈 화면·버튼·API·테이블로 미리 만들지 않음 | 지시문 + 리뷰 |
@@ -1151,7 +1151,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 | 문서 | 문서는 `chagok-docs`에서만 고침. 코드에 맞춰 문서를 고치지 않음 | 지시문 |
 | ID | 기능·화면·API·테이블·테스트 ID를 지어내지 않음. 없으면 ❓ | 지시문 |
 | 머지 | AI는 머지하지 않음. CI·에이전트 리뷰가 통과해도 사람이 확인·머지 | ask + 팀 규칙 |
-| 브랜치·worktree 삭제 | 6.1 기준. AI가 임의로 지우지 않음 | 지시문 |
+| 브랜치·worktree 삭제 | 6.1 기준. AI가 임의로 지우지 않음 | 지시문 + settings.json ask(#73) |
 
 ## 27. 미구현 스킬과 미확정 정책
 
@@ -1162,7 +1162,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 | 사후 리뷰 정의 | **확정** (D-66 ②, CONTRIBUTING 5장) | 6.1 |
 | `done-verified` 검증 근거 기준 | **확정** (D-66 ③) | 6.1, 22장 |
 | develop PR의 CodeRabbit 필요 판정 | **확정** (D-66 ④) | 8장 |
-| settings.json ask 보강 | **미착수** (#73, L3, 형상관리) | 지시문으로 금지 유지 |
+| settings.json ask 보강 | **반영** (#73, L3, 세 레포 같은 패턴) | 패턴 밖 명령(19.1)은 지시문으로 금지 유지 |
 | PR 없는 AI 작업 기록 | **확정** (D-67) | 25장 |
 | 프론트 인증 운영(토큰 저장 위치·401 이동·CORS·배포 출처) | **확정** (D-68) — 코드 반영 대기 | 05 POL-11·126, 09 S-01. 코드는 12 4장 3번(S-01) 이슈에서 |
 | 마일스톤 날짜·담당 | **결정 대기** (D-15, PM) | 임의 일정 없음 |

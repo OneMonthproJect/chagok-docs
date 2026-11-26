@@ -108,7 +108,7 @@ Claude Code에서: 코드 레포 루트에서 `claude` → 신뢰 확인 수락 
 | `chagok-scope-keeper` | 12 백로그에 없는 기능, 지금 단계 밖 이슈를 만들기 전 | scope-guard | 없음 |
 | `chagok-seed-builder` | 시드 작성·수정, M2·M3·M5 검증 전 | seed-data | `demo_seed.sql`만 (**지시문 제한**, 설정 강제 아님) |
 
-- 스킬 = 절차서(메인 대화), 에이전트 = 스킬을 싣고 별도 맥락·최소 도구로 맡는 보조 작업자(Claude Code 전용). 읽기 전용은 지시문·도구 목록으로 지켜지고, settings.json이 강제하는 것은 deny 패턴(Read 도구의 `.env`류·`secrets/`·`*.pem`, `git push origin main/develop…`·`git push --force/-f…` 형태)과 커밋·push·PR·머지·리뷰·코멘트·이슈 생성·태그·Release의 확인 요청(ask)이다. 패턴 밖의 push(예: upstream이 develop인 `git push`)는 ask만 받으므로 확인 창에서 대상 브랜치를 보고 거절한다(GUIDE 19.1).
+- 스킬 = 절차서(메인 대화), 에이전트 = 스킬을 싣고 별도 맥락·최소 도구로 맡는 보조 작업자(Claude Code 전용). 읽기 전용은 지시문·도구 목록으로 지켜지고, settings.json이 강제하는 것은 deny 패턴(Read 도구의 `.env`류·`secrets/`·`*.pem`, `git push origin main/develop…`·`git push --force/-f…` 형태, `gh issue delete`·`gh api` DELETE)과 커밋·push·PR·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기의 확인 요청(ask)이다(#73). 패턴 밖의 push(예: upstream이 develop인 `git push`)는 ask만 받으므로 확인 창에서 대상 브랜치를 보고 거절한다(GUIDE 19.1).
 - 에이전트 결과는 제안이다. 사람의 리뷰·승인·머지를 대신하지 않는다.
 - claude.ai는 스킬만(형상관리자가 배포하는 `chagok-*.skill`). 에이전트 대신 spec-sync 모드 C·pr-review 스킬을 쓴다(GUIDE 16장).
 
@@ -217,7 +217,7 @@ chagok-spec-sync 모드 C로 API 05·06의 08 명세, 백엔드 DTO, 프론트 t
 |---|---|
 | `chagok-branch-audit` 스킬 | **미구현** — `SKILL.md` 없음. 판정 기준은 D-66으로 확정, 구현은 별도 PR 대기. 부르지 않는다 (브랜치 조회는 GUIDE 24.6의 읽기 전용 명령) |
 | 브랜치 정리·사후 리뷰·검증 근거·CodeRabbit 판정 (#72) | **확정** (D-66) — CONTRIBUTING 2·5·6장, GUIDE 6.1·8장 |
-| settings.json ask 보강 (#73) | 미착수 (L3) |
+| settings.json ask 보강 (#73) | **반영** (L3, 세 레포 같은 패턴. 패턴 밖 명령은 GUIDE 19.1) |
 | PR 없는 AI 작업 기록 (#74) | **확정** (D-67) — 12장 |
 | 프론트 인증 운영: 토큰 저장·401 이동·CORS (#79) | **확정** (D-68) — 코드 반영은 S-01 이슈에서 |
 | 마일스톤 날짜 (D-15), 영역별 담당·코드 레포 CODEOWNERS | 미정 |
