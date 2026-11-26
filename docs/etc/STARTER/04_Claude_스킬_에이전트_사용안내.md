@@ -206,7 +206,7 @@ chagok-spec-sync 모드 C로 API 05·06의 08 명세, 백엔드 DTO, 프론트 t
 
 - 코드 레포의 `.claude/rules·skills·agents` 복사본 수정, `.env`·`secrets/`·키 파일을 AI에게 읽히기(설정은 일부 패턴만 막는다)
 - `main`·`develop` 직접 push, force push, 승인 없는 범위 확대, 차례가 오지 않은 단계·Non-goal 기능 미리 만들기
-- AI에게 머지·승인을 맡기기. 이슈 닫기·라벨 변경·브랜치 삭제(`git branch -D`·`gh issue close`·`gh api` 쓰기)도 맡기지 않기를 권한다 — 설정에 없어 확인 없이 실행될 수 있다(#73, 권장이며 원본 금지 조항은 아님)
+- AI에게 머지·승인을 맡기기. 이슈 닫기·라벨 변경·브랜치 삭제(`git branch -D`·`gh issue close`·`gh api` 쓰기)도 맡기지 않기를 권한다 — #73으로 확인(ask)이 걸리고 `gh issue delete`·`gh api` DELETE는 막히지만(deny), 패턴 밖 형태는 확인 없이 실행될 수 있다(GUIDE 19.1. 권장이며 원본 금지 조항은 아님)
 - DB 직접 실행·변경, 머지된 Flyway 파일 수정, 문서를 코드 레포에서 고치기, 코드에 맞춰 문서 고치기
 
 **브랜치 정리 (D-66 확정)**: 팀원 PR이 머지돼도 작업 브랜치는 바로 지우지 않는다. 마일스톤 점검 또는 형상관리자 요청 때 「정리 검토 가능」이면서 형상관리자가 승인한 원격 브랜치만 사람이 지운다(내 PC의 로컬 브랜치는 각자 정리). 릴리스 PR에서는 Delete branch를 누르지 않는다. 자세한 것은 GUIDE 6.1·CONTRIBUTING 2장.
