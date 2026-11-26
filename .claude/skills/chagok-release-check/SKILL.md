@@ -16,8 +16,8 @@ CodeRabbit은 코드 품질을 본다. 이 스킬은 **"이 상태로 main에 �
 | 릴리스 | 태그 | 기준 |
 |---|---|---|
 | M2 통합 검증 | `v0.5-m2-integration` | P0-핵심 순환이 끝까지 도는가 |
-| M3 MVP 검증 | `v0.8-m3-mvp` | P0·P1 전부 완료 정의 충족, T·X 테스트 통과, 시나리오 A·B·격리 시연. 통과해야 P2 착수 |
-| M4 기능 동결 | `v0.9-m4-freeze` | 완료 정의를 충족한 기능만 남았는가 (P2 포함) |
+| M3 MVP 검증 | `v0.8-m3-mvp` | P0·P1 전부 완료 정의 충족, T·X 테스트 통과, 시나리오 A·B·격리 시연. P2는 착수하지 않음(D-70) |
+| M4 기능 동결 | `v0.9-m4-freeze` | 완료 정의를 충족한 기능만 남았는가 |
 | M5 최종 시연 | `v1.0-m5-demo` | 동결 이후 `fix/`·`docs/`만 들어왔는가 |
 | 예외 선반영 (D-71) | 없음 | 형상관리자가 판단. 확정 문서·협업 규칙·독립 검증된 필수 변경만이고, `origin/main..origin/develop`에 미완료 기능이 섞여 있지 않은가(pr-check는 `main` PR의 head를 `develop`만 허용하므로 섞여 있으면 선반영하지 않고 다음 릴리스로). 그 변경 범위만 점검하고 무관한 전체 재검증은 하지 않는다 |
 
@@ -46,9 +46,9 @@ gh issue list --repo OneMonthproJect/chagok-backend --state open --label "P1" --
 **A-2. 이슈 닫힘 (D-49)** — 기본 브랜치가 `main`이라 이슈는 develop 머지 때 `issue-close`가 닫는다. 이번 릴리스에 포함된 PR마다 본문 `Closes #번호`의 같은 레포 이슈가 닫혔는지 본다(`gh issue view <번호> --repo OneMonthproJect/<레포> --json state`). `Refs #번호` 부분 PR만 머지된 이슈가 열려 있는 것은 정상이다(미완료로 「확인 필요」에 적고 `done-verified`를 안내하지 않는다, D-71). 열려 있으면 PR에 `done-verified` 라벨이 없는지, 검사가 실패했는지 확인해 표로 모은다. 완료가 맞으면 원래 PR에 `done-verified`를 붙여 develop 기준으로 닫으라고 안내하고, 미완이면 "확인 필요"에 적는다. 다른 레포 이슈를 가리킨 `Closes`는 자동으로 닫히지 않으므로 그 레포에서 닫혔는지 따로 본다. 포함 커밋 메시지(`git log origin/main..origin/develop`)에 `Closes`·`Fixes`·`Resolves #번호`가 있으면 릴리스 PR의 pr-check가 열린 이슈에 대해 ❌를 내므로 미리 표시한다.
 
 **B. 범위**
-- M2 통합 검증: 열린 `P0-핵심` 이슈가 있으면 미달. P1·P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시.
-- M3 MVP 검증: 열린 `P0-핵심`·`P0-나머지`·`P1` 이슈가 있으면 미달. P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시.
-- M4 기능 동결: 완료 정의 미충족 기능은 "시연 제외" 후보로 표시(진행 중이던 P2 포함). P2 PR마다 `chagok-docs` 결정 이슈 링크가 있는지 본다. Non-goal 기능, 미리 만든 빈 화면·API·테이블이 있으면 표시.
+- M2 통합 검증: 열린 `P0-핵심` 이슈가 있으면 미달. P1·P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시(P2는 항상 위반, D-70).
+- M3 MVP 검증: 열린 `P0-핵심`·`P0-나머지`·`P1` 이슈가 있으면 미달. P2 라벨 PR이 이미 머지돼 있으면 규칙 위반으로 표시(D-70).
+- M4 기능 동결: 완료 정의 미충족 기능은 "시연 제외" 후보로 표시. P2·Non-goal 기능, 미리 만든 빈 화면·API·테이블이 있으면 표시.
 - M5 최종 시연: 동결 이후 머지된 `feature/` 브랜치가 있으면 표시.
 
 **C. 자동 검사 상태** — 릴리스 PR이 이미 있으면 레포마다 `gh pr checks <번호> --repo OneMonthproJect/<레포>`. 없으면 develop 최신 커밋의 CI 결과를 본다(backend-ci·frontend-ci·pr-check). `ArchitectureTest`·`EndpointGuardTest`가 빌드에 포함돼 통과했는지 따로 확인한다(구조 규칙을 사람 대신 지키는 장치라 꺼져 있으면 막는 항목).
@@ -110,7 +110,7 @@ CodeRabbit은 코드 레포에만 있으므로 `chagok-backend`·`chagok-fronten
 
 ## 범위
 - 열린 P0·P1 이슈 (레포별):
-- 규칙 위반 (단계 선진입·결정 이슈 없는 P2·Non-goal·동결 후 feature):
+- 규칙 위반 (단계 선진입·P2·Non-goal·동결 후 feature):
 
 ## 문서·코드
 spec-sync 결과 요약
@@ -144,6 +144,6 @@ gh release create v0.5-m2-integration --repo OneMonthproJect/chagok-backend --ge
 
 명령은 모두 사람이 실행한다. 릴리스 PR 머지는 형상관리자가 GitHub에서 한다. AI는 대상 레포·PR을 지정한 사용자의 명시적 지시 없이 `gh pr merge`를 실행하지 않고, 자동 머지도 켜지 않는다(D-71). `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻고, `main`으로의 직접 push는 막혀 있다.
 
-M3 MVP 검증 릴리스가 "머지 가능"이면 P2를 `chagok-scope-guard`로 하나씩 고를 수 있다고 알린다. M4 기능 동결 릴리스 뒤에는 `FEATURE_FREEZE=true`(Organization 변수, 또는 세 레포 각각)로 바꾸라고 알린다.
+M3 MVP 검증 릴리스가 "머지 가능"이어도 P2는 착수하지 않는다(D-70). 남은 기간은 M4 오류 수정·안정화와 M5 시연 준비에 쓴다. M4 기능 동결 릴리스 뒤에는 `FEATURE_FREEZE=true`(Organization 변수, 또는 세 레포 각각)로 바꾸라고 알린다.
 
 M5 최종 시연(`v1.0-m5-demo`) 점검이면 "시연에서 하지 말 것" 메모 초안도 만든다: 시드 재실행 순서, 시연 계정, 두 번 누르면 안 되는 버튼, 시연 범위 밖 메뉴, 오래 걸리는 동작, 빈 DB에서 처음 띄울 때 순서.
