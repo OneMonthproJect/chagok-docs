@@ -440,6 +440,7 @@ P1부터: 쿼리 `includeInactive`(기본 false. true면 비활성 고객도 포
 | 응답 data | 타입 | 설명 |
 |---|---|---|
 | customerId, name, phone, consent | number, string, string, boolean | phone 전체(D-40) |
+| version | number | 동시 수정 확인용 번호(0부터). 고객 수정(22) 요청에 그대로 보낸다 (POL-124). `vehicles[]`에는 없다 |
 | vehicles[].vehicleId, plateNumber, model | number, string, string | `model`은 서버 검증으로 필수(D-58)라 값이 있다 |
 | vehicles[].modelYear, latestMileage | number/null | 비어 있을 수 있음(07 3.5) |
 | vehicles[].dueCount, soonCount | number | 오늘(서버 `Clock`) 기준, 그 차량의 **사용하는(`active`) 정비 항목** 중 상태가 `DUE`인 항목 수·`SOON`인 항목 수. 10을 주행거리 없이 부른 결과와 같은 기준(날짜 기준, P1부터 월평균 반영 F-CYC-03도 그대로 따름). P0는 6개 항목 모두 사용 (D-63 B01) |
@@ -452,6 +453,7 @@ P1부터: 쿼리 `includeInactive`(기본 false. true면 비활성 고객도 포
     "name": "오세훈",
     "phone": "010-0000-0010",
     "consent": true,
+    "version": 0,
     "vehicles": [
       { "vehicleId": 10, "plateNumber": "55차0010", "model": "쏘나타", "modelYear": 2018, "latestMileage": 97000, "dueCount": 0, "soonCount": 1 },
       { "vehicleId": 11, "plateNumber": "66카0011", "model": "K3", "modelYear": null, "latestMileage": null, "dueCount": 0, "soonCount": 0 }
@@ -483,6 +485,7 @@ P1부터 응답에 고객 `status`, 차량마다 `active`가 붙는다. 익명�
 |---|---|---|
 | vehicleId, plateNumber, model | number, string, string | `model`은 값이 있다(D-58) |
 | modelYear, latestMileage | number/null | 비어 있을 수 있음(07 3.5) |
+| version | number | 동시 수정 확인용 번호(0부터). 차량 수정(23) 요청에 그대로 보낸다 (POL-124). 고객의 `version`과 별개다 |
 | customer | object | `{ customerId, name, phone, consent }`, phone 전체(D-40) |
 
 ```json
@@ -494,6 +497,7 @@ P1부터 응답에 고객 `status`, 차량마다 `active`가 붙는다. 익명�
     "model": "K5",
     "modelYear": 2020,
     "latestMileage": 45000,
+    "version": 0,
     "customer": { "customerId": 4, "name": "최지은", "phone": "010-0000-0004", "consent": true }
   },
   "error": null
@@ -1096,7 +1100,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 ### 7.0 P0-나머지 확정 범위 (M1 결정 D)
 
-여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안). 20·21의 요청·응답은 18과 같은 모양으로 M1 설계 확정 때 확정했다(6장). 36~42(D-51~D-55)는 이 표와 7.1의 요약까지 확정하고 상세 JSON은 착수 PR에서 정한다. 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
+여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안. 22·23은 chagok-docs#148에서 `version`을 확정). 20·21의 요청·응답은 18과 같은 모양으로 M1 설계 확정 때 확정했다(6장). 36~42(D-51~D-55)는 이 표와 7.1의 요약까지 확정하고 상세 JSON은 착수 PR에서 정한다. 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
 
 | API | 메서드·경로 | 책임 | 역할·격리 | 상태 전환·동시 수정 | 선행 DB 변경 |
 |---|---|---|---|---|---|
@@ -1120,29 +1124,51 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 ### 22 PATCH `/api/customers/{customerId}`
 
-보낸 필드만. `name`·`phone`·`consent` (검증은 06과 같음). 요청에 `version`(필수)을 함께 보내고, 응답에 바뀐 `version`을 준다(7.0, 아래 예시에는 착수 PR에서 더한다). 에러: `NOT_FOUND`, `INVALID_INPUT`, `CONCURRENT_MODIFICATION`.
+보낸 필드만. `name`·`phone`·`consent` (검증은 06과 같음). 화면은 고객 상세(07)에서 읽은 `version`을 함께 보낸다.
+
+| 요청 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| version | number | ○ | 화면이 읽은 고객의 `version` (07 응답). 누락이거나 숫자가 아니면 400 `INVALID_INPUT`. 숫자이면(음수 포함) 서버 값과 다를 때 409 `CONCURRENT_MODIFICATION` |
+| name, phone, consent | string, string, boolean | 선택 | 보낸 것만 바꾼다 |
+
+| 응답 data | 타입 | 설명 |
+|---|---|---|
+| customerId, name, phone, consent | number, string, string, boolean | 바뀐 뒤의 값 |
+| version | number | 바뀐 `version` (요청 값 + 1). 화면은 이 값을 다음 수정에 쓴다 |
 
 ```json
-{ "consent": false }
+{ "version": 0, "consent": false }
 ```
 
 ```json
-{ "success": true, "data": { "customerId": 1, "name": "김민수", "phone": "010-0000-0001", "consent": false }, "error": null }
+{ "success": true, "data": { "customerId": 1, "name": "김민수", "phone": "010-0000-0001", "consent": false, "version": 1 }, "error": null }
 ```
+
+서버가 확인하는 순서: 정비소 소유(`getOwned`, 아니면 404) → 입력 검증(400) → `version` 일치(409). 하나라도 어긋나면 아무것도 바꾸지 않는다. 요청 `version`과 DB에서 읽은 값은 서버가 직접 비교한다(18·19와 같음).
+
+- 성공하면 바꾼 필드가 무엇이든 `version`을 1 올린다.
+- **보낸 값이 지금 값과 모두 같으면** 200으로 지금 값을 돌려주고 `version`은 올리지 않는다. (chagok-docs#148에서 확정, 13 changelog)
+- **화면 처리**: 409 `CONCURRENT_MODIFICATION`이면 고객 상세(07)를 다시 조회해 최신 값·`version`을 보여 주고, 입력한 값은 지우지 않는다. 자동으로 다시 보내지 않는다(05 POL-124).
+
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락·숫자 아님, 형식 오류), `CONCURRENT_MODIFICATION`
 
 동의를 해제하면 재점검 대상·홈 숫자에서 바로 빠진다.
 
 ### 23 PATCH `/api/vehicles/{vehicleId}`
 
-`plateNumber`·`model`·`modelYear`·`latestMileage`(최근 주행거리). 고객은 바꾸지 않는다. `model`은 비울 수 없고, `modelYear`·`latestMileage`도 값이 있으면 비울 수 없다(F-CUS-06). 최근 주행거리는 방문 기록(12)으로도 바뀐다(수정값이 기존보다 클 때 갱신). `version`은 22와 같다. 에러: `NOT_FOUND`, `INVALID_INPUT`, `CONCURRENT_MODIFICATION`.
+`plateNumber`·`model`·`modelYear`·`latestMileage`(최근 주행거리). 고객은 바꾸지 않는다. `model`은 비울 수 없고, `modelYear`·`latestMileage`도 값이 있으면 비울 수 없다(F-CUS-06). 요청에 차량 정보(09)에서 읽은 `version`(필수)을 함께 보낸다. 요청·서버 처리·실패 처리·화면 처리는 22와 같다(화면은 09를 다시 조회).
+
+최근 주행거리는 방문 기록(12)으로도 바뀐다(수정값이 기존보다 클 때 갱신). **그때 `vehicle.version`도 1 올라간다.** 수정 폼을 연 사이에 방문 기록이 저장되면 차량 수정은 409 `CONCURRENT_MODIFICATION`이 되고, 화면은 09를 다시 조회해 최신 주행거리를 보여 준다. 의도된 동작이다.
 
 ```json
-{ "model": "K5 하이브리드" }
+{ "version": 0, "model": "K5 하이브리드" }
 ```
 
 ```json
-{ "success": true, "data": { "vehicleId": 4, "plateNumber": "78라0004", "model": "K5 하이브리드", "modelYear": 2020, "latestMileage": 45000 }, "error": null }
+{ "success": true, "data": { "vehicleId": 4, "plateNumber": "78라0004", "model": "K5 하이브리드", "modelYear": 2020, "latestMileage": 45000, "version": 1 }, "error": null }
 ```
+
+에러: `NOT_FOUND`, `INVALID_INPUT` (`version` 누락·숫자 아님, 형식 오류), `CONCURRENT_MODIFICATION`
 
 ### 7.1 신규 API 36~42 요약 (D-51~D-55, 상세 JSON은 각 기능 착수 PR)
 
