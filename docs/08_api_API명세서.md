@@ -1144,7 +1144,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 { "success": true, "data": { "customerId": 1, "name": "김민수", "phone": "010-0000-0001", "consent": false, "version": 1 }, "error": null }
 ```
 
-서버가 확인하는 순서: 정비소 소유(`getOwned`, 아니면 404) → 입력 검증(400) → `version` 일치(409). 하나라도 어긋나면 아무것도 바꾸지 않는다. 요청 `version`과 DB에서 읽은 값은 서버가 직접 비교한다(18·19와 같음).
+서버가 확인하는 순서: ① 요청 본문 형식(`version` 누락·숫자 아님, 값 형식, 400) → ② 정비소 소유(`getOwned`, 아니면 404) → ③ `version` 일치(409). ①은 요청 값만 보고 가를 수 있어 DB를 읽기 전에 거르는 것이 효율적이고(6장 표와 같음), 남의 정비소 데이터가 있는지 알려 주지 않으려고 ②를 ③보다 먼저 한다. 하나라도 어긋나면 아무것도 바꾸지 않는다. 요청 `version`과 DB에서 읽은 값은 서버가 직접 비교한다(18·19와 같음).
 
 - 성공하면 바꾼 필드가 무엇이든 `version`을 1 올린다.
 - **보낸 값이 지금 값과 모두 같으면** 200으로 지금 값을 돌려주고 `version`은 올리지 않는다. (chagok-docs#148에서 확정, 13 changelog)
@@ -1156,7 +1156,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 ### 23 PATCH `/api/vehicles/{vehicleId}`
 
-`plateNumber`·`model`·`modelYear`·`latestMileage`(최근 주행거리). 고객은 바꾸지 않는다. `model`은 비울 수 없고, `modelYear`·`latestMileage`도 값이 있으면 비울 수 없다(F-CUS-06). 요청에 차량 정보(09)에서 읽은 `version`(필수)을 함께 보낸다. 요청·서버 처리·실패 처리·화면 처리는 22와 같다(화면은 09를 다시 조회).
+`plateNumber`·`model`·`modelYear`·`latestMileage`(최근 주행거리). 고객은 바꾸지 않는다. `model`은 비울 수 없고, `modelYear`·`latestMileage`도 값이 있으면 비울 수 없다(F-CUS-06). 요청에 차량 정보(09)에서 읽은 `version`(필수)을 함께 보낸다. 요청·서버 처리·실패 처리·화면 처리는 22와 같다(화면은 09를 다시 조회). 단 `modelYear`가 현재 연도 + 1보다 크면(시각이 필요해 서비스가 확인) ②와 ③ 사이에서 400 `INVALID_INPUT`(`fieldErrors`는 `modelYear`)이다.
 
 최근 주행거리는 방문 기록(12)으로도 바뀐다(수정값이 기존보다 클 때 갱신). **그때 `vehicle.version`도 1 올라간다.** 수정 폼을 연 사이에 방문 기록이 저장되면 차량 수정은 409 `CONCURRENT_MODIFICATION`이 되고, 화면은 09를 다시 조회해 최신 주행거리를 보여 준다. 의도된 동작이다.
 
