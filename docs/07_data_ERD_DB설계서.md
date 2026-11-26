@@ -10,7 +10,7 @@ DB: MySQL 8 (InnoDB, utf8mb4), Flyway. 💡 = 제안값(M1 설계 확정 chagok-
 
 ## 1. 원칙
 
-- 원안 8개 테이블 + 예약 목적 연결 표 1개 = **9개**(V1). P0-나머지(V2)에서 이력 표 2개(`maintenance_record_revision`·`reservation_revision`)가 더해진다. 차례가 오지 않은 단계의 테이블·컬럼은 미리 만들지 않는다(4장).
+- 원안 8개 테이블 + 예약 목적 연결 표 1개 = **9개**(V1). P0-나머지(V2)에서 이력 표 2개(`maintenance_record_revision`·`reservation_revision`)가 더해진다. 차례가 오지 않은 단계의 테이블·컬럼은 미리 만들지 않는다(4장. 예외: D-73 `shop.brn`·`shop.shop_address`, 3.2).
 - `platform_admin`을 뺀 모든 테이블은 정비소에 속한다. 고객·차량·정비 기록·예약·예약 목적(V2의 이력 표 2개도)은 `shop_id`를 **직접** 가진다(D-05).
 - PK는 `BIGINT AUTO_INCREMENT`. 전화번호·차량번호를 키로 쓰지 않는다.
 - 상태(미확인/여유/임박/도래), "예약 있음", "처리 필요", "지난 방문 거절", "지난 점검 주의"는 **저장하지 않는다**. 조회 때 계산한다.
@@ -73,7 +73,7 @@ erDiagram
 | shop_address | VARCHAR(200) | NOT NULL, 기본 `''` (V2) | 정비소 주소. 정비소 개설(F-ADM-01, P1)의 입력값 |
 | created_at | DATETIME | NOT NULL | |
 
-`brn`·`shop_address`는 P1 입력값이지만 P0-나머지 V2에 미리 넣는다(D-73, 00 2장 예외). 기존 행과 시드 정비소는 `''`로 채워지고, DB는 NULL만 막는다. 값이 실제로 있는지와 형식은 서버가 검증하며, 그 규칙(필수 여부·형식)은 P1 정비소 개설 착수 PR에서 08 32와 함께 정한다 ❓. P0 코드(`Shop` 엔티티 매핑·API)는 두 칼럼을 쓰지 않는다.
+`brn`·`shop_address`는 P1 입력값이지만 P0-나머지 V2에 미리 넣는다(D-73, 00 2장 예외). 기존 행과 시드 정비소는 `''`로 채워지고, DB는 NULL만 막는다. 값이 실제로 있는지와 형식은 서버가 검증하며, 그 규칙(필수 여부·형식)은 P1 정비소 개설 착수 PR에서 08 32와 함께 정한다(08 10장 ❓8). P0 코드(`Shop` 엔티티 매핑·API)는 두 칼럼을 쓰지 않는다.
 
 ### 3.3 `staff` — 사장·정비사 계정
 
@@ -435,7 +435,7 @@ V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 �
 | V1-9 | 같은 정비소 `service_item.code` 중복, 같은 예약에 같은 항목 두 번 | 실패 (UNIQUE) |
 | V1-10 | 같은 정비소 같은 `plate_number` 차량 2대 | 성공 (중복 허용, POL-32) |
 | V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용 | 성공, 07 7.5 기대값 |
-| V1-12 | V1에 P0-나머지·P1 칼럼·값·표(`inspect_result`, `IN_PROGRESS`, `NO_SHOW`, `customer.version`·`vehicle.version`, `maintenance_record.updated_at`·`version`, `maintenance_record_revision`·`reservation_revision`, `customer.status`·`vehicle.active`·`staff.active`, `contact_log`)이 없고, `reservation.assignee_staff_id`는 있음 | 없음 / 있음 |
+| V1-12 | V1에 P0-나머지·P1 칼럼·값·표(`inspect_result`, `IN_PROGRESS`, `NO_SHOW`, `customer.version`·`vehicle.version`, `maintenance_record.updated_at`·`version`, `maintenance_record_revision`·`reservation_revision`, `shop.brn`·`shop.shop_address`, `customer.status`·`vehicle.active`·`staff.active`, `contact_log`)이 없고, `reservation.assignee_staff_id`는 있음 | 없음 / 있음 |
 | V1-13 | `created_at`(·`updated_at`)을 빼고 INSERT / `SHOW CREATE TABLE`의 타임스탬프 칼럼 | 실패(1364, 기본값 없음) / `DEFAULT`·`ON UPDATE` 없음 |
 
 V1-3~V1-10·V1-13은 SQL로 직접 확인하거나 `@Tag("db")` 테스트로 남긴다(TEST 명세서 6.1).
