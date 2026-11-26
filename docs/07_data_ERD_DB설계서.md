@@ -69,7 +69,11 @@ erDiagram
 | phone | VARCHAR(20) | NOT NULL | 문자 초안(P1)의 정비소 연락처 |
 | status | VARCHAR(20) | NOT NULL, CHECK IN ('ACTIVE','SUSPENDED'), 기본 'ACTIVE' | 정지는 P1(F-ADM-02) |
 | created_by_admin_id | BIGINT | NULL, FK → platform_admin.id | 시드 정비소는 NULL |
+| brn | VARCHAR(20) | NOT NULL, 기본 `''` (V2) | 사업자등록번호. 정비소 개설(F-ADM-01, P1)의 입력값. UNIQUE 없음(같은 사업자가 정비소를 여러 곳 낼 수 있음) |
+| shop_address | VARCHAR(200) | NOT NULL, 기본 `''` (V2) | 정비소 주소. 정비소 개설(F-ADM-01, P1)의 입력값 |
 | created_at | DATETIME | NOT NULL | |
+
+`brn`·`shop_address`는 P1 입력값이지만 P0-나머지 V2에 미리 넣는다(D-73, 00 2장 예외). 기존 행과 시드 정비소는 `''`로 채워지고, DB는 NULL만 막는다. 값이 실제로 있는지와 형식은 서버가 검증하며, 그 규칙(필수 여부·형식)은 P1 정비소 개설 착수 PR에서 08 32와 함께 정한다 ❓. P0 코드(`Shop` 엔티티 매핑·API)는 두 칼럼을 쓰지 않는다.
 
 ### 3.3 `staff` — 사장·정비사 계정
 
@@ -223,6 +227,7 @@ erDiagram
 | P0-나머지 (V2) | `customer.version`, `vehicle.version` | 고객·차량 수정(F-CUS-06)을 만들 때 동시 수정 확인용 (POL-124) |
 | P0-나머지 (V2) | `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision` | 정비 기록 수정 이력 (D-55), 4.1 |
 | P0-나머지 (V2) | `reservation_revision` | 지난 예약 정정·담당 재배정 이력 (D-53), 4.2 |
+| P0-나머지 (V2, P1 입력값 선반영) | `shop.brn`, `shop.shop_address` | 정비소 개설(F-ADM-01, P1)의 사업자등록번호·정비소 주소 (D-73), 3.2 |
 | P1 (V3) | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active` | 고객·차량 비활성화·익명화, 정비사 비활성화 (D-56·D-57) |
 | P1 (V3) | 연락 기록 표 💡 `contact_log` | 4.3. F-CON-02 착수 때 |
 | P1 (V3 또는 별도 버전, **DB 담당자 결정**) | 약관 동의 기록 표 💡 `terms_agreement` | 4.4 초안. F-AUTH-04 착수 전 DB 담당자 검토 (D-61) |
@@ -359,7 +364,7 @@ erDiagram
 | 버전 💡 | 단계 | 내용 |
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
-| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`. **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
+| `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`(`VARCHAR(20)`)·`shop.shop_address`(`VARCHAR(200)`) `NOT NULL DEFAULT ''`(P1 입력값 선반영, D-73). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
 V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
