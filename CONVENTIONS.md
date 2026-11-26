@@ -87,7 +87,7 @@ screen/target ──┬──▶ customer.api
 screen/visit  ──┤──▶ item.api
 screen/booking ─┤   (booking: reservation.api·customer.api·maintenance.api·item.api·cycle)
                 ├──▶ maintenance.api
-                ├──▶ reservation.api   (target만: "예약 있음" 표시)
+                ├──▶ reservation.api   (target: "예약 있음" 표시·홈 오늘 예약 목록, booking: 예약 상세 패널. visit은 쓰지 않음)
                 └──▶ cycle
 
 maintenance ────┬──▶ customer.api     (차량이 우리 정비소 것인지)

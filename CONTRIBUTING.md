@@ -19,8 +19,8 @@
 ## 1. 한눈에 보기
 
 ```
-이슈 생성(해당 레포) → develop에서 브랜치 → 커밋 → develop으로 PR (Closes #n, 명세가 바뀌면 문서 PR 링크)
-→ 자동 검사(❌면 머지하지 않음) + 팀원 확인 → `done-verified` 라벨 → Squash merge → 이슈 자동 클로즈(issue-close)
+이슈 생성(해당 레포) → develop에서 브랜치 → 커밋 → develop으로 PR (최종 PR은 Closes #n, 일부 완료는 Refs #n, 명세가 바뀌면 문서 PR 링크)
+→ 자동 검사(❌면 머지하지 않음) + 팀원 확인 → (Closes 최종 PR만) `done-verified` 라벨 → Squash merge → 이슈 자동 클로즈(issue-close)
                          ↓ (M2 통합 검증 · M3 MVP 검증 · M4 기능 동결 · M5 최종 시연)
      형상관리자: 세 레포 각각 develop → main 릴리스 PR(이슈는 Refs #n으로 연결만) → (코드 레포) CodeRabbit 점검 → Merge commit + 같은 태그
 ```
@@ -41,7 +41,8 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 - 이름은 영문 소문자·숫자·하이픈. 예: `feature/#12-cycle-calc`. 번호는 **그 레포의** 이슈 번호.
 - 작업 브랜치는 항상 최신 `develop`에서 만든다. clone 직후에는 기본 브랜치인 `main`에 있으므로 `git switch develop`부터 한다.
 - **팀원 PR의 대상은 반드시 `develop`이다.** GitHub 화면과 `gh pr create`는 기본 브랜치(`main`)를 대상으로 잡으므로, 화면에서는 base를 `develop`으로 고르고 CLI는 `gh pr create --base develop`을 쓴다. `develop`이 아닌 브랜치에서 `main`으로 올린 PR은 pr-check가 ❌로 표시한다.
-- 이슈 하나 = 브랜치 하나 = PR 하나. 하루 안에 머지할 크기로 쪼갠다.
+- 이슈 하나 = 브랜치 하나 = PR 하나가 기본이다. 하루 안에 머지할 크기로 쪼갠다. 이슈가 크면 **같은 이슈로 PR을 여러 개**(`Refs #n` 부분 PR → 마지막 `Closes #n` 최종 PR) 올릴 수 있다. PR마다 새 브랜치(예: `feature/#12-cycle-calc-part2`)를 쓰고, PR을 나누려고 이슈를 새로 쪼개지 않는다(D-71).
+- **`main` ↔ `develop` 차이는 정상이다**(D-71). 병렬 개발 중 `develop`이 `main`보다 앞서 있는 것을 오류·미완료로 보지 않고, 단순 최신화·동기화 목적으로 develop 전체를 `main`에 머지하지 않는다. 기능 코드의 `main` 반영은 마일스톤 검증 후 형상관리자가 한다(6장). 확정 문서·협업 규칙·독립적으로 검증된 필수 변경은 **형상관리자가** 변경 범위·의존성을 확인한 뒤 예외적으로 먼저 반영할 수 있다. 이때 미완료 기능을 함께 넣지 않고(pr-check는 `main` PR의 head를 `develop`만 허용하므로, `develop`에 미완료 기능이 섞여 있으면 다음 릴리스까지 기다린다), 변경과 무관한 전체 재검증은 하지 않으며, 그 변경이 `develop`에도 들어 있게 관리한다.
 - `main`·`develop`에 직접 push하지 않는다. GitHub Free 기준으로 설정이 막아 주지 않으므로 **팀원이 지키는 규칙**이다(아래 「GitHub Free 운영」).
 - **브랜치 자동 삭제는 쓰지 않는다**(D-49). 켜 두면 릴리스 PR(develop → main) 머지 때 `develop`이 지워진다. **팀원 PR이 머지돼도 작업 브랜치는 바로 지우지 않는다**(D-66 ①). 마일스톤 점검(M2~M5) 또는 형상관리자 요청 때 브랜치를 점검해, 연결 이슈가 닫히고 검증 근거·사후 리뷰(5장)·후속 작업이 확인된 「정리 검토 가능」 브랜치 중 **형상관리자가 승인한 원격 브랜치만 사람이 지운다.** 내 PC의 로컬 브랜치는 각자 정리한다(PR에 반영되지 않은 커밋이 없는지 먼저 확인). **릴리스 PR에서는 Delete branch를 누르지 않는다.** 로컬을 지울 때는 `git pull --prune` 후 `git branch -D <브랜치>` (Squash merge라 `-d`는 거부됨). Squash merge 뒤 같은 브랜치에서 이어 작업하지 않는다.
 
@@ -52,7 +53,7 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 - 기능 하나가 API와 화면을 모두 가지면 **백엔드 이슈와 프론트 이슈로 나누고** 서로 「짝 이슈」 칸에 링크한다.
 - 라벨: 단계(`P0-핵심` / `P0-나머지` / `P1` / `P2` / `기반`) 하나는 반드시.
 - 마일스톤(레포마다 같은 이름): M1 설계 확정 / M2 통합 검증 / M3 MVP 검증 / M4 기능 동결 / M5 최종 시연 중 하나.
-- 담당자(Assignee)를 지정한다. 진행 상태는 Projects 보드가 자동으로 옮긴다.
+- 이슈에는 담당자(Assignee)를 지정한다. 진행 상태는 Projects 보드가 자동으로 옮긴다. (PR Assignee는 5장)
 - **단계 순서를 지킨다.** MVP = P0 + P1이다.
   - P1 이슈는 M2 통합 검증 통과 전에 열지 않는다.
   - P2 이슈는 **M3 MVP 검증 통과 + `chagok-docs`의 `결정` 이슈 합의** 전에 열지 않는다. 한 번에 하나씩, 00·13장 A 묶음부터.
@@ -86,14 +87,25 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 
 - 대상(base): **`develop`** (2장).
 - 제목: `[#이슈번호] 이슈 제목`. 제목에는 `Closes #` 같은 닫는 키워드를 쓰지 않는다(Squash 커밋 제목이 되어 릴리스 때 이슈를 닫을 수 있음. pr-check가 막음).
-- 본문 첫 줄: `Closes #이슈번호` → 이슈를 PR에 연결한다. develop은 기본 브랜치가 아니라 GitHub이 이 키워드로 이슈를 닫지 않으므로, 아래 조건을 모두 만족하면 **`issue-close` 워크플로가 이슈를 닫는다**(D-49).
+- **PR 유형 세 가지**(D-71). 본문 첫 줄로 이슈를 연결한다(pr-check가 `Closes #n` 또는 `Refs #n` 중 하나를 요구).
+
+  | 유형 | 언제 | 본문 첫 줄 | 머지 후 이슈 | `done-verified` |
+  |---|---|---|---|---|
+  | 최종 PR | 이슈 **전체** 완료 조건을 채움(앞선 `Refs` PR 반영분 포함) | `Closes #n` | `issue-close`가 닫음(아래 조건) | 붙임 |
+  | 부분 PR | 이슈 **일부**를 끝냈고, 그 변경만으로 독립적으로 검토·머지할 수 있음 | `Refs #n` | 열린 채 유지, 남은 일은 같은 이슈에서 | 붙이지 않음 |
+  | Draft PR | PR **자체**가 미완, 리뷰 준비 전, 필수 의존성이 없어 안전하게 머지할 수 없음 | 준비되면 쓸 `Closes`·`Refs` | — | — |
+
+  이슈 전체가 미완이라는 이유만으로 Draft로 두지 않는다. 혼자 머지할 수 있으면 `Refs` 일반 PR로 올린다. 전체 완료 조건이 채워지지 않았으면 `Closes`를 쓰지 않는다.
+- `Closes #n` 최종 PR: develop은 기본 브랜치가 아니라 GitHub이 이 키워드로 이슈를 닫지 않으므로, 아래 조건을 모두 만족하면 **`issue-close` 워크플로가 이슈를 닫는다**(D-49). `Refs #n`은 닫지 않는다.
   - develop 대상 PR이 실제로 **머지**됨 (머지 없이 닫힌 PR은 대상 아님)
   - PR에 **`done-verified`** 라벨이 있음
   - PR 마지막 커밋의 자동 검사가 모두 ✅ (실패·진행 중이면 닫지 않음)
   - `Closes #번호` 중 **같은 레포** 이슈만. 다른 레포 이슈(`Closes OneMonthproJect/chagok-docs#12`)는 연결만 되고 닫히지 않으므로 그 레포에서 직접 닫는다
-- 본문은 PR 템플릿대로. 기능 PR은 완료 정의를 모두 체크한다.
-- **확인한 팀원이 완료 정의 체크리스트를 확인한 뒤 `done-verified` 라벨을 붙이고 머지한다.** 라벨 없이 머지했으면 머지 후에 라벨을 붙여도 그때 닫힌다. 이슈가 닫히지 않았으면 Actions의 `issue-close` 실행 기록(요약)에서 이유를 본다. 보드의 Done 이동은 Projects 기본 워크플로(이슈 닫힘 → Done)가 처리한다.
+- 본문은 PR 템플릿대로. 기능 `Closes` 최종 PR은 완료 정의를 모두 체크하고, `Refs` 부분 PR은 그 PR 범위에 해당하는 항목만 체크한다.
+- **PR Assignee는 기본 비워 둔다**(D-71). 작성자 본인을 Assignee로 다시 지정하지 않는다. 인수인계·담당 변경·작성자 외 처리 책임자가 있을 때만 지정한다. Reviewer·CODEOWNERS 리뷰 요청은 그대로이고, Assignee가 없다는 이유로 PR 생성·검증을 막지 않는다.
+- **확인한 팀원이 완료 정의 체크리스트를 확인한 뒤 `done-verified` 라벨을 붙이고 머지한다**(`Closes` 최종 PR만. `Refs` 부분 PR은 라벨 없이 머지한다). 라벨 없이 머지했으면 머지 후에 라벨을 붙여도 그때 닫힌다. 이슈가 닫히지 않았으면 Actions의 `issue-close` 실행 기록(요약)에서 이유를 본다. 보드의 Done 이동은 Projects 기본 워크플로(이슈 닫힘 → Done)가 처리한다.
 - **검증 근거와 사후 리뷰**(D-66 ②·③): `done-verified`는 라벨을 붙인 사람 또는 리뷰어가 작성자가 아닐 때 검증 근거로 인정한다. 작성자가 스스로 검증했으면 PR 댓글에 실행 명령·결과를 남기고, 이것을 「자기 검증」 근거로 인정한다. 단 자기 검증인 L2·L3 PR은 사후 리뷰까지 끝나야 브랜치가 「정리 검토 가능」이다. 작성자 외 확인 없이 머지된 PR 중 `review-me` 라벨, `.claude/rules/ai-rules.md` L3 대상 경로, 또는 PR 댓글이나 AI 사용 기록에 「사후 리뷰 필요」로 표시된 PR은 **사후 리뷰 대상**이다. 사후 리뷰 완료는 해당 경로 CODEOWNER(작성자 아님)의 GitHub PR 리뷰(Approve·Comment), 또는 작성자가 아닌 사람의 PR 댓글 「사후 리뷰: 결과 …」로만 인정한다(구두·메신저는 「확인 필요」). `issue-close` 동작은 그대로다.
+- **검증 재사용**(D-71): 부분 PR은 그 변경 범위와 영향받는 의존성을 검증한다. 최종 PR은 앞선 부분 PR의 검증 근거(PR 링크·CI·실행 기록)를 함께 적어 이슈 전체 완료 조건을 확인하고, 그 뒤 바뀐 코드·정책·계약·의존성만 다시 검증한다. 앞선 근거가 무효가 되면(같은 곳을 다시 고침, 계약 변경) 그 영향 범위만 재검증한다. L0~L3 등급·필수 CI·마일스톤 통합 검증 기준은 그대로이고, 변경과 무관한 전체 재검증은 요구하지 않는다.
 - **코드 레포 PR은 「문서 PR」 칸을 채운다.** 명세(07·08·09)가 바뀌는 변경이면 `chagok-docs` 문서 PR 링크, 아니면 「문서 변경 없음」 체크(7장).
 - push 전 `git pull origin develop`. 충돌은 PR 올린 사람이 해결한다.
 - 승인 인원을 강제하지 않는다. 다만 머지 전에 팀원 1명이 확인하는 것을 기본으로 한다(작은 문서·오타 수정은 생략 가능). 확인하는 사람은 브랜치를 받아 **다른 코드 레포의 develop과 함께 띄워** 실제로 실행해 본다. 점검 순서와 코멘트 초안은 `chagok-pr-review` 스킬이나 `chagok-pr-reviewer` 에이전트로 만들 수 있다(승인·코멘트 게시는 사람이). 작성자도 PR을 올리기 전에 같은 에이전트로 스스로 점검한다 — L2·L3는 필수, L1은 선택, L0(오타·주석)은 생략(`.claude/rules/ai-rules.md` 「작업 등급」).
@@ -122,7 +134,7 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 
 | 무엇 | 레포 | 언제 |
 |---|---|---|
-| 브랜치명·PR 제목·`Closes #` 검사, PR 제목의 닫는 키워드 금지 | 세 레포 | PR 생성·수정 |
+| 브랜치명·PR 제목·본문 이슈 연결(`Closes #` 또는 `Refs #`, D-71) 검사, PR 제목의 닫는 키워드 금지 | 세 레포 | PR 생성·수정 |
 | 릴리스 PR(develop → main): 제목·본문의 닫는 키워드 금지, 포함 커밋이 **열린 이슈**를 닫는 키워드를 담으면 차단 (D-49) | 세 레포 | 릴리스 PR 생성·수정 (❌) |
 | 커밋·PR 본문의 AI 공동 작성자 표기 차단 | 세 레포 | PR 생성·수정 |
 | M4 기능 동결 이후 `feature/` 차단 (`FEATURE_FREEZE`) | 세 레포 | PR 생성·수정 |
@@ -138,13 +150,13 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 | 영역 라벨(`backend`/`frontend`/`db`/`docs`/`ci`), 유형 라벨(`feature`/`fix`) | 세 레포 | PR 생성 |
 | `review-me` 라벨 (표시용, 자동 리뷰 없음) | 코드 레포 | backend: cycle·global·마이그레이션, frontend: `src/app`·`src/shared/api` 변경 |
 | `release` 라벨 → CodeRabbit 자동 리뷰 1회 | 코드 레포 | develop → main PR |
-| 이슈 자동 클로즈(`issue-close`: develop 머지 + `done-verified` + 검사 ✅, 같은 레포 이슈만) → 보드 Done(Projects 기본 워크플로) | 세 레포 | develop 머지, 또는 머지 후 `done-verified` 부착 |
+| 이슈 자동 클로즈(`issue-close`: develop 머지 + `done-verified` + 검사 ✅, 같은 레포 `Closes` 이슈만 — `Refs`는 닫지 않음) → 보드 Done(Projects 기본 워크플로) | 세 레포 | develop 머지, 또는 머지 후 `done-verified` 부착 |
 
 (❌) = 실패로 표시되는 **차단 기준**. 나머지 경고는 리뷰 때 확인하는 **경고 기준**이다.
 
 | 차단 기준 (❌, 머지하지 않음) | 경고·리뷰 기준 (확인 후 판단) |
 |---|---|
-| 컴파일·빌드 실패, 필수 테스트 실패, ArchitectureTest 실패, 비밀값·민감 파일, DB·Flyway 규칙 위반, 형식 검사(브랜치·제목·`Closes #`·AI 표기·동결), 릴리스 PR의 닫는 키워드 | 08 명세 불일치 의심(문서 PR 링크 없음), 문서 갱신 누락, 테스트 부족, 네이밍·스타일, 중복 코드, 선택적 리팩터링 |
+| 컴파일·빌드 실패, 필수 테스트 실패, ArchitectureTest 실패, 비밀값·민감 파일, DB·Flyway 규칙 위반, 형식 검사(브랜치·제목·`Closes #`/`Refs #`·AI 표기·동결), 릴리스 PR의 닫는 키워드 | 08 명세 불일치 의심(문서 PR 링크 없음), 문서 갱신 누락, 테스트 부족, 네이밍·스타일, 중복 코드, 선택적 리팩터링 |
 
 자동 검사로 찾을 수 있는 것만 차단한다. 검사가 통과해도 "보안 문제 없음", "명세와 일치"가 보장되지는 않는다(리뷰와 `chagok-contract-checker`로 확인).
 
@@ -159,18 +171,20 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 
 **세 레포에 같은 날 같은 태그를 단다.** 태그 이름이 같으면 "이 시점의 문서·백엔드·프론트"를 한 번에 맞춰 받을 수 있다.
 
+**`main` 머지는 형상관리자(dyk816)가 한다**(D-71). 관리자 권한이 있는 다른 계정(eunjung01230)도 권한은 그대로 두지만, 대상 레포·PR을 특정해 직접 판단한 경우가 아니면 `main`을 머지하지 않고 형상관리자에게 넘긴다. 릴리스 PR 준비·검토·점검은 누구나 할 수 있다. 릴리스·예외 선반영 요청은 대상 레포·포함 범위·검증 근거를 이슈·PR 댓글로 형상관리자에게 남긴다. AI의 `main` 머지 제한은 `.claude/rules/ai-rules.md` 「AI만의 규칙」.
+
 **이슈는 develop 통합과 main 릴리스를 나눠 관리한다(D-49).**
 
 | | develop 통합 (팀원 PR) | main 릴리스 (릴리스 PR) |
 |---|---|---|
-| 이슈 표기 | 본문 `Closes #번호` | 본문 `Refs #번호` 또는 링크. **`Closes`·`Fixes`·`Resolves` 금지** |
-| 이슈 닫힘 | `issue-close`가 닫음 (머지 + `done-verified` + 검사 ✅) | 닫지 않음. 연결(타임라인 표시)만 |
+| 이슈 표기 | 본문 `Closes #번호`(최종) 또는 `Refs #번호`(부분, D-71) | 본문 `Refs #번호` 또는 링크. **`Closes`·`Fixes`·`Resolves` 금지** |
+| 이슈 닫힘 | `Closes`만 `issue-close`가 닫음 (머지 + `done-verified` + 검사 ✅). `Refs`는 열린 채 | 닫지 않음. 연결(타임라인 표시)만 |
 | 검사 | pr-check 형식 검사 | pr-check가 제목·본문 키워드와, 포함 커밋이 열린 이슈를 닫는지 확인 (❌) |
 
 기본 브랜치가 `main`이라 릴리스 PR 제목·본문이나 포함 커밋에 닫는 키워드가 있으면 머지 때 GitHub이 이슈를 닫는다. `done-verified` 없이 열어 둔 이슈가 이렇게 닫히지 않도록 키워드를 쓰지 않고, pr-check가 확인한다.
 
 순서:
-1. `chagok-release-check` 스킬로 세 레포를 함께 점검한 보고서 작성 (완료 정의, 열린 P0·P1 이슈, 범위, 문서·코드 대조, 세 레포 develop을 함께 띄운 시연). **이번 릴리스에 포함된 PR의 `Closes` 이슈가 모두 닫혔는지** 확인하고, 열려 있으면 `done-verified` 누락인지 검사 실패인지 판단한다(완료면 원래 PR에 라벨을 붙여 develop 기준으로 닫고, 미완이면 릴리스 보고서에 미완으로 적는다)
+1. `chagok-release-check` 스킬로 세 레포를 함께 점검한 보고서 작성 (완료 정의, 열린 P0·P1 이슈, 범위, 문서·코드 대조, 세 레포 develop을 함께 띄운 시연). **이번 릴리스에 포함된 PR의 `Closes` 이슈가 모두 닫혔는지** 확인하고(`Refs` 부분 PR만 머지된 이슈가 열려 있는 것은 정상), 열려 있으면 `done-verified` 누락인지 검사 실패인지 판단한다(완료면 원래 PR에 라벨을 붙여 develop 기준으로 닫고, 미완이면 릴리스 보고서에 미완으로 적는다)
 2. `chagok-docs`부터 `develop → main` PR. 본문에 포함 이슈를 `Refs #번호`로 나열한다. 문서 릴리스 PR은 CodeRabbit 없이 형상관리자가 확인 후 머지
 3. `chagok-backend`·`chagok-frontend` 릴리스 PR → `release` 라벨이 자동으로 붙고 CodeRabbit이 자동 리뷰 1회 (리뷰가 시작되지 않으면 PR에 `@coderabbitai full review` 댓글). 이후 push에는 자동 리뷰가 없다. 다시 보려면 `@coderabbitai review`
 4. CodeRabbit 지적을 분류한다 (아래 표)
@@ -277,7 +291,7 @@ M4 기능 동결 이후에는 `FEATURE_FREEZE=true`로 바꾼다(Organization �
 | PR 영역 | `backend` `frontend` `db` `docs` `ci` | 자동 |
 | PR 유형 | `feature` `fix` | 자동 (브랜치 이름) |
 | 리뷰 | `review-me` (중요 변경 표시, 필요하면 `@coderabbitai review`), `release` (릴리스 PR, CodeRabbit 자동 리뷰) | 자동, `review-me`는 손으로도 가능 |
-| 완료 확인 | `done-verified` (완료 정의 확인됨 → develop 머지 시 `issue-close`가 이슈를 닫음, D-49) | PR을 확인한 팀원이 손으로 |
+| 완료 확인 | `done-verified` (이슈 전체 완료 정의 확인됨 → develop 머지 시 `issue-close`가 이슈를 닫음, D-49). `Closes` 최종 PR에만, `Refs` 부분 PR에는 붙이지 않음(D-71) | PR을 확인한 팀원이 손으로 |
 
 `bash scripts/setup-labels.sh OneMonthproJect`로 세 레포에 한 번에 만든다.
 

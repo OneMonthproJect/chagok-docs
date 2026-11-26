@@ -32,8 +32,8 @@ git log --format='%h %s%n%b' origin/develop..HEAD   # AI 표기 확인용
 
 | # | 무엇 | 기준 | 위반이면 |
 |---|---|---|---|
-| 0 | 형식 | PR 대상(base)이 `develop`(기본 브랜치는 `main`이라 실수하기 쉬움), 브랜치 `feature/`·`fix/`·`docs/`·`chore/` + `#번호-영문`, 제목 `[#번호] …`(제목에 `Closes` 같은 닫는 키워드 없음), 본문 `Closes #번호`, PR 템플릿 체크, 완료 정의를 확인했으면 머지 전에 `done-verified` 라벨을 붙이라고 안내(라벨이 있어야 `issue-close`가 이슈를 닫음, D-49), 코드 레포면 「문서 PR」 칸(링크 또는 「문서 변경 없음」). 동결 중(`FEATURE_FREEZE=true`) `feature/` PR이면 머지하지 않는다. **`gh pr checks`에 ❌가 하나라도 있으면 결론은 "머지하지 않음"** (GitHub가 자동으로 막지 않는다) | blocker |
-| 1 | 이슈 완료 정의 | 이슈 본문 「완료 정의」·「할 일」을 diff가 채우는가 | major |
+| 0 | 형식 | PR 대상(base)이 `develop`(기본 브랜치는 `main`이라 실수하기 쉬움), 브랜치 `feature/`·`fix/`·`docs/`·`chore/` + `#번호-영문`, 제목 `[#번호] …`(제목에 `Closes` 같은 닫는 키워드 없음), 본문 첫 줄 `Closes #번호`(이슈 전체 완료) 또는 `Refs #번호`(일부 완료, D-71) — `Closes`인데 이슈 완료 조건이 남아 있으면 `Refs`로 바꾸라고 지적, PR 템플릿 체크, `Closes` 최종 PR이고 완료 정의를 확인했으면 머지 전에 `done-verified` 라벨을 붙이라고 안내(라벨이 있어야 `issue-close`가 이슈를 닫음, D-49). `Refs` PR에는 `done-verified`를 붙이지 않는다. Draft PR은 "리뷰 준비 전"으로 보고 머지 판단을 하지 않는다. PR Assignee가 비어 있는 것은 지적하지 않는다, 코드 레포면 「문서 PR」 칸(링크 또는 「문서 변경 없음」). 동결 중(`FEATURE_FREEZE=true`) `feature/` PR이면 머지하지 않는다. **`gh pr checks`에 ❌가 하나라도 있으면 결론은 "머지하지 않음"** (GitHub가 자동으로 막지 않는다) | blocker |
+| 1 | 이슈 완료 정의 | `Closes`면 이슈 본문 「완료 정의」·「할 일」 전체를 diff(+ 앞선 `Refs` PR 반영분)가 채우는가. `Refs`면 PR 본문에 적은 이번 범위를 채우고, 혼자 머지해도 깨지지 않는가(남은 일은 이슈에 남음). 앞선 PR의 유효한 검증 근거는 재사용하고 그 뒤 바뀐 곳·영향받는 의존성만 본다(D-71) | major |
 | 2 | 범위 | 이슈 밖 기능, 차례가 오지 않은 단계(M2 통합 검증 전 P1, M3 MVP 검증 전·결정 이슈 없는 P2)·Non-goal 기능, 미리 만든 빈 화면·버튼·API·테이블 (00) | blocker |
 | 3 | 정비소 격리 | 정비소 데이터 조회에 shop_id 조건, shop_id는 `@CurrentStaff`에서만, 남의 것은 404 (X-xx) | blocker |
 | 4 | cycle 규칙 | 상태 판정이 cycle 밖에 없음, 상태를 저장하지 않음, `LocalDate.now()` 없음 | blocker |

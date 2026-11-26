@@ -182,8 +182,8 @@ chagok-spec-sync 모드 C로 API 05·06의 08 명세, 백엔드 DTO, 프론트 t
    ```
 5. `issue-coder`로 분석 → 6. 등급 판정 → 7. 계획 보고 → 8. **승인** → 9. 승인 범위만 구현 → 10. 자체 검증 →
 11. `contract-checker`(조건) → 12. `pr-reviewer`(L2·L3) → 13. 문서 변경 필요하면 chagok-docs 문서 PR 먼저 → 14. 결과 보고 →
-15. **사람이 확인 후** 커밋·push·PR(base `develop`, 제목 `[#번호] …`, 본문 첫 줄 `Closes #번호`) → 16. CI ✅ + 팀원 확인(두 레포 함께 실행) →
-17. 확인한 팀원이 `done-verified` → 18. **사람이** Squash merge → 19. PR 「AI 사용」 기록·인수인계
+15. **사람이 확인 후** 커밋·push·PR(base `develop`, 제목 `[#번호] …`, 본문 첫 줄 `Closes #번호`, 일부 완료면 `Refs #번호` — D-71) → 16. CI ✅ + 팀원 확인(두 레포 함께 실행) →
+17. (`Closes` 최종 PR) 확인한 팀원이 `done-verified` → 18. **사람이** Squash merge → 19. PR 「AI 사용」 기록·인수인계
 
 ## 11. PR 전 필수 확인
 
