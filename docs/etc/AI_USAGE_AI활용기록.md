@@ -77,3 +77,87 @@
 | 2026-11-25 | chagok-backend#26 (PR #58 원인 확인) | Claude Code (스킬·에이전트 없음) | 실패 run 로그·db-test XML(34개 실행·34개 실패·SKIPPED 0) 분석, `CustomerReader`·`ItemReader` 구현 위치 대조, develop merge-tree 충돌 확인, 원인 댓글 작성 | 원인 댓글 게시 요청 |
 | 2026-11-25 | chagok-docs#96 (Q14 추천안) | Claude Code (스킬·에이전트 없음) | 08·CONVENTIONS·STARTER 08·ArchitectureTest·`screen/visit` 뼈대 읽기 전용 대조, (a) `screen/visit` 추천 근거·영향 범위 정리, 추천 댓글 작성 | 추천 댓글 게시 요청 (결정은 형상관리·PM) |
 | 2026-11-25 | chagok-docs#103 | Claude Code (스킬·에이전트 없음) | 사전 합의 지시문 기준 세 레포 이슈·PR·CI·문서 읽기 전용 확인, 개발 차단 사항·M3 전 미결정·P2 규칙 충돌 문서 정리, 범위 동결 결정 이슈 초안 작성·게시, 제안 번호 D-69 → D-70 수정 | 사전 합의 사항·지시문 제공, 이슈 게시 요청 |
+| 2026-11-24 | chagok-docs#101 | Claude Code (스킬·에이전트 없음) | 12 4·5장에 이슈 번호·하위 이슈 반영 초안, 번호 대조 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#23 (PR 요청) | Claude Code (스킬·에이전트 없음) | feature/#23-visit-history의 develop 대비 커밋·변경 파일·merge-tree 충돌 읽기 전용 확인, PR 요청 댓글 작성 | 댓글 게시 요청 |
+| 2026-11-25 | chagok-backend 릴리스 PR #50 | Claude Code (스킬·에이전트 없음) | main·develop 차이·merge-tree·닫는 키워드·민감 경로 사전 확인, db-test XML 확인, 릴리스 확인 댓글 작성, 머지 후 tree 검증 | main 동기화 지시 |
+| 2026-11-25 | chagok-backend#27 (API 19) | chagok-issue-coder, chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | API 19 구현, 08 대조(불일치 0·미검증 2), 1차 리뷰(major 1: version 증가 방식 → 교체), 리뷰 반영 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#27 | Claude Code (스킬·에이전트 없음) | 같은 version 동시 변경·방문 완료 DB 테스트 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-docs#109 | (스킬·에이전트 없음, 메인 대화) | 세 레포 협업 규칙·pr-check·issue-close 현황 조사, 최소 변경안·결정 기록 초안 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#68 | (스킬·에이전트 없음, 메인 대화) | pr-check·issue-close 정규식 대조, 이슈 초안 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#65 | Claude Code (스킬·에이전트 없음) | 원인 로컬 재현(임시 MySQL), 시간대 고정 수정, 재발 방지 테스트(수정 전 실패·수정 후 통과 확인) | (사람이 채움) |
+| 2026-11-25 | chagok-backend#26 | Claude Code (스킬·에이전트 없음) | 시연 시드 기반 HTTP DB 테스트 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-docs#111 | (없음) | 08 예약 API 15~19 중 문서에 없던 동작을 코드와 대조해 목록화하고 08·04 문구와 13 changelog 정정, 결정 이슈 작성 | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#22 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | 최신 develop에 rebase, 원격 브랜치와 병합(force push 없음), build·dbTest 실행, 로컬 서버로 A/B 격리 확인, API 13 계약 점검(불일치 0, 비활성 포함 여부 ❓ 1), PR 전 점검(차단 0), PR·이슈 댓글 초안 작성 | 사람이 채움 (PR 올리는 시점·force push 금지·rebase 대신 병합 지시) |
+| 2026-11-25 | chagok-backend#27 | chagok-pr-reviewer (에이전트, 머지 후 사후 점검: blocker 0·major 1(update Javadoc은 후속 PR에서 반영)) | 예약 변경(19)의 유효 예약 확인 조건 정리와 경계 사례 테스트, 08·04 문구 정정 문서 PR 작성 | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#23 | chagok-contract-checker (에이전트) | API 11 계약 점검 2회: ❌ 0건. 재점검의 ⚠️(staffName 누락 시 null, 테스트 부재)은 "" 폴백과 단위 테스트로 반영 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#23 | chagok-pr-reviewer (에이전트) | 1차 리뷰 blocker 0·major 3(StaffReader 연결·계약 점검·완료 정의 표기)·minor 반영(근거·LIMIT 주석) | (사람이 채움) |
+| 2026-11-25 | chagok-docs#113 인계 | Claude Code (스킬·에이전트 없음) | 형상관리자 인계 메모(머지 순서·선반영 판단 자료·머지 후 할 일) 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-docs#109, chagok-backend#68, chagok-frontend#38 | Claude Code (스킬·에이전트 없음, chagok-pr-review 기준 자가 점검을 메인 대화에서) | 세 레포 협업 규칙·pr-check·issue-close 현황 조사, D-71 최소 변경안, CONTRIBUTING·ai-rules·스킬 5개·PR 템플릿·pr-check(세 레포)·00·13·STARTER·GUIDE 수정, 정규식 시뮬레이션 검증, 결정·chore 이슈 3개와 PR 3개 생성(머지 없음) | (사람이 채움) |
+| 2026-11-25 | chagok-backend#25 | chagok-contract-checker (에이전트) | API 10 계약 점검 ❌ 0건(프론트 레포 없어 백엔드·08만 대조) | (사람이 채움) |
+| 2026-11-25 | chagok-backend#25 | chagok-pr-reviewer (에이전트) | 1차 리뷰 blocker 0·major 0, minor 3(미사용 import 삭제·DATE 테스트 추가 반영, 통합 확인은 #23 이후) | (사람이 채움) |
+| 2026-11-25 | chagok-docs#113 공지 초안 | Claude Code (스킬·에이전트 없음) | D-71 팀 공지문 초안 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#68 | Claude Code (스킬·에이전트 없음) | pr-check 본문 이슈 연결에 Refs 인정, PR 템플릿 안내, 정규식 시뮬레이션 검증 | (사람이 채움) |
+| 2026-11-25 | chagok-frontend#38 | Claude Code (스킬·에이전트 없음) | pr-check 본문 이슈 연결에 Refs 인정, PR 템플릿 안내, 정규식 시뮬레이션 검증 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#42 | chagok-pr-reviewer (에이전트) | 1차 자가 점검 blocker 0·major 2 → 반영: @Transactional 오버라이드를 증명하는 비트랜잭션 DB 테스트 추가, #24 충돌을 줄이려고 register를 되돌리고 applyVisit 위치를 옮김 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#24 | chagok-pr-reviewer (에이전트), chagok-contract-checker (에이전트) | 이영주 구현 커밋을 develop 위로 옮기고(cherry-pick) 상한 검사 단위 테스트·주석 정리, PR 전 점검: contract-checker 어긋남 0건, pr-reviewer blocker 0·major 1(06 회귀를 CI db-test로 확인) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#74 | 없음 (Claude Code 대화) | 시드 오늘을 서울 날짜로 바꾸고 시드 테스트 3개를 같은 기준으로 맞춤, build 실행, 이슈·PR 작성 | #110 B안 선택 |
+| 2026-11-25 | chagok-docs#114 | 없음 (Claude Code 대화) | V2 미결 8개 선택지·추천안 정리, 회의 결정을 07 3.7·4.1·4.2·6장·6.4·7장과 13에 반영, 이슈·PR 작성 | 8개 결정(추천안 채택)·#110 B안 선택 |
+| 2026-11-25 | chagok-backend#30 | chagok-pr-reviewer (에이전트) | customer.api VehicleSummary에 consent 추가와 호출부·DB 테스트, PR 전 점검: blocker 0·major 0·minor 2(Javadoc 문구 정리 반영, 생성자 변경 영향 본문 기록) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#42 | chagok-contract-checker (에이전트) | API 12 계약 점검(읽기 전용, 프론트 읽지 못함·curl 미실행): ❌ 1건(X11 fieldErrors 표기, 한계로 기록)·문서 공백 6건(본문에 적음) | (사람이 채움) |
+| 2026-11-25 | chagok-backend#42 | chagok-pr-reviewer (에이전트) | 1차 자가 점검 blocker 0·major 0·minor 5 → 반영: records null 원소 400, 롤백 시험 강화(DB 예외 한정, flush 뒤 차량 롤백), 중첩 record 이름 RecordInput, 낡은 javadoc | (사람이 채움) |
+| 2026-11-25 | chagok-backend#43 | chagok-pr-reviewer (에이전트) | 1차 자가 점검 blocker 0·major 0·minor 3 → 반영: DB 테스트 번호판 순서를 id와 반대로(정렬 기준 구분), 낡은 Javadoc 2곳과 "한 곳" 표현 정리 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#30 | chagok-pr-reviewer (에이전트), chagok-contract-checker (에이전트) | 예약 상세 패널 API 17 조립·예약 한 건 조회 계약·시드 HTTP 테스트 구현, PR 전 점검: contract-checker 코드 정상·08 예시 2곳 어긋남, pr-reviewer blocker 0·major 0·minor 3(읽기 전용 트랜잭션·근거 주석·테스트 반영, 조립 중복은 단순화 기록) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-docs#116 | chagok-contract-checker (에이전트) | API 17을 08과 대조해 어긋난 예시 두 곳을 찾고(코드 정상) 08 예시·13 changelog 정정, 문서 이슈 작성 | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#43 | chagok-contract-checker (에이전트) | API 07 계약 점검(읽기 전용, 프론트 읽지 못함·curl 미실행): ❌ 0건, 문서 공백 1건(경로 변수 형식 오류 400, 본문에 적음), STARTER 08 낡은 참조 1건(docs PR 대상) | (사람이 채움) |
+| 2026-11-25 | chagok-backend#43 | chagok-pr-reviewer (에이전트) | 1차 자가 점검 blocker 0·major 1(Q14 결정 기록 docs PR 부재, 본문에 사실대로 기재)·minor 4 → 반영: countStatuses package-private, 지역 변수 이름 충돌 정리, 테스트 import 정리, 시드 날짜 한계 기록 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#28 | chagok-pr-reviewer (에이전트) | customer.api CustomerReader.findConsentedVehicles 추가와 DB 테스트, PR 전 점검: blocker 0·major 0·minor 2(정렬 테스트 보강 반영, LIMIT 표기는 레포 관행 유지) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-frontend#41 | Claude Code (스킬·에이전트 없음) | STEP 09-E 캔버스 E2·E3 확인, 등록 계획·이슈·3개 커밋·PR 작성, lint·build·test·프로토타입 file:// 실행 확인 | 등록 계획·커밋 구분·리뷰어 지정 승인, 캔버스 미검증 3건을 READY 조건에서 제외하기로 결정 |
+| 2026-11-25 | chagok-backend#25·#42 | (스킬·에이전트 없음, 메인 대화) | 시연 시드로 API 10·API 12를 HTTP로 확인하는 DB 테스트 2개 작성 | (사람이 채움) |
+| 2026-11-25 | chagok-backend#28 | chagok-pr-reviewer (에이전트), chagok-contract-checker (에이전트) | 재점검 대상 목록 API 14 조립·시드 HTTP 테스트 구현, PR 전 점검: contract-checker 어긋남 0건, pr-reviewer blocker 1(B 정비소 격리 테스트가 시드의 B 정비 기록을 잘못 읽음 — 실제 CI 전에 수정)·minor 4(정렬 증명·테스트 이름·LIMIT 주석 반영, 조립 중복은 단순화 기록) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-frontend#41 | — | 프론트 개발 환경 점검(Git·Node·패키지·디자인 산출물·실행 경로), 로컬 develop을 #42 머지분까지 fast-forward 동기화, lint·build 통과 확인, Windows 소문자 드라이브 경로(c:\)에서 vitest 실패·대문자 경로(C:\)에서 20개 통과 확인, .claude 사본이 D-71 이전임을 확인 | — |
+| 2026-11-25 | chagok-frontend#41 | general-purpose (에이전트) | .claude 사본 동기화(chagok-docs f361dd5, D-71), v3 프로토타입 로컬 HTTP 실행·대표 9페이지 캡처 대조(Chromium 1440×900 일치, 콘솔 오류 0·리소스 누락 0), 모달 초점·Tab 가두기·Esc, 1024px 가로 넘침 0 확인, localStorage는 프로토타입 미구현이라 미검증 유지, 개발 착수 준비 분석(백엔드 API 01~03·05~19 develop 반영, 04는 backend#85), #17·#18·#20·#21·#26·#27·#28에 디자인 구현 기준·범위·백엔드 참조 보완 댓글 | 디자인 구현 기준 승인: theme.css 단일 토큰 기준, Button·StatusBadge·토큰 보완은 #18, Layout·사이드바는 #17, #21·#27·API 04는 기존 명세·범위 유지 |
+| 2026-11-25 | chagok-backend#29 | chagok-pr-reviewer (에이전트), chagok-contract-checker (에이전트) | 홈 요약 API 04 조립·하루치 예약 조회 계약·시드 HTTP 테스트 구현, PR 전 점검: contract-checker 코드 정상·08 예시 1곳 어긋남, pr-reviewer blocker 0·major 0·minor 4(LIMIT 표기 반영, 취소 상태 후속·세 번 복사·문서 문구는 본문에 기록) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-backend#27 | chagok-pr-reviewer (에이전트) | 리뷰 코멘트 반영(테스트 오류 수정·Javadoc·주석·테스트 보강). #70 사후 점검: 새 버그 경로 없음, blocker 0·major 1(update Javadoc, 이 PR에서 반영)·minor 2(verify 반영, DB 무충돌 테스트는 선택) | (사람이 바꾼 것은 작성자가 기록) |
+| 2026-11-25 | chagok-frontend#16 | 없음 (Claude Code 대화) | S-01 계획 보고, auth types·api·mocks·LoginForm·LoginPage·401 from 전달 구현과 테스트, 디자인 v3.0에 맞춤, Mock 브라우저 확인 | A안(S-02 자동 이동은 #24) 선택, theme.css는 #18에 맡김 |
+| 2026-11-25 | chagok-docs#118 | (없음) | 08 04번 예시 assignee 제거, CONVENTIONS 3장 reservation.api 사용처 문구 갱신, 13 changelog 추가, backend·frontend develop 대조 |  |
+| 2026-11-25 | chagok-frontend#18 | chagok-pr-reviewer (에이전트) | L2 계획 보고·승인 후 shared UI 5종·theme.css 토큰·Button·StatusBadge 보완 구현, 테스트 81개(jsdom 30.1.3), 자가 점검 major 1·minor 3 반영 | 공통 UI 구현 범위 및 테스트 의존성 승인, 병렬 개발 파일 소유권 구분, 기존 CONVENTIONS 우선 적용 결정 |
+| 2026-11-25 | chagok-frontend#17 | 없음 (Claude Code 대화) | 디자인 v3.0·FRONTEND_STRUCTURE 분석과 계획 보고, data router·라우트 수집·AppLayout·AppMenu·AppHeader·404 구현과 테스트, Mock 브라우저 확인 | createBrowserRouter로 변경 선택 |
+| 2026-11-25 | chagok-frontend#24 | 없음 (Claude Code 대화) | 08 15~19·디자인 Home-Core-TodayList 분석과 계획 보고, reservation types·api·mocks·날짜 이동·목록 구현과 테스트, Mock 브라우저 확인 | 빈 상태·오류는 #18 공통 컴포넌트 사용, 빈 상태 [예약 등록]은 #25로 |
+| 2026-11-25 | chagok-backend#66 (PR #87) | chagok-pr-reviewer (에이전트) | CodeRabbit 지적 7건 반영, 1차 리뷰(커밋 트레일러 blocker 1 → 수정) | 사람이 채움 |
+| 2026-11-25 | chagok-backend#87 (PR #88) | — | develop 빌드 실패 원인 분석, 잠금 방식 통일 | 사람이 채움 |
+| 2026-11-25 | chagok-frontend#19 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | 고객 types·api·mocks(08 05~09)·S-05·M-01·VehiclePicker 구현과 테스트, API 계약 점검(어긋남 0, Mock 3건 서버와 맞춤), PR 전 자가 점검(필수 4건 반영) | (사람이 채움) |
+| 2026-11-25 | chagok-frontend#20 | chagok-issue-coder, chagok-pr-reviewer (에이전트) | S-06 고객 상세(CustomerInfoCard·CustomerVehicleList·VehicleRow, 404·조회 실패·차량 없음)와 S-05 줄 → S-06 연결, 테스트 20개, PR 전 자가 점검(blocker 0·major 0, minor 2 반영: 09 5장 문구·홈으로, 실효 없던 테스트 수정) | (사람이 채움) |
+| 2026-11-25 | chagok-frontend#17 | (없음) | RequireAuth 복귀 경로 쿼리 유실 신고 재검토 — develop에서 이미 고쳐진 것 확인(Node 직접 검증 9건 통과, Vitest·브라우저 미검증), 새 이슈 만들지 않음 | 재검토 결과 승인, 새 이슈·수정 없이 #17 댓글로 기록하도록 결정 |
+| 2026-11-25 | chagok-frontend#26 | chagok-issue-coder, chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | 예약 상세 패널(17)·방문 완료(18, 409 재조회) + S-02 연결·Mock·테스트, 계약 점검 4건·자가 점검 major 1·minor 2 반영 | 사람이 바꾼 것: (사람이 채움) |
+| 2026-11-25 | chagok-frontend#22 | chagok-issue-coder, chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | features/maintenance 08 10~13 기반(types·api·mocks)과 S-07 차량 상세(차량·고객 머리, 점검 주기 표, 방문 이력 더 보기·고객 진술, 404·조회 실패), S-06 → S-07 연결, 테스트 57개, PR 전 점검(계약 ❌ 0·⚠️ 6 중 4 반영, 리뷰 blocker 0·major 0·minor 4 중 1 반영·3 기록) | (사람이 채움) |
+| 2026-11-25 | chagok-frontend#14 | chagok-bug-fix, chagok-pr-reviewer (에이전트) | client.ts 요청 시간 초과(AbortController, 승인값 10초 — chagok-docs#120)·본문 읽기 실패를 NETWORK_ERROR(0)로, 재현 테스트 8개, 브라우저 시간 초과 확인. 자가 점검 2회 blocker 0 | 사람이 바꾼 것: 시간 초과 15초 제안 → 10초로 결정 |
+| 2026-11-25 | chagok-frontend#18 | 없음 (메인 대화) | PR #44 CodeRabbit minor 4건 반영(FormField id·오류 초점, Modal 숨김 요소·겹친 모달 초점), 1건 미반영 사유 기록, 테스트 11개 | 반영 4건·미반영 1건 결정(v3 확정 디자인 우선), 별도 worktree 작업 지시 |
+| 2026-11-25 | chagok-docs#120 | chagok-bug-fix, chagok-pr-reviewer (에이전트) | 승인된 시간 초과 10초를 05 POL-125·08 0.2·13에 반영, 결정 이슈 작성. 자가 점검 blocker 0·major 0 | 사람이 바꾼 것: (사람이 채움) |
+| 2026-11-26 | chagok-frontend#23 | chagok-issue-coder, chagok-pr-reviewer (에이전트) | S-08 방문·정비 기록 입력·저장 화면과 테스트, todaySeoul·isValidDate를 shared/lib로 이동, 자가 점검 major 2건·minor 2건 반영 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#25 | 없음 (Claude Code 대화) | 09 M-02·디자인 Modal-Create·공통 Modal·VehiclePicker·M-01 분석과 계획 보고, M-02 모달·시각·목적·S-02 연결 구현과 jsdom 테스트, Mock 브라우저 확인, #24 dueReason 타입 수정 | 계획 승인, #51 위에서 진행, #52 충돌 해결·패널 [변경] 연결 |
+| 2026-11-26 | chagok-frontend#27 | 없음 (Claude Code 대화) | 08 14·09 S-04·디자인 Reinspection 분석, target types·api·mocks·목록·S-04 구현과 jsdom 테스트, M-02·패널 연결, Mock 브라우저 확인 | 순서표대로 진행 지시, 연락 준비 패널·필터는 범위 밖 |
+| 2026-11-26 | chagok-frontend#20 | (스킬·에이전트 없음, Claude Code 직접) | develop 728df73에서 S-06 Mock 회귀 확인(lint·test 367·build, 브라우저 S-05→S-06→S-07·404) | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#23 | (스킬·에이전트 없음, Claude Code 직접) | #35 브랜치(develop 합친 커밋)에서 lint·test 377·build 확인 후 push, #23 시간대 확인(TZ=UTC 테스트, 브라우저 LA·UTC로 S-08 방문일), #19 남은 일 정리, #21 인계 메시지 작성 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#28 | 없음 (Claude Code 대화) | 08 04·디자인 home-summary 분석과 계획 보고, features/home·SummaryCards·S-02 배치 구현과 jsdom 테스트, 브라우저 확인에서 app/routes 순환 import 발견·수정·회귀 테스트 | features/home(A안) 선택 |
+| 2026-11-26 | chagok-frontend#19·#20·#22·#23·#35 | (스킬·에이전트 없음, Claude Code 직접) | 로컬 MySQL chagok_demo 준비 스크립트, Flyway·시드 후 실제 API로 S-05·M-01·S-06·S-07·S-08 확인(07 7.5 기대값·격리 404·400 fieldErrors·LA 시간대 저장), #20·#22·#23 종료 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#21 | chagok-pr-reviewer (에이전트) | S-06 차량 추가 구현·자가 점검(blocker 0·major 1: 실서버 미검증 표기) | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#19 | (스킬·에이전트 없음, Claude Code 직접) | S-05 M-01 "이 고객에 차량 추가" → S-06 openAddVehicle 연결 + 테스트, 실제 백엔드로 S-05→M-01→S-06 차량 추가 확인 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#35 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | S-08 저장 전 미리보기(F-VIS-01) 계획·구현·테스트, 계약 점검(불일치 0), 자가 리뷰 반영(400 칸 이유, 0·2,000,000 경계) | 계획 승인 시 Mock 범위(08 예시만)·문구(n개 미표시)·기능 ID(F-VIS-01) 결정 |
+| 2026-11-26 | chagok-frontend#22 | (스킬·에이전트 없음, Claude Code 직접) | M2 통합 검증 시나리오 B에서 S-07 진입 버튼 누락 발견 → S-07 [예약]·[방문 기록]·이력 없음 방문 기록 연결 + 테스트, 실제 백엔드로 409 유효 예약·시나리오 B 확인 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#40 (M2 통합 검증) | (스킬·에이전트 없음, Claude Code 직접) | 빈 DB chagok_m2_demo로 07 7.5·시나리오 A·B·인증·격리 실서버 검증, PR #59·#60 머지, S-07 버튼 누락 발견·수정, BE #25·#42·#43 근거 댓글·done-verified, M2 보고 | (사람이 채움) |
+| 2026-11-26 | chagok-backend#20 | (스킬·에이전트 없음, Claude Code 직접) | 사후 리뷰 미검증 항목 실서버 확인(로그인·shopId·시간·Authorization·대소문자 ❓) | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#35 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | PR #55 리뷰 minor 4건 후속: 대기 중 표시, 404 주석, preview Mock 덮어쓰기, 늦은 실패 테스트. 계약 점검 불일치 0 | (사람이 채움) |
+| 2026-11-26 | chagok-docs#126 | 없음 | 백엔드 담당 요청 2번(08·09 반영)을 문서 이슈로 정리 |  |
+| 2026-11-26 | chagok-docs#128 | Claude Code, chagok-issue-writer (스킬) | M2 후속·P0-나머지 이슈 점검 중 V2 shop 칼럼의 근거 부재·단계 충돌을 읽기 전용으로 확인, 결정 이슈 작성 | (사람이 채움) |
+| 2026-11-26 | chagok-backend#89 | Claude Code, chagok-issue-writer (스킬) | 08의 "P0-나머지부터" 표기와 열린 P0-나머지 이슈 범위를 대조해 담당 응답 필드 누락 확인, 이슈 작성 | (사람이 채움) |
+| 2026-11-26 | chagok-frontend#62 | Claude Code, chagok-issue-writer (스킬) | 09 S-08 P0-나머지 항목과 frontend#29·#34 범위를 대조해 S-08 담당 선택 누락 확인, 이슈 작성 | (사람이 채움) |
+| 2026-11-26 | chagok-backend#45 | chagok-contract-checker (에이전트), chagok-pr-reviewer (에이전트) | ErrorCode 3개 추가·테스트 갱신, 계약 점검(❌ 0, ❓ 1: MECHANIC_SLOT_CONFLICT 문구가 08 16 예시와 다름), 자가 점검(blocker 0·major 0, minor: README 갱신) | 새 문구 승인, MECHANIC_SLOT_CONFLICT를 08 16 예시 문구로 교체, README 갱신 포함 결정 |
+| 2026-11-26 | chagok-docs#122 | chagok-pr-reviewer (에이전트) | 1차 리뷰: blocker 0·major 3 → 💡 표기·PM 확인 사항 반영 | 사람이 바꾼 것: (사람이 채움) |
+| 2026-11-26 | chagok-docs#96 | (스킬·에이전트 없음, Claude Code 직접) | backend PR #81의 Q14 (a) 결정 근거와 develop 구현을 대조해 #96 결정 결과·CONVENTIONS 2장·12 4장·STARTER 08·13 반영 | (사람이 채움) |
+| 2026-11-26 | chagok-docs#128·#129·#130 | (스킬·에이전트 없음, Claude Code 직접) | #129·#130·#127 중복 비교 후 #130 종료, 정정 댓글 3건, #128 결정 결과 정정(확인 대기), 역할별 리뷰 요청 메시지 작성 | (사람이 채움) |
+| 2026-11-26 | chagok-docs#123 | chagok-pr-reviewer (에이전트) | backend#20 사후 리뷰·실서버 확인 결과로 08 0.1 보강·로그인 아이디 대소문자·공백 결정 이슈 초안과 문서 PR 작성(08 0.1·05·09·00·13) | (사람이 채움) |
+| 2026-11-26 | chagok-docs#116 (PR #117) | (스킬·에이전트 없음, Claude Code 직접) | 08 17번 JSON 예시(assignee 제거·itemStatuses sortOrder 순)·13 행을 develop과 대조 후 완료 조건 확인 댓글·done-verified 부착(확인자 eunjung01230, 작성자 아님) | (사람이 채움) |
+| 2026-11-26 | chagok-docs#101 (PR #102) | (스킬·에이전트 없음, Claude Code 직접) | 12 4·5장 이슈 번호 49개를 GitHub 제목과 대조, 02 10장 해당 없음 확인 후 완료 조건 확인 댓글·done-verified 부착(확인자 eunjung01230, 작성자 아님) | (사람이 채움) |
+| 2026-11-26 | chagok-docs#128 | Claude Code, chagok-spec-sync (스킬) 모드 A, chagok-pr-reviewer (에이전트) | V2 선반영 합의 근거를 세 레포 이슈·문서에서 읽기 전용으로 확인, (b)안을 00·04·07·08·09·13에 반영(필드 규격·검증은 ❓8로 남김), 작성자 자가 점검(blocker 0·major 4 → 반영) | 사람이 바꾼 것: V2 선반영 결정·합의 진술 제공 (사람이 채움) |
+| 2026-11-26 | chagok-docs#128·#122·#126 (PR #130, 머지 안 함 — #129로 대체) | chagok-pr-reviewer (에이전트) | #128 (b)안 확정(D-73)을 00·04·06·07·08·09·13에 반영, V2 구현과 07 대조, 미확정 필드 규격은 08 10장 ❓8로 분리. 자가 점검 blocker 0·major 4 → 반영 | (사람이 채움) |
+| 2026-11-26 | chagok-backend#31 | Claude Code, chagok-pr-reviewer (에이전트) | V2 ⓐ구역 SQL·Entity 매핑·거부 사례 테스트 작성, 07·docs#129와 대조, 작성자 자가 점검(blocker 0·major 2·minor 3 → minor 반영) | 사람이 바꾼 것: (사람이 채움) |
