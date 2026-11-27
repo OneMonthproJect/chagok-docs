@@ -26,66 +26,37 @@ bash chagok-docs/scripts/setup-workspace.sh OneMonthproJect
 
 스크립트가 하는 일: 빠진 레포(backend·frontend) clone → 세 레포 `develop` 전환 → 두 코드 레포에 `.claude/rules·skills·agents` 복사 + `.claude/.synced-from` 기록. 내가 할 일: Claude Code 설치·로그인, `.env`·DB 준비([03](03_공통_클론_개발환경.md)), 5장 확인.
 
-## 3. 이미 클론한 팀원: 최신화 (다시 clone하지 않음)
+## 3. 이미 클론한 팀원: 최신화·동기화 — 한 명령 (chagok-docs#208)
 
-작업 폴더(`chagok/`)에서. 미커밋 변경이 있는 레포는 건너뛴다(먼저 내 브랜치에 커밋. `stash`·`reset --hard`·`clean`으로 지우지 않음).
-
-```bash
-# 1) 지금 브랜치와 커밋하지 않은 변경 확인
-for r in chagok-docs chagok-backend chagok-frontend; do
-  echo "== $r ($(git -C "$r" branch --show-current))"; git -C "$r" status --short
-done
-```
-```bash
-# 2) 커밋하지 않은 변경이 없는 레포만 develop 최신화 (변경이 있으면 건너뜀)
-for r in chagok-docs chagok-backend chagok-frontend; do
-  if [ -n "$(git -C "$r" status --porcelain --untracked-files=no)" ]; then
-    echo "건너뜀: $r 에 커밋하지 않은 변경이 있습니다"; continue
-  fi
-  git -C "$r" fetch origin && git -C "$r" switch develop && git -C "$r" pull --ff-only origin develop
-done
-```
-
-`--ff-only`가 실패하면 강제로 맞추지 말고 형상관리자에게 문의한다.
-
-## 4. 동기화 (스킬·규칙이 바뀌었다는 공지를 받으면)
-
-docs가 develop 최신이어야 한다(`git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`).
-
-**개별** — 코드 레포 루트에서
+작업 폴더(`chagok/`)에서. 작업 중인 레포(작업 브랜치·커밋 안 한 변경·갈라진 develop)는 건드리지 않고 건너뛰며 이유를 알려 준다. `stash`·`reset --hard`·`clean`·브랜치 전환·push·외부 도구 설치는 하지 않는다.
 
 ```bash
-cd chagok-backend      # 또는 chagok-frontend
-bash ../chagok-docs/scripts/sync-claude.sh
+bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만(읽기 전용, fetch도 안 함)
+bash chagok-docs/scripts/update-workspace.sh           # 적용: 안전한 최신화 → AI 설정 동기화 → 외부 도구 확인
 ```
 
-**일괄** — 작업 폴더(`chagok/`)에서
+- PowerShell: `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`
+- 처음 한 번은 docs에 이 스크립트가 있어야 한다: `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`
+- **언제**: 형상관리자의 릴리스·배포 공지를 받은 뒤, 지금 작업을 커밋·push하고 Claude 세션을 끝낸 안전한 때. 진행 중인 세션은 기존 설정으로 마무리한다.
+- 건너뛴 레포는 화면 안내대로 정리한 뒤 같은 명령을 다시 실행하면 그 레포만 처리된다. `--ff-only`가 안 되는(갈라진) develop은 강제로 맞추지 말고 형상관리자에게 문의한다.
 
-```bash
-bash chagok-docs/scripts/sync-claude.sh chagok-backend chagok-frontend
-```
+## 4. 동기화가 하는 일
 
-- 코드 레포의 `.claude/rules·skills·agents`는 **복사본**(커밋 안 됨). 고치지 말고 `chagok-docs`에서 고친다. 동기화하면 복사본 폴더를 지우고 다시 복사한다.
+- 코드 레포의 `.claude/rules·skills·agents`는 **복사본**(커밋 안 됨). 고치지 말고 `chagok-docs`에서 고친다. 손으로 고친 사본이 있으면 그 레포를 건너뛰고 알려 준다.
+- 배포 기준은 **형상관리자가 승인·릴리스한 docs `origin/main`**. develop에만 있는 변경, 내 docs 브랜치·미커밋 내용은 복사되지 않는다.
+- 내용이 같으면 다시 복사하지 않는다. 복사본 폴더의 관리 대상이 아닌 파일과 `~/.claude/` 개인 설정·스킬은 건드리지 않는다.
 - `.claude/settings.json`은 레포마다 커밋된 파일이고 **동기화 대상이 아니다**.
-- docs가 develop이 아니면 "주의: … 브랜치입니다" 경고와 함께 **그 브랜치 설정이 복사된다** → develop으로 돌리고 다시 실행.
+- 승인 버전 지정·되돌리기는 `--ref <커밋>`(형상관리자가 공지한 커밋). 옵션·실패 문구·복구는 GUIDE 14장·29장.
 
-## 5. 동기화 확인 (`.synced-from`)
+## 5. 적용 확인
 
 ```bash
-# 작업 폴더(chagok/)에서. 먼저 docs를 develop 최신으로 받아 둔다
-git -C chagok-docs log -1 --format='docs: %h (%D)'
-for r in chagok-backend chagok-frontend; do
-  echo "== $r: $(cat "$r/.claude/.synced-from" 2>/dev/null || echo '동기화 기록 없음')"
-  echo "   스킬 $(ls -d "$r"/.claude/skills/*/ 2>/dev/null | wc -l)개 · 에이전트 $(ls "$r"/.claude/agents/*.md 2>/dev/null | wc -l)개"
-  if diff -rq chagok-docs/.claude/rules "$r/.claude/rules" >/dev/null && diff -rq chagok-docs/.claude/skills "$r/.claude/skills" >/dev/null && diff -rq chagok-docs/.claude/agents "$r/.claude/agents" >/dev/null; then echo "   원본과 같음"; else echo "   원본과 다름 → 동기화 다시 실행"; fi
-done
-grep -l "번호 범위는 외워 쓰지 말고" chagok-backend/.claude/skills/chagok-issue-coder/SKILL.md chagok-backend/.claude/skills/chagok-bug-fix/SKILL.md
-ls ~/.claude/skills 2>/dev/null | grep chagok || echo "개인 스킬 폴더에 chagok-* 없음 (정상)"
+bash chagok-docs/scripts/update-workspace.sh --check
 ```
 
-기대값: 스킬 8 · 에이전트 4, 두 레포 "원본과 같음", `grep`이 두 파일 출력(PR #76 반영), 개인 폴더에 `chagok-*` 없음(있으면 옛 버전이 우선되므로 지운다). `.synced-from`(예: `cf9ef3f (develop)`)은 복사 당시 docs 커밋이라 docs SHA와 달라도 "원본과 같음"이면 최신이다.
+기대값: 세 레포 `최신`(작업 브랜치면 그 안내), 공용 AI 설정 두 레포 `최신 … (origin/main)`, 개인 폴더 `chagok-*` 경고 없음(있으면 지운다 — 옛 버전이 우선된다). 외부 도구는 없어도 정상(선택).
 
-Claude Code에서: 코드 레포 루트에서 `claude` → 신뢰 확인 수락 → `/chagok` 입력 시 스킬 8개, `/agents`에 에이전트 4개.
+Claude Code에서: 열려 있던 세션은 끝내고 **새 세션**으로 코드 레포 루트에서 `claude` → 신뢰 확인 수락 → `/chagok` 입력 시 스킬 8개, `/agents`에 에이전트 4개.
 
 결과는 GUIDE 28.3 회신 양식으로 형상관리자에게 보낸다.
 
@@ -112,6 +83,26 @@ Claude Code에서: 코드 레포 루트에서 `claude` → 신뢰 확인 수락 
 - 스킬 = 절차서(메인 대화), 에이전트 = 스킬을 싣고 별도 맥락·최소 도구로 맡는 보조 작업자(Claude Code 전용). 읽기 전용은 지시문·도구 목록으로 지켜지고, settings.json이 강제하는 것은 deny 패턴(Read 도구의 `.env`류·`secrets/`·`*.pem`, `git push origin main/develop…`·`git push --force/-f…` 형태, `gh issue delete`·`gh api` DELETE)과 커밋·push·PR·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기의 확인 요청(ask)이다(#73). 패턴 밖의 push(예: upstream이 develop인 `git push`)는 ask만 받으므로 확인 창에서 대상 브랜치를 보고 거절한다(GUIDE 19.1).
 - 에이전트 결과는 제안이다. 사람의 리뷰·승인·머지를 대신하지 않는다.
 - claude.ai는 스킬만(형상관리자가 배포하는 `chagok-*.skill`). 에이전트 대신 spec-sync 모드 C·pr-review 스킬을 쓴다(GUIDE 16장).
+
+### 6.1 필요한 것만 부르기 · 토큰 아끼기 (chagok-docs#208)
+
+원본은 `ai-rules.md` 「검증 재사용」·「외부 도구」. 여기는 요약이다.
+
+- **필수 호출은 그대로**: L2·L3 PR 직전 `pr-reviewer`, API·`types.ts`·`mocks/` diff면 `contract-checker`. 그 밖의 작은 일(문구·README·오타)에는 에이전트를 부르지 않는다.
+- **검증은 한 번**: 빌드·테스트는 메인 대화가 한 번 돌리고, 에이전트에는 그 결과(커밋 SHA·명령·결과)를 넘겨 다시 돌리지 않게 한다. 같은 커밋의 결과·CI는 재사용하고, 고친 뒤에는 영향 범위만 다시 돌린다. docs 문서만 바꿨으면 앱 빌드·테스트를 돌리지 않는다.
+- **요청은 좁게**: 이슈 번호·파일·범위를 처음에 준다. GUIDE·개인 가이드처럼 긴 문서는 "N장만 읽어" 한다. 끝나면 "변경·검증 근거·남은 일만" 보고받는다.
+- **오류가 나면**: 같은 명령을 바로 되풀이하지 말고 원인부터. 승인된 범위의 일반 오류는 고치며 계속하고, 범위·정책·보안·데이터 위험이면 멈추고 묻는다.
+- **외부 도구(선택)**: 설치하지 않아도 된다. 쓰면 아래 때만. 설치·버전·제거는 GUIDE 11.1(`bash chagok-docs/scripts/ai-tools.sh`).
+
+| 도구 | 부르는 때 |
+|---|---|
+| RTK | 긴 `git log`·`git diff` 요약(lint·test에는 쓰지 않음, 상태 바꾸는 명령에 붙이지 않음) |
+| Ponytail `/ponytail lite` | 일반 구현·재사용·국소 버그 수정에서 최소 변경 |
+| Context7 | 라이브러리 버전 차이·새 API 확인(코드·개인정보를 질의에 넣지 않음) |
+| Caveman `/caveman` | 진행·인계 보고를 짧게(정책·보안 근거·검증 결과는 줄이지 않음) |
+| React Best Practices | React 구조·Hook·렌더링·성능(Next.js 전용 규칙 제외) |
+| Playwright MCP | UI·사용자 흐름 변경의 브라우저 확인 |
+| `/security-review` | L3 인증·권한·개인정보·격리의 추가 검토(필수 리뷰를 대신하지 않음) |
 
 ## 7. 역할별 추천 순서
 

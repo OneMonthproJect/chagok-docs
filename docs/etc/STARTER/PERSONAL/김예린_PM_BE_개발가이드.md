@@ -3,6 +3,40 @@
 > 기준: 2026-11-24 05:53 KST, backend develop `f562a7b`, docs develop `cf9ef3f`. 담당 기능은 **추천안**([01](../01_P0_핵심기능_담당배정.md)). 공통은 [03](../03_공통_클론_개발환경.md)·[05](../05_공통_협업_개발절차.md).
 > 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../../README.md)·[GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 
+## 0. AI 개발 환경 최신화 및 역할별 효율적 사용 (2026-11-28, chagok-docs#208)
+
+> 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
+
+**공통 — 적용 순서**
+1. 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
+2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
+   ```bash
+   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
+   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
+   ```
+   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
+3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
+
+**공통 — 쓰는 습관**
+- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
+- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
+- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
+- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+
+**역할별 — PM · BE**
+- **선행 의존성·범위**: P1 이슈를 만들거나 배정할 때 선행 이슈·짝 이슈와 00 범위를 먼저 본다. 범위 밖 의견은 `chagok-scope-keeper`(12 백로그 그대로 옮길 때는 쓰지 않음).
+- **중복 이슈·PR 방지**: 만들기 직전에 열린 이슈·PR·원격 브랜치를 다시 확인하고, 같은 일이 있으면 새로 만들지 않고 기존 것에 잇는다.
+- **BE 구현**: 일반 구현·국소 수정에서 Ponytail(`/ponytail lite`)로 최소 변경, 라이브러리 버전·새 API가 불확실할 때만 Context7(선택). 둘 다 없어도 `chagok-issue-coder` 절차 그대로.
+- **기존 테스트 결과 활용**: 같은 커밋의 `./gradlew build`·CI 결과는 다시 돌리지 않는다. `pr-reviewer`에는 그 결과를 넘긴다.
+
+**Claude 요청 예시**
+```text
+P1 이슈 후보 <기능 ID> 목록이야. 이슈를 만들기 전에 열린 이슈·PR과 겹치는지, 선행 이슈가 끝났는지 조회만 해서 표로 보여 줘.
+```
+```text
+chagok-backend#<번호>를 chagok-issue-coder로 구현해줘. 기존 서비스·api 메서드를 먼저 찾아 재사용하고, 계획을 보여 준 뒤 승인받아. 이미 통과한 테스트는 다시 돌리지 말고 바뀐 범위만.
+```
+
 ## 1. 내 역할과 책임
 
 | 구분 | 내용 |

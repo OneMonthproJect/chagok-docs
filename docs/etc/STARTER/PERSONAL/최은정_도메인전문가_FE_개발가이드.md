@@ -3,6 +3,41 @@
 > 기준: 2026-11-24 05:53 KST, frontend develop `bf2ab08`, docs develop `cf9ef3f`. 담당 기능은 **추천안**([01](../01_P0_핵심기능_담당배정.md)) — 본인이 작성한 추천이므로 PM 확인 전까지 확정으로 쓰지 않는다. 공통은 [03](../03_공통_클론_개발환경.md)·[05](../05_공통_협업_개발절차.md).
 > 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../../README.md)·[GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 
+## 0. AI 개발 환경 최신화 및 역할별 효율적 사용 (2026-11-28, chagok-docs#208)
+
+> 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
+
+**공통 — 적용 순서**
+1. 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
+2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
+   ```bash
+   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
+   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
+   ```
+   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
+3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
+
+**공통 — 쓰는 습관**
+- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
+- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
+- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
+- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+
+**역할별 — 도메인전문가 · FE (서브 형상관리)**
+- **문서·코드·API 정합성**: 문서끼리는 `chagok-spec-sync` 모드 B를 직접, 코드 대조는 `contract-checker`. 이미 끝난 대조(예: #195)는 다시 전수 대조하지 않고 바뀐 곳만 본다.
+- **도메인 정책·범위**: 00 범위·05 정책이 바뀌는 의견은 `결정` 이슈로. 문서는 `chagok-docs`에서만 고친다.
+- **서브 형상관리와 충돌 방지**: `main` 머지·릴리스 승인·팀 배포 공지는 형상관리자(김동윤) 일이다. 릴리스 PR 준비·점검까지만 하고 인계한다(D-71). 다른 세션·팀원의 브랜치·worktree는 건드리지 않는다.
+- **React Best Practices(선택)**: FE 구조·Hook·성능을 바꿀 때. Web Design Guidelines는 라이선스 표기 문제로 **보류**(GUIDE 11.1) — 접근성·가독성은 09 화면 기준으로 직접 본다.
+- **검증·AI 사용 기록 재사용**: 앞선 PR의 실행 근거·CI를 링크로 재사용한다. AI 사용 기록은 PR 본문 「AI 사용」에 한 줄, 하루 단위 통합 때 이미 통합된 줄은 참조만(CONTRIBUTING 5장).
+
+**Claude 요청 예시**
+```text
+04·05·08 중 <기능 ID>에 해당하는 절만 읽고, 지금 develop 코드와 어긋난 곳만 표로 보여 줘. #195에서 이미 대조한 항목은 빼.
+```
+```text
+오늘(KST) 머지된 세 레포 PR의 AI 사용 기록 줄을 모아 AI_USAGE 통합 초안을 만들어 줘. 이미 통합된 줄은 빼고, PR은 만들지 마.
+```
+
 ## 1. 내 역할과 책임
 
 | 구분 | 내용 |

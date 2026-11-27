@@ -3,6 +3,41 @@
 > 기준: 2026-11-24 05:53 KST, backend develop `f562a7b`, docs develop `cf9ef3f`. 담당 기능은 **추천안**(확정 Assignee 아님, [01](../01_P0_핵심기능_담당배정.md)). 공통 내용은 [03 환경](../03_공통_클론_개발환경.md)·[05 협업](../05_공통_협업_개발절차.md)을 본다.
 > 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../../README.md)·[GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 
+## 0. AI 개발 환경 최신화 및 역할별 효율적 사용 (2026-11-28, chagok-docs#208)
+
+> 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
+
+**공통 — 적용 순서**
+1. **내가 배포 담당이다.** 공통 AI 설정은 docs `origin/main`에 릴리스된 것만 팀원에게 배포된다. 릴리스 PR을 승인·머지한 뒤 적용 커밋(`origin/main` SHA)과 함께 팀에 공지한다.
+2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
+   ```bash
+   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
+   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
+   ```
+   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
+3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
+
+**공통 — 쓰는 습관**
+- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
+- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
+- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
+- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+
+**역할별 — 형상관리 · BE**
+- **승인 버전 관리**: develop 머지만으로는 배포되지 않는다. 릴리스(develop → main) 승인이 곧 배포 승인이다. 릴리스 전 확인은 내 PC에서 `update-workspace.sh --ref origin/develop`.
+- **배포·공지**: GUIDE 28.1 순서(릴리스 머지 → 공지 → 팀원 `--check` 회신 28.3). 스킬 본문이 바뀐 릴리스만 claude.ai `.skill` 재배포.
+- **검증 근거·사후 리뷰**: 자기 검증으로 머지된 L2·L3·L3 경로 PR은 사후 리뷰 대상이다. PR의 「실행·재사용·미검증」 기록을 보고, 같은 커밋 결과는 다시 돌리지 않는다. 완료는 GitHub 리뷰 또는 「사후 리뷰: 결과 …」 댓글.
+- **동기화 오류·복구**: 문제가 생기면 이전 승인 커밋을 공지하고 팀원은 `update-workspace.sh --ref <커밋>`. 실패 문구별 대처는 GUIDE 29장.
+- **RTK(선택)**: 릴리스 점검 때 긴 `git log`·`git diff` 요약에만 `rtk git log …`. 상태를 바꾸는 명령(`git push`·`gh pr merge` 등)에는 붙이지 않는다.
+
+**Claude 요청 예시**
+```text
+chagok-docs의 .claude/ 변경이 main에 릴리스됐어(릴리스 PR #<번호>). 팀 공지문과 적용 확인 회신 양식, .skill 재배포가 필요한지 만들어줘. 게시는 하지 마.
+```
+```text
+develop PR #<번호>를 사후 리뷰하려고 해. PR 본문의 실행·재사용 근거와 CI를 먼저 보고, 다시 돌려야 하는 범위만 골라 줘. 빌드는 아직 돌리지 마.
+```
+
 ## 1. 내 역할과 책임
 
 | 구분 | 내용 |

@@ -3,6 +3,41 @@
 > 기준: 2026-11-24 05:53 KST, backend develop `f562a7b`, docs develop `cf9ef3f`. 담당 기능은 **추천안**([01](../01_P0_핵심기능_담당배정.md)). 공통은 [03](../03_공통_클론_개발환경.md)·[05](../05_공통_협업_개발절차.md).
 > 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../../README.md)·[GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 
+## 0. AI 개발 환경 최신화 및 역할별 효율적 사용 (2026-11-28, chagok-docs#208)
+
+> 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
+
+**공통 — 적용 순서**
+1. 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
+2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
+   ```bash
+   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
+   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
+   ```
+   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
+3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
+
+**공통 — 쓰는 습관**
+- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
+- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
+- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
+- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+
+**역할별 — DB관리 · BE**
+- **필수 DB 검증은 그대로(L3)**: 마이그레이션·시드는 빈 DB 새 설치 + 같은 DB 재실행(Flyway validate → up to date), 시드 기대값(07 7.5), V(n) 정합성 테스트.
+- **DB 테스트 결과 재사용 조건**: 같은 커밋이고 그사이 `db/migration`·`db/seed`·Entity·Repository가 바뀌지 않았을 때만 앞선 `dbTest`·CI 결과를 근거로 쓴다. 하나라도 바뀌면 그 영향 범위를 다시 돌린다.
+- **영향 범위 중심**: 바뀐 테이블·마이그레이션에 닿는 테스트부터. 관련 없는 고비용 검증을 일괄로 돌리지 않는다.
+- **개발·테스트 DB 보호**: `dbTest`는 빈 테스트 DB에서만. 개발·시연·공용 DB를 직접 바꾸지 않고, AI에게 DB 실행·변경을 맡기지 않는다.
+- **Context7·RTK(선택)**: Flyway·Spring Data 버전 차이가 불확실할 때만 Context7(레포 `build.gradle` 버전 우선). 긴 `git log`·`git diff`는 `rtk`로 요약 가능, 테스트 실패 판정은 원래 출력으로.
+
+**Claude 요청 예시**
+```text
+이번 브랜치의 마이그레이션 변경이 어떤 테이블·Entity·테스트에 닿는지 영향 범위만 조회해 줘. 이미 통과한 dbTest 결과(커밋 <SHA>)를 재사용할 수 있는지도 판단해 줘. DB는 실행하지 마.
+```
+```text
+chagok-seed-builder 에이전트로 demo_seed.sql을 07 시드표와 대조해 줘. 바뀐 마이그레이션 V<번호> 기준으로만.
+```
+
 ## 1. 내 역할과 책임
 
 | 구분 | 내용 |

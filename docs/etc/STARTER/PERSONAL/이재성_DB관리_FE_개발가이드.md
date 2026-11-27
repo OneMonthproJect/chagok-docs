@@ -3,6 +3,41 @@
 > 기준: 2026-11-24 05:53 KST, frontend develop `bf2ab08`, docs develop `cf9ef3f`. 담당 기능은 **추천안**([01](../01_P0_핵심기능_담당배정.md)). 공통은 [03](../03_공통_클론_개발환경.md)·[05](../05_공통_협업_개발절차.md).
 > 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../../README.md)·[GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 
+## 0. AI 개발 환경 최신화 및 역할별 효율적 사용 (2026-11-28, chagok-docs#208)
+
+> 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
+
+**공통 — 적용 순서**
+1. 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
+2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
+   ```bash
+   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
+   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
+   ```
+   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
+3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
+
+**공통 — 쓰는 습관**
+- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
+- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
+- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
+- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+
+**역할별 — DB관리 · FE**
+- **FE·DB관리 협업·API 계약**: 화면이 쓰는 API가 08과 맞는지는 `api.ts`·`types.ts`·`mocks/` diff가 있을 때 `chagok-contract-checker`로. 백엔드와 어긋나면 프론트에서 우회하지 않고 차이를 보고한다.
+- **React Best Practices(선택)**: Hook·렌더링·데이터 요청·성능을 바꿀 때만. Next.js 전용·`server-*` 규칙은 적용하지 않는다(Vite SPA).
+- **Playwright 검증**: UI·사용자 흐름이 바뀌면 기존 Playwright MCP로 확인한다(worktree마다 자기 포트). 같은 커밋에서 확인한 화면은 다시 돌리지 않는다.
+- **컴포넌트를 늘리지 않기**: `shared/ui`·기존 컴포넌트를 먼저 찾는다. 한 화면에서만 쓰는 공통 컴포넌트를 새로 만들지 않는다(CONVENTIONS 7·11장).
+- **Ponytail·RTK(선택)**: 국소 수정은 `/ponytail lite`로 최소 변경. 긴 `git log`·`git diff`는 `rtk`로 요약. `npm run lint`·`npm test`에는 RTK를 쓰지 않는다(실측상 출력이 늘어남).
+
+**Claude 요청 예시**
+```text
+chagok-frontend#<번호> 화면 수정 전에, 재사용할 수 있는 shared/ui 컴포넌트와 기존 features api 함수를 찾아 줘. 새 컴포넌트는 꼭 필요할 때만 제안해.
+```
+```text
+이 브랜치의 api.ts·types.ts 변경을 chagok-contract-checker로 08과 대조해 줘. 방금 돌린 npm run lint·test·build 결과(커밋 <SHA>)를 넘길 테니 다시 돌리지 마.
+```
+
 ## 1. 내 역할과 책임
 
 | 구분 | 내용 |
