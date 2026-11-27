@@ -20,7 +20,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-CUS-03 | P0-핵심 | REQ-05 | customer / vehicle | 08 | S-06 | X1, X17 |
 | F-CUS-04 | P0-핵심 | REQ-06 | customer, vehicle, maintenance_record, service_item / — | 07 | S-06 | X1 |
 | F-CUS-05 | P0-핵심 | REQ-07 | vehicle, customer, maintenance_record, service_item, staff / — | 09, 10, 11 | S-07 | X2 |
-| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13 | S-08 | X5, X7(13), X11, T12, X13 |
+| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13, 36 (36은 P0-나머지) | S-08 | X5, X7(13), X11, T12, X13 |
 | F-VIS-01 | P0-핵심 | REQ-08 | vehicle, maintenance_record, service_item / — | 10 | S-08 | X6, T8~T11 |
 | F-CYC-01 | P0-핵심 | REQ-07·08·10 | maintenance_record, service_item / — | 04, 10, 14, 17 | — | T1~T13 |
 | F-TGT-01 | P0-핵심 | REQ-10·11 | customer, vehicle, maintenance_record, service_item, reservation / — | 14 | S-04 | X7 |
@@ -30,7 +30,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-RSV-04 | P0-핵심 | REQ-15 | reservation / reservation (version) | 18 | S-02 패널 | R5, R10, R12, R13, X12 |
 | F-MNT-02 | P0-나머지 | REQ-16 | vehicle, service_item / maintenance_record | 12 | S-08 | T13, X11 |
 | F-MNT-03 | P0-나머지 | REQ-17 | vehicle, service_item / maintenance_record(inspect_result, V2) | 12 | S-08 | T15 |
-| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 37, 38 | S-07, M-03 | H1~H11, X14 |
+| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 37, 38, 36 | S-07, M-03 | H1~H11, X14 |
 | F-CYC-02 | P0-나머지 | REQ-17 | maintenance_record / — | 10, 14, 17 | S-02, S-04, S-07, S-08 | T14, T15 |
 | F-RSV-05 | P0-나머지 | REQ-18 | reservation, staff(담당 색) / — | 15, 42 | S-02 | |
 | F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item, staff(재배정·담당 중복, P0-나머지) / reservation, reservation_item, reservation_revision(ASSIGNEE, V2) (version) | 19, 36, 41 (재배정·36·41은 P0-나머지) | M-02 | R7~R9, R11, R14, R18, R20, R24, X11~X13 |
@@ -56,7 +56,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-ITEM-01 | P1 | REQ-31 | — / service_item | 13, 27 | S-09 | |
 | F-STAT-01 | P1 | REQ-25 | customer, maintenance_record / — | 30 | S-02 | |
 
-X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 기능(F-RSV-01·06·09·10, F-MNT-04, F-CUS-10·11, F-STF-01, F-AUTH-04)에 해당한다. F-AUTH-03의 API(03·24)는 X16 범위 밖이고 X9와 같은 공통 규칙(서비스 관리자 토큰 → 정비소 API 403)을 따른다. X18(사장·정비사 토큰으로 `/api/admin/**` → 403)은 F-AUTH-02·F-ADM-01·02에 해당한다. X19~X21(P1 계정 상태 확인, 08 0.6)은 모든 정비소 API의 공통 조건이다. R15~R20·X13은 P0-나머지부터 검증한다(P0-핵심은 등록자가 담당으로 자동 지정).
+X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 기능(F-RSV-01·06·09·10, F-MNT-01(36)·04, F-CUS-10·11, F-STF-01, F-AUTH-04)에 해당한다. F-AUTH-03의 API(03·24)는 X16 범위 밖이고 X9와 같은 공통 규칙(서비스 관리자 토큰 → 정비소 API 403)을 따른다. X18(사장·정비사 토큰으로 `/api/admin/**` → 403)은 F-AUTH-02·F-ADM-01·02에 해당한다. X19~X21(P1 계정 상태 확인, 08 0.6)은 모든 정비소 API의 공통 조건이다. R15~R20·X13은 P0-나머지부터 검증한다(P0-핵심은 등록자가 담당으로 자동 지정).
 
 ## 2. 테이블 기준 (쓰는 곳)
 
