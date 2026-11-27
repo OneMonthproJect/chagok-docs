@@ -2,7 +2,7 @@
 
 > 기능 ID ↔ 요구사항 ↔ 테이블 ↔ API ↔ 화면 ↔ 테스트
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 반영, 2026-11-23 D-60~D-63 반영(chagok-docs#65)
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 반영, 2026-11-23 D-60~D-63 반영(chagok-docs#65), 2026-11-27 구현 대조 반영(chagok-docs#195)
 근거: 03(REQ), 04(F·T·R·H·K·L), 07(테이블·V1 검증), 08(API·X), 09(S·M), M1 결정 A~D(4장), 결정 D-51~D-63
 ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표와 원본이 다르면 원본이 맞다.
 
@@ -20,7 +20,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-CUS-03 | P0-핵심 | REQ-05 | customer / vehicle | 08 | S-06 | X1, X17 |
 | F-CUS-04 | P0-핵심 | REQ-06 | customer, vehicle, maintenance_record, service_item / — | 07 | S-06 | X1 |
 | F-CUS-05 | P0-핵심 | REQ-07 | vehicle, customer, maintenance_record, service_item, staff / — | 09, 10, 11 | S-07 | X2 |
-| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13 | S-08 | X5, X7(13), X11, T12, X13 |
+| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13, 36 (36은 P0-나머지 담당 후보) | S-08 | X5, X7(13), X11, T12, X13 |
 | F-VIS-01 | P0-핵심 | REQ-08 | vehicle, maintenance_record, service_item / — | 10 | S-08 | X6, T8~T11 |
 | F-CYC-01 | P0-핵심 | REQ-07·08·10 | maintenance_record, service_item / — | 04, 10, 14, 17 | — | T1~T13 |
 | F-TGT-01 | P0-핵심 | REQ-10·11 | customer, vehicle, maintenance_record, service_item, reservation / — | 14 | S-04 | X7 |
@@ -30,7 +30,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-RSV-04 | P0-핵심 | REQ-15 | reservation / reservation (version) | 18 | S-02 패널 | R5, R10, R12, R13, X12 |
 | F-MNT-02 | P0-나머지 | REQ-16 | vehicle, service_item / maintenance_record | 12 | S-08 | T13, X11 |
 | F-MNT-03 | P0-나머지 | REQ-17 | vehicle, service_item / maintenance_record(inspect_result, V2) | 12 | S-08 | T15 |
-| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 37, 38 | S-07, M-03 | H1~H11, X14 |
+| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 36(담당 후보), 37, 38 | S-07, M-03 | H1~H11, X14 |
 | F-CYC-02 | P0-나머지 | REQ-17 | maintenance_record / — | 10, 14, 17 | S-02, S-04, S-07, S-08 | T14, T15 |
 | F-RSV-05 | P0-나머지 | REQ-18 | reservation, staff(담당 색) / — | 15, 42 | S-02 | |
 | F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item, staff(재배정·담당 중복, P0-나머지) / reservation, reservation_item, reservation_revision(ASSIGNEE, V2) (version) | 19, 36, 41 (재배정·36·41은 P0-나머지) | M-02 | R7~R9, R11, R14, R18, R20, R24, X11~X13 |
@@ -82,12 +82,12 @@ X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 �
 | global | 인증 필터, 공통 응답, 오류 | 전부 |
 | domain/account | F-AUTH-01·02·03·04, F-STF-01 (담당 후보 36 포함), 계정 상태 확인(08 0.6, 11 3.3) | 01, 02, 03, 24~26, 36, 50~52 |
 | domain/shop | F-ADM-01·02 | 31~35 |
-| domain/customer | F-CUS-01~04·06·07·09~11 | 05~09, 22, 23, 43~49 |
+| domain/customer | F-CUS-01~04·06·07·09~11 | 05, 06, 08, 09, 22, 23, 43~49 (07 고객 상세는 `screen/visit`이 조립, #96) |
 | domain/item | F-ITEM-01 | 13, 27 |
 | domain/maintenance | F-MNT-01~04, 이력 조회 | 11, 12, 37, 38 |
 | domain/reservation | F-RSV-01·02·04~10 | 15, 16, 18~21, 39~42 |
 | domain/cycle | F-CYC-01·02·03 | (다른 패키지가 호출) |
-| screen/visit | F-VIS-01, F-CUS-05 항목 상태 | 10 |
+| screen/visit | F-VIS-01, F-CUS-05 항목 상태, F-CUS-04 고객 상세(차량별 `dueCount`·`soonCount`, D-63 B01·#96) | 07, 10 |
 | screen/target | F-TGT-01, F-HOME-01 | 04, 14 |
 | screen/booking | F-RSV-03 | 17 |
 | (P1) domain/contact | F-CON-01·02 | 28, 29 |
@@ -110,5 +110,5 @@ X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 �
 | 버전 | 단계 | 담는 것 (07 6장) | 쓰는 기능 |
 |---|---|---|---|
 | `V1__init.sql` | P0-핵심 (B-3) | 9개 테이블, 복합 FK 8개(+ `reservation`·`maintenance_record`의 담당 정비사 → `staff`), 부모 UNIQUE(shop_id, id) 5개(`staff` 추가), `reservation.assignee_staff_id`, CHECK·인덱스 | P0-핵심 전부 |
-| `V2__…` | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73) | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06, F-ADM-01(P1, 칼럼만 먼저) |
+| `V2__p0_remaining.sql` (07 6.4) | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73) | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06, F-ADM-01(P1, 칼럼만 먼저) |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, `contact_log` 등. 약관 동의 기록(07 4.4)은 V3 또는 별도 버전 — DB 담당자 결정 | F-CUS-10·11, F-STF-01, F-CON-02, F-AUTH-04 등 |
