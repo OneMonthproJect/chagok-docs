@@ -142,7 +142,7 @@ gh release create v0.5-m2-integration --repo OneMonthproJect/chagok-backend --ge
 
 릴리스 PR 본문에는 판정, 포함 PR 목록, 포함 이슈(`Refs #12`처럼. **`Closes`·`Fixes`·`Resolves`는 쓰지 않는다** — 기본 브랜치가 `main`이라 머지 때 이슈가 닫히고, pr-check가 ❌로 막는다. D-49), 해결한 막는 항목, 미룬 CodeRabbit 지적과 사유, 다른 두 레포의 릴리스 PR 링크를 넣는다. 제목에도 닫는 키워드를 넣지 않는다. 릴리스 PR을 머지한 뒤 화면의 Delete branch는 누르지 않는다(`develop` 유지). 코드 레포는 `release` 라벨이 자동으로 붙고 CodeRabbit이 리뷰를 시작한다(`chagok-docs`는 CodeRabbit 없음). 시작하지 않으면 `@coderabbitai full review` 댓글을 안내한다.
 
-명령은 모두 사람이 실행한다. 릴리스 PR 머지는 형상관리자가 GitHub에서 한다. AI는 대상 레포·PR을 지정한 사용자의 명시적 지시 없이 `gh pr merge`를 실행하지 않고, 자동 머지도 켜지 않는다(D-71). `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻고, `main`으로의 직접 push는 막혀 있다.
+명령은 모두 사람이 실행한다. 릴리스 PR 머지는 형상관리자가 GitHub에서 한다. AI는 대상 레포·PR을 지정한 사용자의 명시적 지시 없이 `gh pr merge`를 실행하지 않고, 자동 머지도 켜지 않는다(D-71). `gh pr create`·`git tag`·`git push`·`gh release create`는 `.claude/settings.json`이 확인을 묻는다(`git -C <경로> tag·push`처럼 앞에 옵션을 붙인 형태도 `git * tag *`·`git * push *`로 묻는다). `origin`의 `main`·`develop`으로 직접 push하는 형태(`git push origin main`, `HEAD:develop`처럼 대상이 main·develop인 refspec)와 `--force`·`-f`·`+refspec` push는 deny로 막혀 있고, 그 밖의 형태(`git -C <경로> push origin develop`, `-u`·`--set-upstream` 등)는 deny가 아니라 확인만 묻는다(훅이나 서버 보호가 필요, #177). `bash -c`·셸 별칭·스크립트 안의 명령은 패턴에 걸리지 않으므로 지시문으로 금지한다(GUIDE 19.1).
 
 M3 MVP 검증 릴리스가 "머지 가능"이어도 P2는 착수하지 않는다(D-70). 남은 기간은 M4 오류 수정·안정화와 M5 시연 준비에 쓴다. M4 기능 동결 릴리스 뒤에는 `FEATURE_FREEZE=true`(Organization 변수, 또는 세 레포 각각)로 바꾸라고 알린다.
 
