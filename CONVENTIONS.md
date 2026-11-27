@@ -222,14 +222,23 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
   ]}]},
 },
 {
-  files: ['src/pages/**', 'src/features/*/components/**'],
+  files: ['src/pages/**'],
   rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/mocks/**', '**/mocks'], message: 'Mock은 api.ts에서만 고릅니다 (CONVENTIONS 7장 Mock)' },
+  ]}]},
+},
+{
+  // flat config는 같은 규칙을 나중 설정이 덮어쓴다. components에는 위 features 경계 패턴을 함께 둬야 feature 경계가 꺼지지 않는다.
+  files: ['src/features/*/components/**'],
+  rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['@/pages/*'], message: 'features는 pages를 import하지 않습니다' },
+    { group: ['@/features/*'], message: '다른 feature가 필요하면 pages에서 조합하세요 (같은 feature 안은 상대 경로)' },
     { group: ['**/mocks/**', '**/mocks'], message: 'Mock은 api.ts에서만 고릅니다 (CONVENTIONS 7장 Mock)' },
   ]}]},
 },
 ```
 
-`api.ts`의 동적 `import()`는 이 규칙에 걸리지 않는다(정적 import만 막음). 위 규칙은 화면 쪽의 정적 import를 막는 장치다.
+`api.ts`의 동적 `import()`는 이 규칙에 걸리지 않는다(정적 import만 막음). 위 규칙은 화면 쪽의 정적 import를 막는 장치다. 실제 설정은 chagok-frontend `eslint.config.js`(같은 규칙, 패턴을 상수로 묶음).
 
 ---
 
@@ -241,13 +250,13 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | `EndpointGuardTest` | 등록 안 된 경로 거부, 토큰 없이 `/api/**` 401, 서비스 관리자 토큰으로 `/api/**` 403, 정비소 토큰으로 `/api/admin/**` 403, `/actuator/health`만 공개 (SecurityConfig는 `anyRequest().denyAll()`로 끝) | `기반` 이슈 B-1 (설계: 12 백로그 9장). 보호할 API가 없는 지금은 만들지 않는다 |
 | pr-check 비밀값 검사 | `.env`·키 파일, 토큰 형태, 설정 파일의 평문 비밀번호 | 이미 있음 (❌) |
 | pr-check DB·Flyway 규칙 | 공유된 마이그레이션 수정, 이름 규칙, `schema.sql`·`data.sql`, classpath 안 시드, `ddl-auto` ≠ validate | 이미 있음 (❌) |
-| cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 |
-| 예약 규칙 테스트 R1~R29 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 |
+| cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 (T1~T13 chagok-backend#19, T14·T15 chagok-backend#41. T16·T17은 P1) |
+| 예약 규칙 테스트 R1~R29 | 예약 시각·중복·지난 날짜·상태 변경 (04) | 예약 이슈 (chagok-backend#26·#27·#33·#35~#38) |
 | 격리·인증 테스트 X (08 9장 전체, 현재 X1~X21) | 남의 정비소 데이터 → 404·400·섞임 없음(격리), 역할·인증 → 401·403, 계정 상태(P1) → 403 | 각 도메인 이슈 (X18 경로 규칙은 B-1 `EndpointGuardTest`) |
-| Flyway + 빈 MySQL CI(`backend-ci`), 기존 버전 파일 수정 차단(`pr-check`) | 스키마 차이 | `기반` 이슈 |
-| ESLint 경계 규칙 | 프론트 feature 간 import | 프론트 `기반` 이슈 |
+| Flyway + 빈 MySQL CI(`backend-ci`), 기존 버전 파일 수정 차단(`pr-check`) | 스키마 차이 | `기반` 이슈 (B-0, 있음) |
+| ESLint 경계 규칙 | 프론트 feature 간 import | 프론트 `기반` 이슈 (B-2 chagok-frontend#10, 있음) |
 | pr-check | 한 PR이 도메인 3개(프론트는 feature 3개) 이상을 건드리면 경고, 명세 변경인데 `chagok-docs` 문서 PR 링크가 없으면 경고·차단 | 이미 있음 |
-| CODEOWNERS | 패키지 주인에게 자동 리뷰 요청 | 결정 14 후 이름 기입 |
+| CODEOWNERS | 패키지 주인에게 자동 리뷰 요청 | D-14(chagok-docs#23)로 이름 기입 (있음) |
 
 ### ArchitectureTest
 
