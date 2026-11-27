@@ -608,12 +608,32 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 }
 ```
 
-P0-나머지부터 `records[]`에 `source`, `inspectResult`, `version`(수정 확인용 번호), `edited`(수정 이력 있음, F-MNT-04), `staff { staffId, name }`(그 기록의 담당 정비사)이 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). `version`·`edited`·`staff`의 표·예시는 F-MNT-04 착수 PR에서 확정한다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜).
+P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 세 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
 
-P0-나머지 `records[]` 예: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). `version`·`edited`·`staff`는 F-MNT-04 확정 전이라 적지 않았다.
+| 응답 records[] | 타입 | 설명 |
+|---|---|---|
+| version | number | 수정 확인용 번호. 기록을 저장할 때(12) 0이고 수정(37)마다 +1(07 3.7). 화면은 수정 요청에 이 값을 그대로 보낸다 |
+| edited | boolean | 수정 이력(38)이 한 건이라도 있으면 `true`. 이력 내용은 38에서 받는다 |
+| staff | object | 그 기록의 담당 정비사 `{ staffId, name }`. `name`은 그 계정의 현재 이름(38·41과 같음). 37로 담당을 바꾸면 이 값이 바뀐다 |
+
+P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). 수정한 적이 없어 `version`은 0, `edited`는 `false`다. 담당 `staff` 값은 예시 값이다.
 
 ```json
-{ "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null, "source": "CUSTOMER_STATEMENT", "inspectResult": null }
+{
+  "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null,
+  "source": "CUSTOMER_STATEMENT", "inspectResult": null,
+  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }
+}
+```
+
+예 2: 37·38 예시의 기록 16을 두 번 수정한 뒤의 모양이다(`version` 2, `edited` `true`, 수정한 내용은 38 예시와 같다).
+
+```json
+{
+  "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "INSPECT", "date": "2026-10-24", "memo": "합성유 사용",
+  "source": "SHOP", "inspectResult": "CAUTION",
+  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }
+}
 ```
 
 ### 12 POST `/api/vehicles/{vehicleId}/visits` — 방문·정비 기록 저장
@@ -1188,9 +1208,129 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
     "error": null
   }
   ```
-- **37** `PATCH /api/records/{recordId}` (정비 기록 수정, D-55). 요청 `version`(필수), `recordDate`·`mileage`·`type`·`itemId`·`inspectResult`·`memo`·`mechanicId`(바꿀 것만), `reason`(선택). 차량은 바꿀 수 없다. 응답: 수정된 기록(`version` +1). 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(미래 방문일·같은 방문의 같은 항목 중복·바뀐 필드 없음·`itemId`/`mechanicId` 오류 X11·X13), `FORBIDDEN`(정비사가 남이 담당한 기록), `EDIT_PERIOD_EXPIRED`(정비사가 방문일 기준 3일 초과. 외부 기록은 저장일 기준, 수정 전 값 기준), `CONCURRENT_MODIFICATION`. 수정할 때마다 `maintenance_record_revision`에 수정자·수정 시각·수정 전 값을 남긴다.
-- **38** `GET /api/records/{recordId}/revisions`. 응답 `items: [ { revisionNo, changedAt, changedBy { staffId, name }, reason, changes: [ { field, before, after } ] } ]`(수정 전 값과 다음 값을 서버가 비교해 `changes`를 만든다).
-- **39** `POST /api/reservations/{reservationId}/start` (방문 접수, D-52). 요청 `{ version, modelYear?, mileage? }`. 차량의 연식·최근 주행거리가 비어 있으면 `modelYear`·`mileage`가 필수이고 차량에 저장한다(D-58, 없으면 400). 응답: 17과 같은 예약 요약(`status = IN_PROGRESS`, `version` +1). 에러: `NOT_FOUND`(X14), `INVALID_STATUS_TRANSITION`, `CONCURRENT_MODIFICATION`, `INVALID_INPUT`. 접수 뒤 정비 기록은 별도로 저장한다(05 POL-95).
+- **37** `PATCH /api/records/{recordId}` (정비 기록 수정, D-55, F-MNT-04). **기록 1행**의 방문일·주행거리·구분·항목·점검 결과·메모·담당 정비사를 고친다. 보낸 필드만 바꾼다. 차량은 바꿀 수 없고 삭제는 없다. 사장·정비사가 호출할 수 있고 정비사는 아래 권한 규칙을 따른다.
+
+  | 요청 | 타입 | 필수 | 검증 |
+  |---|---|---|---|
+  | version | number | ○ | 화면이 읽은 기록의 `version`(11 `records[].version`). 누락이거나 숫자가 아니면 400 `INVALID_INPUT`, 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+  | recordDate | date | | 바꿀 방문일. 오늘 이전·오늘(미래는 400). 외부 기록(`EXTERNAL`)이면 고객이 말한 정비일 |
+  | mileage | number | | 바꿀 주행거리. 정수 0~2,000,000 (0.1) |
+  | type | enum | | 바꿀 구분 `REPLACE`·`INSPECT`·`EXTERNAL`·`DECLINE` (0.4). 출처(`source`)는 서버가 맞춘다(`EXTERNAL`이면 `CUSTOMER_STATEMENT`, 그 밖은 `SHOP`, 07 3.7 CHECK) |
+  | itemId | number | | 바꿀 항목. 그 정비소의 쓰는 항목(X11), 아니면 400 |
+  | inspectResult | enum | | `GOOD`·`CAUTION`. 수정 뒤 구분이 `INSPECT`일 때만 보낼 수 있고 아니면 400 |
+  | memo | string | | ~200자. 빈 문자열 `""`이면 메모를 비운다(19·40과 같음) |
+  | mechanicId | number | | 바꿀 담당 정비사. 그 정비소의 사장·정비사(X13), 아니면 400. 정비사도 다른 정비사를 지정할 수 있다(12와 같음) |
+  | reason | string | | 수정 사유, ~200자. 공백뿐이면 사유 없음으로 본다 |
+
+  - 같은 값으로 두는 필드(`mileage`·`itemId` 등)는 바꾸는 것이 아니다. 바뀌는 필드가 하나도 없으면(`version`만 보냈거나 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 보낸 필드 중 요청 표 순서로 첫째, 하나도 없으면 `recordDate`이다. 이때 이력은 남지 않는다.
+  - **권한(수정 전 기록 기준)**: 사장은 모든 기록·기간 제한 없음. 정비사는 **수정 전 담당이 본인인 기록**만이고 아니면 403 `FORBIDDEN`(H3), **수정 전 방문일 + 3일 이내**(오늘 ≤ 방문일 + 3일)여야 하고 넘으면 403 `EDIT_PERIOD_EXPIRED`(H10). 외부 기록은 방문일이 고객이 말한 정비일이므로 **저장일(`created_at`의 서울 날짜)** 로 센다. 담당을 다른 정비사로 바꾸는 것도 이 기준으로 한 번 확인할 뿐 바뀐 담당에게는 제한이 없다.
+  - **구분·점검 결과**: 구분을 `INSPECT`가 아닌 것으로 바꾸면 기존 점검 결과는 비워진다. `INSPECT`로 바꾸면서 `inspectResult`를 보내지 않으면 `null`(결과 없음)이다. 같은 방문(`visit_key`)에 같은 항목이 둘이 되면 400 `INVALID_INPUT`이고 `fieldErrors`는 `itemId`(H7). 수정 뒤 값으로 검사한다.
+  - **주행거리**: 수정한 `mileage`가 차량 최근 주행거리보다 크면 차량 값을 갱신하고 작거나 같으면 갱신하지 않는다(05 POL-60). 오류가 아니다.
+  - **서버가 확인하는 순서**: 형식(타입·길이·범위·미래 방문일, 400) → 정비소 소유(`getOwned`, 아니면 404, X14) → `version` 일치(409) → 권한(403 `FORBIDDEN` → `EDIT_PERIOD_EXPIRED`) → `itemId`·`mechanicId`(400, X11·X13) → 구분·점검 결과 짝(400) → 지금 값과 같은 필드를 뺀 뒤 바뀐 것이 있는지(400) → 같은 방문 항목 중복(400) → 저장. 하나라도 어긋나면 기록·`version`·이력이 모두 그대로다.
+  - **응답**: `{ recordId, vehicleId, version }`(`version` +1). 수정된 기록 전체는 싣지 않는다. 화면은 수정 뒤 11을 다시 조회해 최신 값과 `edited`를 보여 준다. 주기 상태는 저장하지 않고 조회 때 계산하므로 수정 즉시 다음 정비일·상태·재점검 대상에 반영된다(H2).
+  - 수정할 때마다 `maintenance_record_revision`에 **1행**(수정자·수정 시각·수정 전 값 전체·사유)을 같은 트랜잭션으로 남긴다. 조회는 38.
+  - 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(`version` 누락, 미래 방문일, 값 범위·길이, `itemId`·`mechanicId` 오류, `inspectResult`와 구분 불일치, 같은 방문 항목 중복, 바뀐 것 없음), `FORBIDDEN`(정비사가 남이 담당한 기록), `EDIT_PERIOD_EXPIRED`(정비사 기간 초과), `CONCURRENT_MODIFICATION`.
+
+  요청·응답 예시(사장이 11 예시의 기록 16에 주행거리·메모를 보완):
+
+  ```json
+  { "version": 0, "mileage": 52000, "memo": "합성유 사용", "reason": "입력 누락 보완" }
+  ```
+
+  ```json
+  { "success": true, "data": { "recordId": 16, "vehicleId": 4, "version": 1 }, "error": null }
+  ```
+
+  구분 정정 요청 예시(교체 → 점검, 이때 점검 결과를 함께 보낼 수 있다):
+
+  ```json
+  { "version": 1, "type": "INSPECT", "inspectResult": "CAUTION" }
+  ```
+- **38** `GET /api/records/{recordId}/revisions` (정비 기록 수정 이력 조회, D-55). 사장·정비사 모두 볼 수 있다. 남의 정비소 기록은 404(X14, H5). 이력은 쓰기만 하고 고치거나 지우지 않는다.
+
+  | 응답 data | 설명 |
+  |---|---|
+  | items | 아래 목록. 수정 이력이 없으면 `[]` |
+
+  | 응답 items[] | 설명 |
+  |---|---|
+  | revisionNo | 그 기록의 수정 번호. 1부터(07 4.1) |
+  | changedAt | 수정한 일시 (datetime) |
+  | changedBy | 수정한 사람 `{ staffId, name }` |
+  | reason | 수정 사유. 없으면 `null` |
+  | changes | `[ { field, before, after } ]`. 그 수정에서 바뀐 필드마다 한 항목, 아래 `field` 순서로 |
+
+  | changes[].field | before·after |
+  |---|---|
+  | recordDate | date |
+  | mileage | number 또는 `null` |
+  | type | enum (`REPLACE`·`INSPECT`·`EXTERNAL`·`DECLINE`) |
+  | item | `{ itemId, name }` (37 요청의 `itemId`) |
+  | inspectResult | `GOOD`·`CAUTION` 또는 `null` |
+  | memo | string 또는 `null` |
+  | mechanic | `{ staffId, name }` (37 요청의 `mechanicId`, 담당 정비사) |
+
+  서버는 한 수정의 수정 전 값(`prev_*`)과 **다음 수정의 수정 전 값**(마지막 수정은 지금 기록)을 비교해 `changes`를 만든다. 순서는 `revisionNo` 오름차순(오래된 것부터)이고 쪽 나누기는 없다. 구분을 바꿔 점검 결과가 비워진 것은 `inspectResult`의 `changes` 항목으로 나온다. `name`은 그 항목·계정의 현재 이름이다. 화면은 수정 날짜·수정자·`항목명: 전 → 후`를 보여 준다(F-MNT-04).
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "items": [
+        {
+          "revisionNo": 1,
+          "changedAt": "2026-11-25T10:05:00",
+          "changedBy": { "staffId": 1, "name": "박사장" },
+          "reason": "입력 누락 보완",
+          "changes": [
+            { "field": "mileage", "before": null, "after": 52000 },
+            { "field": "memo", "before": null, "after": "합성유 사용" }
+          ]
+        },
+        {
+          "revisionNo": 2,
+          "changedAt": "2026-11-26T09:30:00",
+          "changedBy": { "staffId": 1, "name": "박사장" },
+          "reason": null,
+          "changes": [
+            { "field": "type", "before": "REPLACE", "after": "INSPECT" },
+            { "field": "inspectResult", "before": null, "after": "CAUTION" }
+          ]
+        }
+      ]
+    },
+    "error": null
+  }
+  ```
+- **39** `POST /api/reservations/{reservationId}/start` (방문 접수, D-52, F-RSV-09). 상태 `RESERVED`인 예약을 `IN_PROGRESS`로 바꾼다(차량 도착). 시각 전·후 모두 가능하다. 사장·정비사가 호출할 수 있고 담당 정비사가 아니어도 된다.
+
+  | 요청 | 타입 | 필수 | 검증 |
+  |---|---|---|---|
+  | version | number | ○ | 18~21·40과 같음. 누락이거나 숫자가 아니면 400 `INVALID_INPUT`, 서버 값과 다르면 409 `CONCURRENT_MODIFICATION` |
+  | modelYear | number | 조건부 ○ | 차량의 연식이 비어 있으면 필수(D-58, 없으면 400). 1980 ~ 현재 연도 + 1 (0.1) |
+  | mileage | number | 조건부 ○ | 차량의 최근 주행거리가 비어 있으면 필수(D-58, 없으면 400). 정수 0~2,000,000 (0.1) |
+
+  - **차량 반영**(같은 트랜잭션): `modelYear`는 차량 연식이 비어 있을 때만 채우고 이미 있으면 바꾸지 않는다. `mileage`는 차량 최근 주행거리가 비어 있거나 보낸 값이 더 클 때만 갱신하고, 같거나 작으면 바꾸지 않으며 오류가 아니다(05 POL-60). 차량에 값이 이미 있으면 보내지 않아도 된다. 보낸 값은 범위를 확인한다.
+  - **서버가 확인하는 순서**: 형식(400) → 정비소 소유(`getOwned`, 아니면 404, X14) → 지금 상태가 `RESERVED`인지(아니면 409 `INVALID_STATUS_TRANSITION`, 진행중·끝난 예약 포함) → `version` 일치(409) → 차량의 비어 있는 연식·주행거리가 요청에 있는지(400, `fieldErrors`는 `modelYear`·`mileage` 중 빠진 것을 모두) → 보낸 값의 범위(400) → 저장. 하나라도 어긋나면 예약·차량·`version`이 모두 그대로다.
+  - **응답**: 18·20·21·40과 같은 `{ reservationId, status, vehicleId, version }`(`status`는 `IN_PROGRESS`, `version` +1). 화면은 접수 뒤 17을 다시 조회해 최신 값을 보여 준다.
+  - 진행중이 되면 변경(19)·재배정은 되지 않고 완료(18)·취소(20)만 되며, 담당의 시작 시각을 계속 점유한다(R22). 접수 뒤 정비 기록(12)은 별도 요청이다(05 POL-95).
+  - 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(`version` 누락, 비어 있는 연식·주행거리 미입력, 범위 밖), `INVALID_STATUS_TRANSITION`(`RESERVED`가 아님), `CONCURRENT_MODIFICATION`.
+
+  요청·응답 예시(차량 연식·주행거리가 비어 있어 함께 보냄, 예약 3):
+
+  ```json
+  { "version": 1, "modelYear": 2018, "mileage": 55000 }
+  ```
+
+  ```json
+  { "success": true, "data": { "reservationId": 3, "status": "IN_PROGRESS", "vehicleId": 2, "version": 2 }, "error": null }
+  ```
+
+  차량에 이미 값이 있을 때의 요청 예시:
+
+  ```json
+  { "version": 0 }
+  ```
 - **40** `POST /api/reservations/{reservationId}/correct` (지난 예약 정정, D-53, F-RSV-10). **끝난 예약(`COMPLETED`·`CANCELED`·`NO_SHOW`)의 상태·예약 메모**를 사후에 고친다. `RESERVED`·`IN_PROGRESS`는 정정 대상이 아니라 409 `INVALID_STATUS_TRANSITION`이다("처리 필요"인 예약의 정리는 정정이 아니라 18·20·21). 사장·정비사가 호출할 수 있고 할 수 있는 일은 아래처럼 갈린다.
 
   | 요청 | 타입 | 필수 | 검증 |
