@@ -1237,7 +1237,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
   | mechanicId | number | | 바꿀 담당 정비사. 그 정비소의 사장·정비사(X13), 아니면 400. 정비사도 다른 정비사를 지정할 수 있다(12와 같음) |
   | reason | string | | 수정 사유, ~200자. 공백뿐이면 사유 없음으로 본다 |
 
-  - 같은 값으로 두는 필드(`mileage`·`itemId` 등)는 바꾸는 것이 아니다. 바뀌는 필드가 하나도 없으면(`version`만 보냈거나 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 보낸 필드 중 요청 표 순서로 첫째, 하나도 없으면 `recordDate`이다. 이때 이력은 남지 않는다.
+  - 같은 값으로 두는 필드(`mileage`·`itemId` 등)는 바꾸는 것이 아니다. `reason`도 수정할 값이 아니다. 바뀌는 필드가 하나도 없으면(`version`만 보냈거나, `version`·`reason`만 보냈거나, 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 보낸 필드 중 요청 표 순서로 첫째(`version`·`reason`은 세지 않는다), 하나도 없으면 `recordDate`이다. 이때 이력은 남지 않는다.
   - **권한(수정 전 기록 기준)**: 사장은 모든 기록·기간 제한 없음. 정비사는 **수정 전 담당이 본인인 기록**만이고 아니면 403 `FORBIDDEN`(H3), **수정 전 방문일 + 3일 이내**(오늘 ≤ 방문일 + 3일)여야 하고 넘으면 403 `EDIT_PERIOD_EXPIRED`(H10). 외부 기록은 방문일이 고객이 말한 정비일이므로 **저장일(`created_at`의 서울 날짜)** 로 센다. 담당을 다른 정비사로 바꾸는 것도 이 기준으로 한 번 확인할 뿐 바뀐 담당에게는 제한이 없다.
   - **구분·점검 결과**: 구분을 `INSPECT`가 아닌 것으로 바꾸면 기존 점검 결과는 비워진다. `INSPECT`로 바꾸면서 `inspectResult`를 보내지 않으면 `null`(결과 없음)이다. 같은 방문(`visit_key`)에 같은 항목이 둘이 되면 400 `INVALID_INPUT`이고 `fieldErrors`는 `itemId`(H7). 수정 뒤 값으로 검사한다.
   - **주행거리**: 수정한 `mileage`가 차량 최근 주행거리보다 크면 차량 값을 갱신하고 작거나 같으면 갱신하지 않는다(05 POL-60). 오류가 아니다.
@@ -1253,7 +1253,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
   ```
 
   ```json
-  { "success": true, "data": { "recordId": 16, "vehicleId": 4, "version": 1 }, "error": null }
+  { "success": true, "data": { "recordId": 16, "vehicleId": 10, "version": 1 }, "error": null }
   ```
 
   구분 정정 요청 예시(교체 → 점검, 이때 점검 결과를 함께 보낼 수 있다):
