@@ -97,7 +97,7 @@ P0에서는 정비사 계정 추가·기준표·정비소 개설을 시드 데�
 
 | 장치 | 내용 |
 |---|---|
-| URL 규칙 | `SecurityConfig` 한 곳: `/api/admin/**` → ADMIN, `/api/**` → OWNER·MECHANIC, 사장 전용(P1) 경로(25~27, 43~49, 50~52)는 OWNER로 제한. 마지막은 `anyRequest().denyAll()`. 공개 경로는 로그인(01·02)과 `GET /actuator/health`뿐(D-63 C01) |
+| URL 규칙 | `SecurityConfig` 한 곳: `/api/admin/**` → ADMIN, `/api/**` → OWNER·MECHANIC, 사장 전용(P1) 경로(25~27, 43~49, 50~52)는 OWNER로 제한. 마지막은 `anyRequest().denyAll()`. 공개 경로는 로그인(01·02)과 `GET /actuator/health`뿐(D-63 C01). 단 컨테이너가 오류를 `/error`로 넘기는 ERROR 디스패치(`/error`)만 인증 없이 지나가 원래 상태 코드(400 등)가 401·403으로 바뀌지 않게 한다. `/error`를 직접 부르는 요청은 `denyAll()`에 막힌다(chagok-backend#17) |
 | 계정 상태 확인 (P1) | 보호된 정비소 요청마다 `staff`를 읽어 비활성·첫 비밀번호 변경·약관 동의 여부를 확인(08 0.6). 확인 위치와 의존 방향은 11 3.3 |
 | 서비스 안 | 역할 `if` 분기를 서비스에 흩뜨리지 않는다(CONVENTIONS 4장). 사장 전용·담당·기간 판정은 **권한 판정을 한 곳**(예: 도메인의 `…Policy`/`EditRule` 하나, CONVENTIONS 4·11장 7문항 확인)에서 한다. 소속 확인은 각 도메인의 `getOwned(shopId, id)` |
 | 테스트 | `EndpointGuardTest`(등록 안 된 경로는 닫힘, 서비스 관리자는 정비소 API 불가, 사장·정비사는 `/api/admin/**` 불가), 08의 X1~X21, 04의 R27·R29·H3·H10·K8·L7~L14 |

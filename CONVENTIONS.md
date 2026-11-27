@@ -238,7 +238,7 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | 장치 | 무엇을 막나 | 만드는 때 |
 |---|---|---|
 | `ArchitectureTest` (ArchUnit, 아래) | 규칙 1·2·4, 3장 의존 방향, global → domain·screen, Controller의 Repository 주입, Entity setter | **B-0에서 만듦** (`chagok-backend/src/test/java/…/architecture/ArchitectureTest.java`). 대상 클래스가 없는 규칙은 SKIPPED |
-| `EndpointGuardTest` | 등록 안 된 경로 거부, 토큰 없이 `/api/**` 401, 서비스 관리자 토큰으로 `/api/**` 403, 정비소 토큰으로 `/api/admin/**` 403, `/actuator/health`만 공개 (SecurityConfig는 `anyRequest().denyAll()`로 끝) | `기반` 이슈 B-1 (설계: 12 백로그 9장). 보호할 API가 없는 지금은 만들지 않는다 |
+| `EndpointGuardTest` | 등록 안 된 경로 거부, 토큰 없이 `/api/**` 401, 서비스 관리자 토큰으로 `/api/**` 403, 정비소 토큰으로 `/api/admin/**` 403, `/actuator/health`만 공개, 단 컨테이너의 ERROR 디스패치(`/error`)는 예외이고 `/error` 직접 호출은 막힘 (SecurityConfig는 `anyRequest().denyAll()`로 끝) | `기반` 이슈 B-1 (설계: 12 백로그 9장). 보호할 API가 없는 지금은 만들지 않는다 |
 | pr-check 비밀값 검사 | `.env`·키 파일, 토큰 형태, 설정 파일의 평문 비밀번호 | 이미 있음 (❌) |
 | pr-check DB·Flyway 규칙 | 공유된 마이그레이션 수정, 이름 규칙, `schema.sql`·`data.sql`, classpath 안 시드, `ddl-auto` ≠ validate | 이미 있음 (❌) |
 | cycle 테스트 T1~T17(04) | 주기 규칙 | cycle 이슈 |
