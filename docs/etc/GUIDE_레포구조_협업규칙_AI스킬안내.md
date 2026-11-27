@@ -38,14 +38,15 @@
 | 협업 | GitHub Organization `OneMonthproJect`, 공개 레포 3개, GitHub Free 운영 |
 | AI | Claude Code(로컬, 스킬 + 에이전트), claude.ai(스킬만) |
 
-**지금 단계 (2026-11-24)**
+**지금 단계 (2026-11-27)**
 
 | 마일스톤 | 상태 |
 |---|---|
 | M1 설계 확정 | **통과** (2026-11-23, 태그 `v0.1-m1-design`, chagok-docs#46) |
 | 공통 기반 B-0~B-3 | develop에 있음 (backend#11·#4·#9·#12, frontend#10) — 조건부 통과, 남은 조건은 [STARTER 00](STARTER/00_현재_개발현황.md) |
-| M2 통합 검증 | 진행 전. P0-핵심 기능 이슈를 만들고 구현하는 단계 |
-| M3 · M4 · M5 | 대기. 날짜는 D-15(PM 결정 대기) |
+| M2 통합 검증 | **통과** (2026-11-26, 세 레포 태그 `v0.5-m2-integration`) |
+| P0-나머지 | 구현 이슈 모두 닫힘(2026-11-27) |
+| M3 · M4 · M5 | 대기. M2 이후 순서는 결정 이슈 chagok-docs#192, 결정 전 통과 조건은 00 8장 그대로 |
 
 **한눈에 보는 작업 흐름**: 팀원은 모두 각 레포의 `develop`에 PR로 올리고, `main`에는 형상관리자만 정해진 네 번(M2 · M3 · M4 · M5) 세 레포를 함께 올립니다.
 
@@ -635,7 +636,7 @@ chagok-issue-writer로 12 백로그 4장 4번(F-CUS-01~05 백엔드)과 5번(프
 | 결과 | ① 등급(L0~L3) + 계획 보고(범위·파일·책임 배치·의존·재사용·DB·API 영향·테스트·위험·결정 필요) ② 승인 후 코드·테스트 ③ 결과 보고(상태·빌드·테스트 결과·문서 동기화·PR 전 점검·브랜치·커밋·PR 본문·AI 기록) |
 | 선행 · 연계 | 선행 이슈가 열려 있으면 알림. P2·Non-goal 이슈면 멈추고 scope-guard(D-70). 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/` → contract-checker, L2·L3 → pr-reviewer |
 | 읽기 · 쓰기 | 승인된 범위의 코드·테스트만. 문서는 고치지 않고 문서 PR 초안만 |
-| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
+| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm test && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
 | 금지 · 주의 | 관련 없는 리팩터링·임시방편 금지. 계획과 달라지면 멈추고 다시 보고. 도메인 3개 이상 내부 수정·표 밖 의존이면 멈춤. 테스트 ID는 04·08 표기 그대로(**번호 범위는 원본에서 확인** — PR #76 반영). 결과 없이 "통과" 금지 → "구현 완료(미검증)" |
 
 ```text
@@ -654,7 +655,7 @@ chagok-backend#<번호> 이슈를 chagok-issue-coder로 구현해줘. 먼저 작
 | 결과 | 버그(실제/기대 + 근거) · 원인(파일:줄) · 수정 · 재발 방지 테스트 · **같은 패턴이 남은 곳(고치지 않음)** · PR 전 점검 · `fix/` 브랜치·커밋·PR 본문 · 트러블슈팅 기록 후보 · AI 기록 |
 | 선행 · 연계 | 명세에 없거나 기준 문서끼리 다르면 버그가 아니라 결정 문제 → spec-sync 모드 A + 결정 이슈. 시드 원인 → seed-data. 동결 후 사실상 기능 추가 → scope-guard |
 | 읽기 · 쓰기 | 원인 한 곳만. 여러 파일·도메인·API·DB에 걸치면 **고치기 전에 계획 보고 → 승인** |
-| 승인 · 검증 | 재현 테스트 통과 + 바뀐 레포 build(또는 lint·build), dbTest·L3 검증은 등급대로(격리·인증·DB 버그는 L3). 못 돌렸으면 "미검증(이유)" |
+| 승인 · 검증 | 재현 테스트 통과 + 바뀐 레포 build(또는 lint·test·build), dbTest·L3 검증은 등급대로(격리·인증·DB 버그는 L3). 못 돌렸으면 "미검증(이유)" |
 | 금지 · 주의 | 테스트를 통과시키려고 검증을 지우거나 예외를 삼키지 않음. 테스트 ID 번호 범위는 원본에서 확인(PR #76 반영) |
 
 ```text
@@ -828,7 +829,7 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 | 스킬 | 없음 | 해당하면 `issue-coder`·`bug-fix` | `issue-coder`, 명세가 바뀌면 `spec-sync` | L2 + 시드면 `seed-data` |
 | 필수 에이전트 | 없음 | 없음 | `pr-reviewer` **필수**, API·`types.ts`·`mocks/`면 `contract-checker` | L2와 같음 |
 | 선택 에이전트 | 없음 | `pr-reviewer` | — | — |
-| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
+| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm test && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
 | CI | 모든 PR에서 pr-check, backend-ci(build + dbTest), frontend-ci(lint·test·build) — 등급과 무관 | 같음 | 같음 | 같음 |
 | 담당 리뷰 | — | CODEOWNERS 자동 요청 | 남의 패키지 `api`·공용 파일이면 주인 리뷰 | + 마이그레이션·시드는 DB관리, settings.json·CI는 형상관리 |
 | 결과 보고 | 한두 줄 | 변경 파일·검증 결과·남은 일 | 6단계 전부(변경·기능·테스트 결과·영향·남은 위험·문서 변경 필요·후속) | L2 + 위험·되돌리기 |
