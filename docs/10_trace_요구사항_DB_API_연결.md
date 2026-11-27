@@ -20,7 +20,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-CUS-03 | P0-핵심 | REQ-05 | customer / vehicle | 08 | S-06 | X1, X17 |
 | F-CUS-04 | P0-핵심 | REQ-06 | customer, vehicle, maintenance_record, service_item / — | 07 | S-06 | X1 |
 | F-CUS-05 | P0-핵심 | REQ-07 | vehicle, customer, maintenance_record, service_item, staff / — | 09, 10, 11 | S-07 | X2 |
-| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13, 36 (36은 P0-나머지 담당 후보) | S-08 | X5, X7(13), X11, T12, X13 |
+| F-MNT-01 | P0-핵심 | REQ-09 | vehicle, service_item, staff(담당 검증, P0-나머지) / maintenance_record, vehicle(연식·최근 주행거리) | 12, 13 | S-08 | X5, X7(13), X11, T12, X13 |
 | F-VIS-01 | P0-핵심 | REQ-08 | vehicle, maintenance_record, service_item / — | 10 | S-08 | X6, T8~T11 |
 | F-CYC-01 | P0-핵심 | REQ-07·08·10 | maintenance_record, service_item / — | 04, 10, 14, 17 | — | T1~T13 |
 | F-TGT-01 | P0-핵심 | REQ-10·11 | customer, vehicle, maintenance_record, service_item, reservation / — | 14 | S-04 | X7 |
@@ -30,7 +30,7 @@ ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표�
 | F-RSV-04 | P0-핵심 | REQ-15 | reservation / reservation (version) | 18 | S-02 패널 | R5, R10, R12, R13, X12 |
 | F-MNT-02 | P0-나머지 | REQ-16 | vehicle, service_item / maintenance_record | 12 | S-08 | T13, X11 |
 | F-MNT-03 | P0-나머지 | REQ-17 | vehicle, service_item / maintenance_record(inspect_result, V2) | 12 | S-08 | T15 |
-| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 36(담당 후보), 37, 38 | S-07, M-03 | H1~H11, X14 |
+| F-MNT-04 | P0-나머지 | REQ-27 | maintenance_record, maintenance_record_revision, service_item, staff / maintenance_record (version, V2), maintenance_record_revision (V2), vehicle(최근 주행거리) | 37, 38 | S-07, M-03 | H1~H11, X14 |
 | F-CYC-02 | P0-나머지 | REQ-17 | maintenance_record / — | 10, 14, 17 | S-02, S-04, S-07, S-08 | T14, T15 |
 | F-RSV-05 | P0-나머지 | REQ-18 | reservation, staff(담당 색) / — | 15, 42 | S-02 | |
 | F-RSV-06 | P0-핵심 | REQ-19 | reservation, service_item, staff(재배정·담당 중복, P0-나머지) / reservation, reservation_item, reservation_revision(ASSIGNEE, V2) (version) | 19, 36, 41 (재배정·36·41은 P0-나머지) | M-02 | R7~R9, R11, R14, R18, R20, R24, X11~X13 |
