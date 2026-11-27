@@ -829,7 +829,7 @@ P0-나머지 요청 예시:
 
 P0-나머지부터는 `items[]`의 각 항목에 `assignee`가 더해진다(위 표). 예: `"assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }`
 
-에러: `INVALID_INPUT` (`from`·`to` 누락, `from` > `to`, 42일 초과)
+에러: `INVALID_INPUT` (`from`·`to` 누락, `from` > `to`, 42일 초과). `fieldErrors`의 필드는 누락·형식 오류가 그 파라미터(`from`·`to`), `from` > `to`가 `from`, 42일 초과가 `to`다(42와 같은 규칙)
 
 ### 16 POST `/api/reservations` — 예약 등록
 
