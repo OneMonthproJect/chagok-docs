@@ -568,7 +568,7 @@ P1부터 응답에 `active`가 붙는다. 고객이 익명화되었으면 `custo
 
 예시는 6개 중 2개만 적었다. 실제 응답은 쓰는 항목 전부(`sortOrder` 순). 에러: `NOT_FOUND` (X6), `INVALID_INPUT`(음수)
 
-P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해당 없으면 `null`). 두 값은 상태를 바꾸지 않는다(F-CYC-02). 예: 07 7.2 시드 11바0006(차량 6)의 엔진오일 — 기준은 교체 D-8M이라 도래이고, 그 뒤 거절 D-1M이 있어 `lastDecline`이 붙는다(오늘 D = 2026-11-24 기준 값).
+P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해당 없으면 `null`). 두 값은 상태를 바꾸지 않는다(F-CYC-02). 둘 다 "그 항목의 가장 최근 기록" 하나에서 나오므로 **한 항목에 동시에 붙지 않는다**. `lastDecline`은 기준 기록(교체·외부)이 아직 없어도(거절만 있어도) 붙는다(`baseRecord`는 `null`, `status`는 `UNKNOWN`). 예: 07 7.2 시드 11바0006(차량 6)의 엔진오일 — 기준은 교체 D-8M이라 도래이고, 그 뒤 거절 D-1M이 있어 `lastDecline`이 붙는다(오늘 D = 2026-11-24 기준 값).
 
 ```json
 {
