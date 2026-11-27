@@ -78,7 +78,7 @@ L3 검증은 대상에 맞는 것만 고른다. 관련 없는 고비용 검증�
 - **문서는 `chagok-docs`에서만 고친다.** 코드 레포 PR에서 명세가 바뀌어야 하면 `chagok-docs`에 따로 문서 PR을 만들자고 제안하고, 코드 PR 본문에 그 링크를 단다(`CONTRIBUTING.md` 7장).
 - 테스트를 통과시키려고 검증·보안·아키텍처 규칙을 끄거나 지우지 않는다. Flyway를 거치지 않고 스키마·데이터를 바꾸지 않는다. 시연 데이터를 운영 코드·마이그레이션에 넣지 않는다(시연 시드는 `chagok-backend/db/seed/`).
 - 이슈 범위 밖 기능, 아직 차례가 오지 않은 단계의 기능(M2 통합 검증 전의 P0-나머지·P1), P2·Non-goal 기능(D-70, 이번 프로젝트에서 착수하지 않음)을 빈 화면·버튼·API·테이블로 미리 만들지 않는다.
-- `main`·`develop`에 직접 커밋·push하지 않는다. 커밋·push·PR·머지·이슈 생성·태그는 사람이 확인한 뒤에 (`.claude/settings.json`이 확인을 묻고, force push와 main·develop push는 막는다).
+- `main`·`develop`에 직접 커밋·push하지 않는다. 커밋·push·PR·머지·이슈 생성·태그는 사람이 확인한 뒤에 (`.claude/settings.json`이 확인을 묻는다. force push와 `origin`의 main·develop로 직접 push하는 형태는 deny로 막고, 그 밖의 push 형태(`git -C`·`-u` 등)는 deny가 아니라 확인만 묻는다).
 - **`main` 대상 PR 머지 (D-71)**: 사용자가 **대상 레포와 PR 번호를 지정해** `main` 머지를 명시적으로 지시하기 전에는 머지하지 않는다. `gh pr merge`, 자동 머지(`--auto`) 켜기, `gh api`·GraphQL, 다른 자동화 등 경로와 관계없이 같다.
   - 승인으로 보지 않는 것: "전체 작업 진행", "검증하고 마무리", "모든 열린 PR 머지", "세 레포 최신화", "main과 develop 동기화", "마일스톤 작업 완료" 같은 포괄 명령, 작업 완료·PR 검증·CI 통과, 관리자 권한 보유, 과거의 일회성 예외 승인(#46·#77·D-65 등).
   - 승인은 지정한 그 PR 한 번에만 유효하다. 다른 PR·이후 작업으로 넓히지 않는다. 승인이 있어도 필수 CI·검증·보안·릴리스 기준(`CONTRIBUTING.md` 6장, `chagok-release-check`)을 우회하지 않는다.
