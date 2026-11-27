@@ -50,7 +50,7 @@ com.wanted.chagok
 │
 └── screen/                  화면 조립 전용. 표 없음. 아무도 import하지 않음
     ├── target/              재점검 대상 목록 (시나리오 A)
-    ├── visit/               방문 접수 시 항목 상태·추가 점검 안내 (시나리오 B), 차량 상세의 항목 상태, 고객 상세 API 07(차량별 dueCount·soonCount, chagok-docs#96)
+    ├── visit/               방문·정비 기록 미리보기의 항목 상태·추가 점검 안내 (시나리오 B), 차량 상세의 항목 상태, 고객 상세 API 07(차량별 dueCount·soonCount, chagok-docs#96)
     └── booking/             예약 상세 패널: 예약 + 고객·차량 + 최근 정비 이력 + 점검 주기 요약 (기획안 v9)
 ```
 
