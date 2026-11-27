@@ -2,7 +2,7 @@
 
 > 기술 선택·이유·구조. **규칙 자체는 `CONVENTIONS.md`**에 있고, 이 문서는 "왜 그렇게 정했나"와 "언제 다시 정하나"를 적는다.
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — 💡는 M1 설계 확정(결정 20)에서 확정
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — 💡는 M1 설계 확정(결정 20)에서 확정, 2026-11-27 구현 대조 반영(chagok-docs#195)
 근거: 기획안 v12 「기술과 개발 방식」, 결정 2·3·16·17, D-60~D-62(계정 상태 확인, chagok-docs#65), `CONVENTIONS.md`, `CONTRIBUTING.md`
 
 ---
@@ -15,7 +15,7 @@
 | 백엔드 | Java 21 + Spring Boot 4.1.2, Gradle, REST API | 결정 2, D-41 | 공통 응답·전역 예외 처리 |
 | DB | MySQL 8 + JPA | 결정 2 | `ddl-auto: validate` |
 | DB 구조 관리 | Flyway (변경마다 버전 파일) | 결정 17 | Boot 4는 `spring-boot-starter-flyway` + `flyway-mysql`. `schema.sql` 자동 실행 끔 |
-| 인증 | JWT | 결정 3, D-68 | 서비스 관리자 토큰에는 `shop_id`가 없음. 라이브러리는 인증 `기반` 이슈에서 (Jackson 3 호환 확인). 프론트 토큰은 `localStorage`, 배포는 같은 출처 기본·CORS 허용 목록 없음(개발은 Vite 프록시) |
+| 인증 | JWT | 결정 3, D-68 | 서비스 관리자 토큰에는 `shop_id`가 없음. 라이브러리는 B-1(chagok-backend#11)에서 Spring Security OAuth2 Resource Server + Nimbus JOSE로 정했다(Jackson 3와 충돌 없음). 프론트 토큰은 `localStorage`, 배포는 같은 출처 기본·CORS 허용 목록 없음(개발은 Vite 프록시) |
 | 예약 캘린더 | 라이브러리 없이 직접 구현 (월·주) | 결정 16 | P0-나머지 |
 | 사장 알림 (P1) | 브라우저 Notification API, 프론트에서만 | 기획안 | 탭이 열려 있을 때만. 웹 푸시는 P2 |
 | 구조 검사 | ArchUnit(백엔드), ESLint 경계 규칙(프론트) | CONVENTIONS 8장 | 빌드에서 자동 |
@@ -104,7 +104,7 @@ flowchart LR
 
 ### 3.6 동시 수정은 덮어쓰지 않는다
 
-예약은 JPA `@Version`(`reservation.version`)으로 낙관적 잠금을 건다. 화면은 읽은 `version`을 변경 요청에 보내고, 다른 직원이 먼저 바꿨으면 409 `CONCURRENT_MODIFICATION`을 받는다(D-42). 고객·차량 수정(P0-나머지)도 같은 방식으로 `version`을 더한다. 같은 차량에 예약 두 건이 동시에 **등록**되는 경우까지 막는 잠금은 P2다.
+예약은 JPA `@Version`(`reservation.version`)으로 낙관적 잠금을 건다. 화면은 읽은 `version`을 변경 요청에 보내고, 다른 직원이 먼저 바꿨으면 409 `CONCURRENT_MODIFICATION`을 받는다(D-42). 고객·차량 수정과 정비 기록 수정(P0-나머지)도 같은 방식으로 V2에서 `version`을 더했다(`customer`·`vehicle`·`maintenance_record`, chagok-docs#148·#155). 같은 차량에 예약 두 건이 동시에 **등록**되는 경우까지 막는 잠금은 P2다.
 
 ### 3.7 캘린더 직접 구현
 
@@ -132,8 +132,8 @@ flowchart LR
 
 ## 6. 확정 전 항목 (💡)
 
-| 항목 | 제안값 | 정하는 곳 |
-|---|---|---|
-| 패키지 구조·의존 방향 | CONVENTIONS 2·3장 | 결정 20 (M1 설계 확정) |
-| 예약 상세 패널 조립 패키지 | `screen/booking` | 결정 20 |
-| 서버·DB 시간대 | Asia/Seoul | `기반` 이슈 |
+| 항목 | 제안값 | 정하는 곳 | 결과 |
+|---|---|---|---|
+| 패키지 구조·의존 방향 | CONVENTIONS 2·3장 | 결정 20 (M1 설계 확정) | 확정 (D-20, chagok-docs#46) |
+| 예약 상세 패널 조립 패키지 | `screen/booking` | 결정 20 | 확정 (D-20, 구현 chagok-backend#30) |
+| 서버·DB 시간대 | Asia/Seoul | `기반` 이슈 | 적용 (B-1 chagok-backend#11: `ClockConfig`·`jdbc.time_zone`·Jackson 일시 형식) |

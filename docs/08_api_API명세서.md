@@ -5,7 +5,7 @@
 상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)) — M1 설계 확정(2026-11-23, chagok-docs#46), 2026-11-23 D-60~D-63 반영(chagok-docs#65·#66). 확정 후 바꾸려면 `결정` 이슈 → 이 문서(표 + JSON 예시) + 13 changelog → 코드 PR
 근거: 04 기능 명세, 07 ERD, 06 권한, M1 결정 A~D (13 changelog, chagok-docs#12), D-51~D-59 (13 changelog, 결정 이슈 `chagok-docs#20·#21·#22`), D-60~D-63 (계정·온보딩·약관·비활성 정비사 토큰·세부 정책, `chagok-docs#65`). 💡 = 제안값(M1 설계 확정 chagok-docs#46에서 P0-핵심 15건 확정, 💡 해제). ❓ = 결정 필요(문서 끝 목록)
 계약 수준 (M1 결정 D): **P0-핵심(01~19)** 은 요청·응답·오류까지 구현 가능한 수준으로 확정. **P0-나머지(20~23, 36~42, 기존 API의 P0-나머지 확장)** 는 경로·메서드·책임·역할·격리·상태 전환·선행 DB 변경까지 확정하고 세부 JSON은 그 기능 착수 PR에서 확정(7장 첫 표). **P1(43~52 포함)** 은 8장 큰 모양만. 단 계정·온보딩(03의 P1 필드, 24·26·32·35·51·52)과 계정 상태 확인(0.6)은 D-60~D-62로 요청·응답·오류·JSON까지 정했다(8.1).
-담당 정비사(D-51) 단계 구분: **P0-핵심**은 DB 스키마(`reservation.assignee_staff_id`)만 있고 요청에 담당 필드가 없다. 서버가 토큰의 계정을 담당으로 채운다. **P0-나머지**부터 16·19 요청의 `assigneeId`, 12 요청의 `mechanicId`, API 36, 409 `MECHANIC_SLOT_CONFLICT`, X13이 생긴다. 응답의 `assignee`도 P0-나머지부터다(아래 예시 중 `assignee`가 있는 것은 P0-나머지 응답 기준). **P0-핵심 구현과 프론트 Mock은 04·15·17 예시에서 `assignee`를 뺀 모양을 쓴다**(`phone`은 0.5대로 P0-핵심 기준, 마스킹 전). 담당 정비사 입력(12·16·19·37)과 36의 "활성 사장·정비사" 중 **비활성 제외는 `staff.active`가 생기는 P1(V3)부터**다(07 4장·5.1, D-57). P0-나머지에서는 그 정비소의 사장·정비사이면 된다(X13).
+담당 정비사(D-51) 단계 구분: **P0-핵심**은 DB 스키마(`reservation.assignee_staff_id`)만 있고 요청에 담당 필드가 없다. 서버가 토큰의 계정을 담당으로 채운다. **P0-나머지**부터 16·19 요청의 `assigneeId`, 12 요청의 `mechanicId`, API 36, 409 `MECHANIC_SLOT_CONFLICT`, X13이 생긴다. 응답의 `assignee`도 P0-나머지부터다(아래 예시 중 `assignee`가 있는 것은 P0-나머지 응답 기준). **P0-핵심 구현과 프론트 Mock은 04·15·17 예시에서 `assignee`를 뺀 모양을 쓴다**(`phone`은 0.5대로 P0-핵심 기준, 마스킹 전). 이 문장은 P0-핵심 단계 기준이다. P0-나머지가 구현된 뒤(2026-11-27 develop)의 구현과 Mock은 `assignee`가 있고 목록 `phone`을 마스킹한 P0-나머지 모양이다(Mock 불일치는 chagok-frontend#106). 담당 정비사 입력(12·16·19·37)과 36의 "활성 사장·정비사" 중 **비활성 제외는 `staff.active`가 생기는 P1(V3)부터**다(07 4장·5.1, D-57). P0-나머지에서는 그 정비소의 사장·정비사이면 된다(X13).
 
 ---
 
@@ -113,7 +113,7 @@
 | `RETENTION_NOT_REACHED` | 409 | 보관 5년이 지나지 않음 (D-56) | P1 |
 | `ACCOUNT_INACTIVE` | 403 | 비활성 정비사 계정 로그인(D-57), 비활성화 전에 받은 토큰으로 정비소 API 호출(D-62) | P1 |
 
-`message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다.
+`message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·406·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다. 406은 요청의 `Accept`로 응답 형식을 맞출 수 없을 때이며, 오류 응답은 `Accept`와 관계없이 JSON 공통 응답으로 나간다. 코드가 던진 `ResponseStatusException`은 상태를 지켜 401·403·404는 각각 `AUTH_REQUIRED`·`FORBIDDEN`·`NOT_FOUND`, 그 밖 4xx는 `INVALID_INPUT`, 5xx는 `INTERNAL_ERROR`로 감싼다.
 
 DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 있는 유일 제약 위반(P1 아이디 중복 등)에만 쓴다. 복합 FK·CHECK 위반은 서버 검증이 먼저 막아야 하는 것이므로, 실제로 나면 서버 버그로 보고 500 `INTERNAL_ERROR`(트랜잭션 롤백, 내부 정보 미노출)로 응답한다. `DataIntegrityViolationException`을 모두 `CONFLICT`로 바꾸지 않는다. JPA `@Version` 충돌(`OptimisticLockException`)은 `CONCURRENT_MODIFICATION`이다.
 
@@ -589,13 +589,13 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 |---|---|---|
 | visitKey | string | UUID 36자 (07 3.7) |
 | visitDate | date | 아래 설명 |
-| mileage | number/null | 방문 주행거리. 비어 있을 수 있음(07 3.7) |
+| mileage | number/null | 방문 주행거리. 그 묶음에서 외부가 아닌 기록(외부만 있으면 외부 기록)을 `recordId` 오름차순으로 보아 처음 나오는 비어 있지 않은 `records[].mileage`, 없으면 null(07 3.7). 기록별 값은 아래 `records[].mileage` |
 | staffName | string | 기록 담당 정비사 이름 |
 | records[] | array | `{ recordId, itemId, itemName, type, date, memo }`. `type`은 0.4의 4개 값, `memo`는 null 가능 |
 | records[].source | enum | P0-나머지부터. `SHOP`·`CUSTOMER_STATEMENT`(0.4). 외부(`EXTERNAL`)면 `CUSTOMER_STATEMENT`, 그 밖은 `SHOP`(07 3.7 CHECK) |
 | records[].inspectResult | enum/null | P0-나머지부터. 점검(`INSPECT`)이고 결과를 남겼을 때만 `GOOD`·`CAUTION`, 그 밖은 null(07 3.7 CHECK) |
 
-페이지 필드(`page`·`size`·`totalElements`·`totalPages`)는 05와 같다. 차량에 기록이 없으면 `items: []`.
+페이지 필드(`page`·`size`·`totalElements`·`totalPages`)는 05와 같다. 차량에 기록이 없으면 `items: []`. 아래 예시는 `items`를 일부(3건 중 1건)만 적었다.
 
 ```json
 {
@@ -621,13 +621,14 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 }
 ```
 
-P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 세 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
+P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 네 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
 
 | 응답 records[] | 타입 | 설명 |
 |---|---|---|
 | version | number | 수정 확인용 번호. 기록을 저장할 때(12) 0이고 수정(37)마다 +1(07 3.7). 화면은 수정 요청에 이 값을 그대로 보낸다 |
 | edited | boolean | 수정 이력(38)이 한 건이라도 있으면 `true`. 이력 내용은 38에서 받는다 |
 | staff | object | 그 기록의 담당 정비사 `{ staffId, name }`. `name`은 그 계정의 현재 이름(38·41과 같음). 37로 담당을 바꾸면 이 값이 바뀐다 |
+| mileage | number/null | 그 기록 행의 주행거리(07 3.7 `maintenance_record.mileage`). 외부 기록은 고객이 말한 주행거리라 확인되지 않았으면 null이다. null은 0이 아니라 "알 수 없음"이다. 37로 고치면 이 값이 바뀌고, 방문 `mileage`는 위 규칙대로 다시 정해진다 |
 
 P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). 수정한 적이 없어 `version`은 0, `edited`는 `false`다. 담당 `staff` 값은 예시 값이다.
 
@@ -635,7 +636,7 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 {
   "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null,
   "source": "CUSTOMER_STATEMENT", "inspectResult": null,
-  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }
+  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }, "mileage": null
 }
 ```
 
@@ -645,7 +646,7 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 {
   "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "INSPECT", "date": "2026-10-24", "memo": "합성유 사용",
   "source": "SHOP", "inspectResult": "CAUTION",
-  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }
+  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }, "mileage": 52000
 }
 ```
 
@@ -661,9 +662,11 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 | records[].itemId | number | ○ | 그 정비소의 쓰는 항목 |
 | records[].type | enum | ○ | P0-핵심 `REPLACE`·`INSPECT` / P0-나머지 `EXTERNAL`·`DECLINE` |
 | records[].memo | string | | ~200자 |
-| records[].externalDate | date | 외부면 ○ | P0-나머지. 오늘 이전 |
-| records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1) |
+| records[].externalDate | date | 외부면 ○ | P0-나머지. 오늘 이전·오늘. `EXTERNAL`일 때만 보낼 수 있다 |
+| records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1). `EXTERNAL`일 때만 보낼 수 있다 |
 | records[].inspectResult | enum | | P0-나머지. `INSPECT`일 때만 `GOOD`·`CAUTION` |
+
+P0-나머지 세 필드는 그 구분일 때만 보낼 수 있다(값이 `null`이면 보내지 않은 것으로 본다). 구분과 맞지 않는 값을 보내면(외부가 아닌 기록의 `externalDate`·`externalMileage`, 점검이 아닌 기록의 `inspectResult`) 무시하지 않고 400 `INVALID_INPUT`이고, `fieldErrors`의 필드는 그 기록의 그 값(`records[i].externalDate`·`records[i].externalMileage`·`records[i].inspectResult`, `i`는 요청 `records` 배열에서 0부터 센 순서)이다. 외부인데 정비일이 없거나 미래면 `records[i].externalDate`, 외부 주행거리가 0~2,000,000 밖이면 `records[i].externalMileage`, 점검 결과가 `GOOD`·`CAUTION`이 아니면 `records[i].inspectResult`다. 37 수정의 `inspectResult`와 같은 규칙이다.
 
 P0-핵심 요청 예시:
 
@@ -702,7 +705,7 @@ P0-나머지 요청 예시:
 }
 ```
 
-담당 정비사는 P0-핵심에서는 저장한 계정이다. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13)
+담당 정비사는 P0-핵심에서는 저장한 계정이다. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13, P0-나머지부터 외부 정비일 없음·미래, 외부 주행거리 범위 밖, `inspectResult`가 `GOOD`·`CAUTION`이 아님, 구분과 맞지 않는 `externalDate`·`externalMileage`·`inspectResult`)
 
 ### 13 GET `/api/items` — 정비 항목·주기
 
@@ -1133,7 +1136,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 
 ### 7.0 P0-나머지 확정 범위 (M1 결정 D)
 
-여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다(아래 22·23 예시는 착수 전 초안. 22·23은 chagok-docs#148에서 `version`을 확정). 20·21의 요청·응답은 18과 같은 모양으로 M1 설계 확정 때 확정했다(6장). 36~42(D-51~D-55)는 이 표와 7.1의 요약까지 확정하고 상세 JSON은 착수 PR에서 정한다. 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
+여기까지 확정한다. **요청·응답 표와 JSON 예시는 그 기능의 착수 PR에서 이 문서에 확정**한다. 2026-11-27 현재 착수 때 표·예시를 확정한 문서 이슈: 22·23(chagok-docs#148·#153), 36(#135), 37~39(#155·#181), 40·41과 19 재배정(#150), 42와 15 `assigneeId` 쿼리(#142), 15 기간 위반 `fieldErrors`(#164), 10·11·14 확장(#139), 12 P0-나머지 검증(#176), 11·17 `records[].mileage`(#174). 각 행은 13 changelog. 20·21의 요청·응답은 18과 같은 모양으로 M1 설계 확정 때 확정했다(6장). 36~42(D-51~D-55)는 이 표와 7.1의 요약까지 확정하고 상세 JSON은 착수 PR에서 정한다. 착수 전에 이 표와 다른 것이 필요하면 `결정` 이슈부터.
 
 | API | 메서드·경로 | 책임 | 역할·격리 | 상태 전환·동시 수정 | 선행 DB 변경 |
 |---|---|---|---|---|---|
@@ -1142,7 +1145,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 | 22 | PATCH `/api/customers/{customerId}` | 고객명·연락처·동의 수정 (F-CUS-06). 보낸 필드만 | 사장·정비사. 남의 고객 404 (X12) | 요청에 `version` 필수, 다르면 409 `CONCURRENT_MODIFICATION` (POL-124) | V2: `customer.version` |
 | 23 | PATCH `/api/vehicles/{vehicleId}` | 차량번호·차종·연식·최근 주행거리 수정 (F-CUS-06). 고객은 바꾸지 않음 | 사장·정비사. 남의 차량 404 (X12) | 22와 같음 | V2: `vehicle.version` |
 | 12 확장 | POST `/api/vehicles/{vehicleId}/visits` | 외부·거절·점검 결과 입력 (F-MNT-02·03), 담당 `mechanicId` (D-51) | 같음. 남의 정비사 id 400 (X13) | — (기록은 추가만) | V2: `inspect_result` |
-| 10·11·14·17 확장 | 기존 경로 | `lastDecline`·`lastCaution`(10·14·17), `source`·`inspectResult`·`version`·`edited`·`staff`(11·17 `recentVisits`) (F-CYC-02, F-MNT-04) | 같음 | — | V2: `inspect_result`, `maintenance_record.version` |
+| 10·11·14·17 확장 | 기존 경로 | `lastDecline`·`lastCaution`(10·14·17), `source`·`inspectResult`·`version`·`edited`·`staff`·`mileage`(11·17 `recentVisits`) (F-CYC-02, F-MNT-04) | 같음 | — | V2: `inspect_result`, `maintenance_record.version` |
 | 04·05·14·15 확장 | 기존 경로 | 목록 `phone` 마스킹 (F-CUS-07) | 같음 | — | 없음 |
 | 04·15·17 확장 | 기존 경로 | `assignee`(담당 이름·색), 15 쿼리 `assigneeId`, 상태 `IN_PROGRESS` (D-51·D-52) | 같음 | — | V2: `IN_PROGRESS` |
 | 15 (캘린더) | 기존 경로 | 홈 캘린더 월·주 보기는 같은 기간 조회(일 보기 없음, D-54). 월 보기 건수는 42 (F-RSV-05) | 같음 | — | 없음 |
@@ -1235,7 +1238,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
   | mechanicId | number | | 바꿀 담당 정비사. 그 정비소의 사장·정비사(X13), 아니면 400. 정비사도 다른 정비사를 지정할 수 있다(12와 같음) |
   | reason | string | | 수정 사유, ~200자. 공백뿐이면 사유 없음으로 본다 |
 
-  - 같은 값으로 두는 필드(`mileage`·`itemId` 등)는 바꾸는 것이 아니다. 바뀌는 필드가 하나도 없으면(`version`만 보냈거나 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 보낸 필드 중 요청 표 순서로 첫째, 하나도 없으면 `recordDate`이다. 이때 이력은 남지 않는다.
+  - 같은 값으로 두는 필드(`mileage`·`itemId` 등)는 바꾸는 것이 아니다. `reason`도 수정할 값이 아니다. 바뀌는 필드가 하나도 없으면(`version`만 보냈거나, `version`·`reason`만 보냈거나, 모두 지금과 같음) 400 `INVALID_INPUT`이고 `fieldErrors`는 보낸 필드 중 요청 표 순서로 첫째(`version`·`reason`은 세지 않는다), 하나도 없으면 `recordDate`이다. 이때 이력은 남지 않는다.
   - **권한(수정 전 기록 기준)**: 사장은 모든 기록·기간 제한 없음. 정비사는 **수정 전 담당이 본인인 기록**만이고 아니면 403 `FORBIDDEN`(H3), **수정 전 방문일 + 3일 이내**(오늘 ≤ 방문일 + 3일)여야 하고 넘으면 403 `EDIT_PERIOD_EXPIRED`(H10). 외부 기록은 방문일이 고객이 말한 정비일이므로 **저장일(`created_at`의 서울 날짜)** 로 센다. 담당을 다른 정비사로 바꾸는 것도 이 기준으로 한 번 확인할 뿐 바뀐 담당에게는 제한이 없다.
   - **구분·점검 결과**: 구분을 `INSPECT`가 아닌 것으로 바꾸면 기존 점검 결과는 비워진다. `INSPECT`로 바꾸면서 `inspectResult`를 보내지 않으면 `null`(결과 없음)이다. 같은 방문(`visit_key`)에 같은 항목이 둘이 되면 400 `INVALID_INPUT`이고 `fieldErrors`는 `itemId`(H7). 수정 뒤 값으로 검사한다.
   - **주행거리**: 수정한 `mileage`가 차량 최근 주행거리보다 크면 차량 값을 갱신하고 작거나 같으면 갱신하지 않는다(05 POL-60). 오류가 아니다.
@@ -1251,7 +1254,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
   ```
 
   ```json
-  { "success": true, "data": { "recordId": 16, "vehicleId": 4, "version": 1 }, "error": null }
+  { "success": true, "data": { "recordId": 16, "vehicleId": 10, "version": 1 }, "error": null }
   ```
 
   구분 정정 요청 예시(교체 → 점검, 이때 점검 결과를 함께 보낼 수 있다):
@@ -1329,7 +1332,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
   - 진행중이 되면 변경(19)·재배정은 되지 않고 완료(18)·취소(20)만 되며, 담당의 시작 시각을 계속 점유한다(R22). 접수 뒤 정비 기록(12)은 별도 요청이다(05 POL-95).
   - 에러: `NOT_FOUND`(X14), `INVALID_INPUT`(`version` 누락, 비어 있는 연식·주행거리 미입력, 범위 밖), `INVALID_STATUS_TRANSITION`(`RESERVED`가 아님), `CONCURRENT_MODIFICATION`.
 
-  요청·응답 예시(차량 연식·주행거리가 비어 있어 함께 보냄, 예약 3):
+  요청·응답 예시(차량 연식·주행거리가 비어 있어 함께 보낼 때의 형식. 07 7.2 시드의 예약 3 차량 34나0002는 연식·주행거리가 이미 있어 실제로는 아래 「차량에 이미 값이 있을 때」 요청을 쓴다):
 
   ```json
   { "version": 1, "modelYear": 2018, "mileage": 55000 }

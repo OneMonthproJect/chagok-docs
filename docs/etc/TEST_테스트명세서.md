@@ -2,7 +2,7 @@
 
 > 무엇을 어떤 테스트로 확인하고, 지금 어디까지 실제로 검증됐는지
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 추가분(R15~R29·H·K·X13~X16) 반영, 2026-11-23 D-60~D-63 추가분(L1~L16·X17~X21) 반영과 B-1 실행 결과(E·A1) 기록 — 구현이 진행되면 「상태」 칸을 고친다
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 추가분(R15~R29·H·K·X13~X16) 반영, 2026-11-23 D-60~D-63 추가분(L1~L16·X17~X21) 반영과 B-1 실행 결과(E·A1) 기록, 2026-11-27 P0-핵심·P0-나머지 구현 뒤 실행 결과(chagok-backend develop `753cd3c`, CI run 45957852545) 반영 — 구현이 진행되면 「상태」 칸을 고친다
 근거: 04(T-xx·R-xx·H-xx·K-xx·L-xx 원본), 08(X-xx 원본), 07 6.3(V1 검증 원본), CONVENTIONS 8장, 12 백로그 8·9장
 
 테스트 ID와 기대값의 원본은 04·08이다. 이 문서는 모아 보고 상태를 기록한다. **실행해서 통과를 확인한 것만 "통과"로 적는다.**
@@ -23,24 +23,25 @@
 |---|---|---|---|
 | DB 없는 테스트 (아키텍처·단위: T, R의 Entity 규칙) | `./gradlew build` | JDK 21 | `backend-ci` build |
 | DB 테스트 (`@Tag("db")`: 앱 기동·Flyway·통합·X) | `./gradlew dbTest` | MySQL + `DB_*` 환경변수 | `backend-ci` db-test |
-| 프론트 | `npm run lint && npm run build` | Node 22 | `frontend-ci` |
+| 프론트 | `npm run lint && npm test && npm run build` | Node 22 | `frontend-ci` |
 
 CI는 작업 요약에 통과·실패·건너뜀 수를 남기고 리포트를 보관한다.
 
 ## 2. 아키텍처 (A)
 
-| ID | 테스트 | 상태 (B-0) | 상태 (2026-11-23, develop `f562a7b`) |
-|---|---|---|---|
-| A1 | global은 domain·screen을 모른다 | 환경상 미검증 → 첫 CI에서 실행 (global 클래스 있음) | 통과 |
-| A2 | screen은 아무도 import하지 않는다 | SKIPPED 예정 (screen 클래스 없음) | SKIPPED (검증 안 됨) |
-| A3 | 다른 도메인은 api로만 (도메인별 6개) | SKIPPED 예정 | SKIPPED (검증 안 됨) |
-| A4 | 도메인 의존 방향 (도메인별 7개) | SKIPPED 예정 | SKIPPED (검증 안 됨) |
-| A5 | 도메인 사이 순환 없음 | SKIPPED 예정 | SKIPPED (검증 안 됨) |
-| A6 | cycle은 순수 계산 | SKIPPED 예정 | SKIPPED (검증 안 됨) |
-| A7 | Controller는 Repository를 직접 쓰지 않는다 | SKIPPED 예정 | SKIPPED (검증 안 됨) |
-| A8 | Entity에 public setter 없음 | SKIPPED 예정 | SKIPPED (검증 안 됨) |
+| ID | 테스트 | 상태 (B-0) | 상태 (2026-11-23, develop `f562a7b`) | 상태 (2026-11-27, develop `753cd3c`) |
+|---|---|---|---|---|
+| A1 | global은 domain·screen을 모른다 | 환경상 미검증 → 첫 CI에서 실행 (global 클래스 있음) | 통과 | 통과 |
+| A2 | screen은 아무도 import하지 않는다 | SKIPPED 예정 (screen 클래스 없음) | SKIPPED (검증 안 됨) | 통과 |
+| A3 | 다른 도메인은 api로만 (도메인별 6개) | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 (D-69로 `cycle`이 더해져 7개: shop·account·customer·item·maintenance·reservation·cycle) |
+| A4 | 도메인 의존 방향 (도메인별 7개) | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 (7개) |
+| A5 | 도메인 사이 순환 없음 | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 |
+| A6 | cycle은 순수 계산 | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 |
+| A7 | Controller는 Repository를 직접 쓰지 않는다 | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 |
+| A8 | Entity에 public setter 없음 | SKIPPED 예정 | SKIPPED (검증 안 됨) | 통과 |
 
 근거: chagok-backend develop `f562a7b` push CI run 45187970594, build 작업 테스트 리포트 `TEST-…ArchitectureTest.xml` — 19개 중 18개 SKIPPED, 실패 0. 실행된 1개가 A1이다.
+2026-11-27 근거: chagok-backend develop `753cd3c`(릴리스 PR chagok-backend#128의 head) CI run 45957852545, build 작업 `test-report`의 `TEST-…ArchitectureTest.xml` — 20개 모두 실행·통과, SKIPPED 0, 실패 0. 19개에서 20개가 된 것은 D-69로 A3(`다른_도메인은_api로만`)에 `cycle`이 들어가 6개에서 7개가 됐기 때문이다.
 
 ## 3. 인증·경로 보호 (E) — `EndpointGuardTest`, B-1에서 구현
 
@@ -52,7 +53,7 @@ CI는 작업 요약에 통과·실패·건너뜀 수를 남기고 리포트를 �
 | E4 | 정비소 토큰으로 `/api/admin/**` (08 X18, D-63 B10) | 403 `FORBIDDEN` | 통과 |
 | E5 | `/actuator/health` | 인증 없이 200 | 통과 |
 
-근거: chagok-backend#11(PR #16) `EndpointGuardTest` 7개(E1~E5 + 만료·위조 토큰 401 + 올바른 역할 통과), develop `f562a7b` push CI run 45187970594 db-test 리포트 — 7개 통과, SKIPPED 0. 로그인 API(01·02) 공개 규칙과 P1 계정 상태 확인(08 0.6)은 아직 없어 이 테스트가 보지 않는다(12 10장 C01).
+근거: chagok-backend#11(PR #16) `EndpointGuardTest` 7개(E1~E5 + 만료·위조 토큰 401 + 올바른 역할 통과), develop `f562a7b` push CI run 45187970594 db-test 리포트 — 7개 통과, SKIPPED 0. 그 뒤 로그인 API(01·02)가 생기면서 같은 테스트에 로그인 공개 규칙(C01: 토큰 없이 01·02 호출, 붙어 온 만료·위조 토큰 무시, 공개는 두 경로의 POST뿐)과 X9(서비스 관리자 토큰으로 03 → 403)가 더해져 11개가 됐고, develop `753cd3c` CI run 45957852545 db-test 리포트에서 11개 모두 통과, SKIPPED 0이다(12 10장 C01). P1 계정 상태 확인(08 0.6)은 아직 없어 이 테스트가 보지 않는다.
 
 정비소 소유 일치(요청한 정비소 = 데이터의 정비소)는 X1~X8·X11~X15·X17로 확인한다. 인증을 끄고 테스트를 통과시키지 않는다.
 
@@ -60,43 +61,45 @@ CI는 작업 요약에 통과·실패·건너뜀 수를 남기고 리포트를 �
 
 | ID | 단계 | 내용 | 상태 |
 |---|---|---|---|
-| T1~T13 | P0-핵심 | 미확인·여유·임박·도래 경계, 월말·윤년, km 판정, 기준 기록 선택 | 미구현 |
-| T14·T15 | P0-나머지 | 지난 방문 거절, 지난 점검 주의 | 미구현 |
+| T1~T13 | P0-핵심 | 미확인·여유·임박·도래 경계, 월말·윤년, km 판정, 기준 기록 선택 | 통과 |
+| T14·T15 | P0-나머지 | 지난 방문 거절, 지난 점검 주의 | 통과 |
 | T16·T17 | P1 | 월평균 주행거리 추정 | 미구현 |
+
+4~6장 「통과」의 근거(2026-11-27): chagok-backend develop `753cd3c`(릴리스 PR chagok-backend#128의 head) CI run 45957852545의 `test-report`(build, 604개)·`db-test-report`(db-test, 227개) — 모두 통과, SKIPPED 0, 실패 0. 테스트 이름(`@DisplayName`)에 그 ID가 든 테스트가 실행·통과한 것을 「통과」로 적었다(R22·X16은 그 행 설명. 행 내용의 일부는 이름에 ID가 없는 같은 시나리오 테스트가 함께 확인한다 — 예: X12의 18·19는 `ReservationServiceDbTest`, X7의 홈은 `HomeSeedHttpDbTest`). 프론트(chagok-frontend develop `9491f19`, `frontend-ci` run 45966240312)에도 이름에 ID가 든 테스트가 있으나 Mock 기준이라 서버 검증 근거로 세지 않았다.
 
 ## 5. 예약 규칙 (R) — 원본 04 8장
 
 | ID | 단계 | 내용 | 상태 |
 |---|---|---|---|
-| R1 | P0-핵심 | 30분 단위 아님 → 400 | 미구현 |
-| R2 | P0-핵심 | 어제 날짜 400, 오늘 지난 시각 성공 | 미구현 |
-| R3 | P0-핵심 | 같은 차량 유효 예약 → 409 `RESERVATION_ACTIVE_EXISTS` + 기존 예약 번호 | 미구현 |
-| R4 | P0-핵심 | 지난 미처리 예약이 있어도 새 예약 성공 | 미구현 |
-| R5 | P0-핵심 | 취소된 예약 방문 완료 → 409 | 미구현 |
-| R6 | P0-나머지 | 시각 전 노쇼 → 409 | 미구현 |
-| R7 | P0-핵심 | 어제 날짜로 변경 → 400 | 미구현 |
-| R8 | P0-핵심 | 동시 변경 → 나중 쪽 409 `CONCURRENT_MODIFICATION`, 먼저 바꾼 내용 유지 | 미구현 |
-| R9 | P0-핵심 | 방문 완료된 예약 변경 → 409 `INVALID_STATUS_TRANSITION`, 그대로 | 미구현 |
-| R10 | P0-핵심 (취소·노쇼 P0-나머지) | 끝난 예약에 낡은 화면으로 상태 변경 → 409 `INVALID_STATUS_TRANSITION` / 같은 `version`으로 동시 → 하나만 성공, 나머지 409 `CONCURRENT_MODIFICATION` | 미구현 |
-| R11 | P0-핵심 | 예약 목적 항목만 변경해도 `version` +1, 낡은 `version` 재변경 → 409 | 미구현 |
-| R12 | P0-핵심 (취소·노쇼 P0-나머지) | 일시 변경(`version` 1) 뒤 `version` 0으로 방문 완료 → 409 `CONCURRENT_MODIFICATION`, 예약 그대로 | 미구현 |
-| R13 | P0-핵심 (취소·노쇼 P0-나머지) | 방문 완료 `version` 누락 → 400 / 성공 시 응답 `version` = 요청 + 1 | 미구현 |
-| R14 | P0-핵심 | 변경(19)에 `version`만 → 400 `INVALID_INPUT`, 예약·`version` 그대로 | 미구현 |
-| R15 | P0-나머지 | 같은 담당 + 같은 시작 시각의 유효 예약이 있는데 또 등록 → 409 `MECHANIC_SLOT_CONFLICT` + 겹친 예약 번호 | 미구현 |
-| R16 | P0-나머지 | 같은 시각, 담당이 다른 예약 → 성공 | 미구현 |
-| R17 | P0-나머지 | 같은 담당·같은 시각이지만 기존 예약이 취소·완료·노쇼 → 성공 | 미구현 |
-| R18 | P0-나머지 | 변경(19)으로 같은 담당·같은 시각이 되게 바꿈 → 409 `MECHANIC_SLOT_CONFLICT`, 예약·`version` 그대로 | 미구현 |
-| R19 | P0-나머지 | 담당 없이 등록 → 400 `INVALID_INPUT` (P0-핵심에서는 서버가 등록자를 담당으로 채우므로 해당 없음) | 미구현 |
-| R20 | P0-나머지 | 다른 정비소 정비사 id를 담당으로 등록·변경 → 400 `INVALID_INPUT` (X13) | 미구현 |
-| R21 | P0-나머지 | 방문 접수(39): 예약 → 진행중, 진행중에 변경(19) 시도 → 접수 성공 / 변경 409 `INVALID_STATUS_TRANSITION` | 미구현 |
-| R22 | P0-나머지 | 진행중 예약이 있는 담당의 같은 시작 시각에 새 예약 → 409 `MECHANIC_SLOT_CONFLICT` | 미구현 |
-| R23 | P0-나머지 | 어제 날짜의 진행중 예약이 있는 차량에 새 예약 → 409 `RESERVATION_ACTIVE_EXISTS` (진행중은 날짜와 무관한 유효 예약) | 미구현 |
-| R24 | P0-나머지 | 재배정: (a) 전날까지 정비사·사장 / (b) 당일 정비사 / (c) 당일 사장+사유 / (d) 당일 사장·사유 없음 / (e) 진행중 사장 / (f) 지난 날짜 사장 → (a) 성공 / (b) 409 `ASSIGNEE_CHANGE_CLOSED` / (c) 성공, 이력에 사유 / (d) 400 `INVALID_INPUT` / (e) 409 `INVALID_STATUS_TRANSITION` / (f) 409 `ASSIGNEE_CHANGE_CLOSED` | 미구현 |
-| R25 | P0-나머지 | 정정 허용표: 취소→노쇼, 노쇼→취소, 취소→완료, 노쇼→완료 → 모두 사장 성공, `reservation_revision` 기록, `version` +1 | 미구현 |
-| R26 | P0-나머지 | 완료 → 취소·노쇼 정정 → 409 `INVALID_STATUS_TRANSITION` | 미구현 |
-| R27 | P0-나머지 | 정비사의 상태 정정 시도 → 403 `FORBIDDEN` | 미구현 |
-| R28 | P0-나머지 | 메모 정정: 담당 정비사가 예약 날짜 + 3일 이내 / 4일째 / 사장 4일째 → 성공 / 403 `EDIT_PERIOD_EXPIRED` / 성공 | 미구현 |
-| R29 | P0-나머지 | 담당이 아닌 정비사의 메모 정정 → 403 `FORBIDDEN` | 미구현 |
+| R1 | P0-핵심 | 30분 단위 아님 → 400 | 통과 |
+| R2 | P0-핵심 | 어제 날짜 400, 오늘 지난 시각 성공 | 통과 |
+| R3 | P0-핵심 | 같은 차량 유효 예약 → 409 `RESERVATION_ACTIVE_EXISTS` + 기존 예약 번호 | 통과 |
+| R4 | P0-핵심 | 지난 미처리 예약이 있어도 새 예약 성공 | 통과 |
+| R5 | P0-핵심 | 취소된 예약 방문 완료 → 409 | 통과 |
+| R6 | P0-나머지 | 시각 전 노쇼 → 409 | 통과 |
+| R7 | P0-핵심 | 어제 날짜로 변경 → 400 | 통과 |
+| R8 | P0-핵심 | 동시 변경 → 나중 쪽 409 `CONCURRENT_MODIFICATION`, 먼저 바꾼 내용 유지 | 통과 |
+| R9 | P0-핵심 | 방문 완료된 예약 변경 → 409 `INVALID_STATUS_TRANSITION`, 그대로 | 통과 |
+| R10 | P0-핵심 (취소·노쇼 P0-나머지) | 끝난 예약에 낡은 화면으로 상태 변경 → 409 `INVALID_STATUS_TRANSITION` / 같은 `version`으로 동시 → 하나만 성공, 나머지 409 `CONCURRENT_MODIFICATION` | 통과 |
+| R11 | P0-핵심 | 예약 목적 항목만 변경해도 `version` +1, 낡은 `version` 재변경 → 409 | 통과 |
+| R12 | P0-핵심 (취소·노쇼 P0-나머지) | 일시 변경(`version` 1) 뒤 `version` 0으로 방문 완료 → 409 `CONCURRENT_MODIFICATION`, 예약 그대로 | 통과 |
+| R13 | P0-핵심 (취소·노쇼 P0-나머지) | 방문 완료 `version` 누락 → 400 / 성공 시 응답 `version` = 요청 + 1 | 통과 |
+| R14 | P0-핵심 | 변경(19)에 `version`만 → 400 `INVALID_INPUT`, 예약·`version` 그대로 | 통과 |
+| R15 | P0-나머지 | 같은 담당 + 같은 시작 시각의 유효 예약이 있는데 또 등록 → 409 `MECHANIC_SLOT_CONFLICT` + 겹친 예약 번호 | 통과 |
+| R16 | P0-나머지 | 같은 시각, 담당이 다른 예약 → 성공 | 통과 |
+| R17 | P0-나머지 | 같은 담당·같은 시각이지만 기존 예약이 취소·완료·노쇼 → 성공 | 통과 |
+| R18 | P0-나머지 | 변경(19)으로 같은 담당·같은 시각이 되게 바꿈 → 409 `MECHANIC_SLOT_CONFLICT`, 예약·`version` 그대로 | 통과 |
+| R19 | P0-나머지 | 담당 없이 등록 → 400 `INVALID_INPUT` (P0-핵심에서는 서버가 등록자를 담당으로 채우므로 해당 없음) | 통과 |
+| R20 | P0-나머지 | 다른 정비소 정비사 id를 담당으로 등록·변경 → 400 `INVALID_INPUT` (X13) | 통과 |
+| R21 | P0-나머지 | 방문 접수(39): 예약 → 진행중, 진행중에 변경(19) 시도 → 접수 성공 / 변경 409 `INVALID_STATUS_TRANSITION` | 통과 |
+| R22 | P0-나머지 | 진행중 예약이 있는 담당의 같은 시작 시각에 새 예약 → 409 `MECHANIC_SLOT_CONFLICT` | 통과 (이름에 R22가 든 테스트는 없음. `ReservationAssigneeDbTest`의 R17 테스트가 진행중 예약이면 막는지 함께 확인) |
+| R23 | P0-나머지 | 어제 날짜의 진행중 예약이 있는 차량에 새 예약 → 409 `RESERVATION_ACTIVE_EXISTS` (진행중은 날짜와 무관한 유효 예약) | 통과 |
+| R24 | P0-나머지 | 재배정: (a) 전날까지 정비사·사장 / (b) 당일 정비사 / (c) 당일 사장+사유 / (d) 당일 사장·사유 없음 / (e) 진행중 사장 / (f) 지난 날짜 사장 → (a) 성공 / (b) 409 `ASSIGNEE_CHANGE_CLOSED` / (c) 성공, 이력에 사유 / (d) 400 `INVALID_INPUT` / (e) 409 `INVALID_STATUS_TRANSITION` / (f) 409 `ASSIGNEE_CHANGE_CLOSED` | 통과 |
+| R25 | P0-나머지 | 정정 허용표: 취소→노쇼, 노쇼→취소, 취소→완료, 노쇼→완료 → 모두 사장 성공, `reservation_revision` 기록, `version` +1 | 통과 |
+| R26 | P0-나머지 | 완료 → 취소·노쇼 정정 → 409 `INVALID_STATUS_TRANSITION` | 통과 |
+| R27 | P0-나머지 | 정비사의 상태 정정 시도 → 403 `FORBIDDEN` | 통과 |
+| R28 | P0-나머지 | 메모 정정: 담당 정비사가 예약 날짜 + 3일 이내 / 4일째 / 사장 4일째 → 성공 / 403 `EDIT_PERIOD_EXPIRED` / 성공 | 통과 |
+| R29 | P0-나머지 | 담당이 아닌 정비사의 메모 정정 → 403 `FORBIDDEN` | 통과 |
 
 D-51에 따라 **R15~R20은 P0-나머지**다(P0-핵심에서는 담당 스키마만 있고 등록자가 담당으로 자동 지정된다). R21~R29(D-52·D-53)도 P0-나머지다.
 
@@ -104,17 +107,17 @@ D-51에 따라 **R15~R20은 P0-나머지**다(P0-핵심에서는 담당 스키�
 
 | ID | 단계 | 내용 | 상태 |
 |---|---|---|---|
-| H1 | P0-나머지 | 기록 메모 수정 → 이력 1건(수정 전 값·수정자·시각), `version` +1 | 미구현 |
-| H2 | P0-나머지 | 교체 기록의 방문일 수정 → 다음 정비일·상태가 수정 값으로 즉시 바뀜 | 미구현 |
-| H3 | P0-나머지 | 정비사가 남이 담당한 기록 수정 → 403 `FORBIDDEN` | 미구현 |
-| H4 | P0-나머지 | `version` 불일치 → 409 `CONCURRENT_MODIFICATION` | 미구현 |
-| H5 | P0-나머지 | 다른 정비소 기록 수정·이력 조회 → 404 (X14) | 미구현 |
-| H6 | P0-나머지 | 미래 방문일로 수정 → 400 `INVALID_INPUT` | 미구현 |
-| H7 | P0-나머지 | 수정 결과 같은 방문에 같은 항목 중복 → 400 `INVALID_INPUT` | 미구현 |
-| H8 | P0-나머지 | 바뀐 필드 없이 `version`만 보냄 → 400 `INVALID_INPUT`, 이력 없음 | 미구현 |
-| H9 | P0-나머지 | 삭제 경로 호출 → 없음(`EndpointGuardTest`로 닫힘) | 미구현 |
-| H10 | P0-나머지 | 정비사가 방문일 + 3일 이내 / 4일째 수정 → 성공 / 403 `EDIT_PERIOD_EXPIRED` | 미구현 |
-| H11 | P0-나머지 | 사장이 4일 지난 기록 수정 → 성공 | 미구현 |
+| H1 | P0-나머지 | 기록 메모 수정 → 이력 1건(수정 전 값·수정자·시각), `version` +1 | 통과 |
+| H2 | P0-나머지 | 교체 기록의 방문일 수정 → 다음 정비일·상태가 수정 값으로 즉시 바뀜 | 통과 |
+| H3 | P0-나머지 | 정비사가 남이 담당한 기록 수정 → 403 `FORBIDDEN` | 통과 |
+| H4 | P0-나머지 | `version` 불일치 → 409 `CONCURRENT_MODIFICATION` | 통과 |
+| H5 | P0-나머지 | 다른 정비소 기록 수정·이력 조회 → 404 (X14) | 통과 |
+| H6 | P0-나머지 | 미래 방문일로 수정 → 400 `INVALID_INPUT` | 통과 |
+| H7 | P0-나머지 | 수정 결과 같은 방문에 같은 항목 중복 → 400 `INVALID_INPUT` | 통과 |
+| H8 | P0-나머지 | 바뀐 필드 없이 `version`만 보냄 → 400 `INVALID_INPUT`, 이력 없음 | 통과 |
+| H9 | P0-나머지 | 삭제 경로 호출 → 없음(`EndpointGuardTest`로 닫힘) | 통과 (`RecordEditControllerTest` 「H9: 삭제 경로는 없다」) |
+| H10 | P0-나머지 | 정비사가 방문일 + 3일 이내 / 4일째 수정 → 성공 / 403 `EDIT_PERIOD_EXPIRED` | 통과 |
+| H11 | P0-나머지 | 사장이 4일 지난 기록 수정 → 성공 | 통과 |
 
 ### 5.2 보관·비활성화 (K) — 원본 04 F-CUS-10·11, F-STF-01 (D-56)
 
@@ -155,18 +158,18 @@ P1이다. 30·32·34-3 이슈(12 6장)에서 만든다. 비밀번호 원문은 �
 
 | ID | 내용 | 상태 |
 |---|---|---|
-| X1~X6 | 다른 정비소의 고객·차량·예약·기록·미리보기 → 404, 저장 안 됨 | 미구현 |
-| X7 | 목록·검색·대상·홈·예약 조회·정비 항목(13, D-63 B06)에 다른 정비소 데이터가 섞이지 않음 | 미구현 |
-| X8 | 요청의 `shopId` 무시 | 미구현 |
-| X9 | 서비스 관리자 토큰으로 정비소 API → 403 | 미구현 |
-| X10 | 토큰 없음·만료 → 401 | 미구현 |
-| X11 | 본문의 정비 항목 id가 다른 정비소 것 → 400 `INVALID_INPUT`, 저장 안 됨 | 미구현 |
-| X12 | 다른 정비소 예약 18·19(P0-핵심), 20·21·고객 22·차량 23(P0-나머지) → 404 | 미구현 |
-| X13 | 다른 정비소 정비사 id를 `assigneeId`·`mechanicId`로 보냄 (16·19·12·37) → 400 `INVALID_INPUT` (P0-나머지, D-51) | 미구현 |
-| X14 | 다른 정비소 기록 수정·이력 (37·38), 다른 정비소 예약 방문 접수·정정·이력 (39·40·41) → 404 (P0-나머지) | 미구현 |
+| X1~X6 | 다른 정비소의 고객·차량·예약·기록·미리보기 → 404, 저장 안 됨 | 통과 |
+| X7 | 목록·검색·대상·홈·예약 조회·정비 항목(13, D-63 B06)에 다른 정비소 데이터가 섞이지 않음 | 통과 |
+| X8 | 요청의 `shopId` 무시 | 통과 |
+| X9 | 서비스 관리자 토큰으로 정비소 API → 403 | 통과 |
+| X10 | 토큰 없음·만료 → 401 | 통과 |
+| X11 | 본문의 정비 항목 id가 다른 정비소 것 → 400 `INVALID_INPUT`, 저장 안 됨 | 통과 |
+| X12 | 다른 정비소 예약 18·19(P0-핵심), 20·21·고객 22·차량 23(P0-나머지) → 404 | 통과 |
+| X13 | 다른 정비소 정비사 id를 `assigneeId`·`mechanicId`로 보냄 (16·19·12·37) → 400 `INVALID_INPUT` (P0-나머지, D-51) | 통과 |
+| X14 | 다른 정비소 기록 수정·이력 (37·38), 다른 정비소 예약 방문 접수·정정·이력 (39·40·41) → 404 (P0-나머지) | 통과 |
 | X15 | 다른 정비소 고객·차량 비활성화·활성화·삭제·익명화 (43~47·49), 정비사 비활성화 (50)·임시 비밀번호 재발급 (51) → 404, 48·25 목록에 B 데이터 없음 (P1) | 미구현 |
-| X16 | 서비스 관리자 토큰으로 36~42 (P0-나머지), 43~52 (P1) → 403 | 미구현 |
-| X17 | A 토큰으로 08 `{B 고객}` 차량 추가 → 404, 저장 안 됨 (P0-핵심, D-63 B11) | 미구현 |
+| X16 | 서비스 관리자 토큰으로 36~42 (P0-나머지), 43~52 (P1) → 403 | 36·42 통과(각 API 테스트). 37~41은 경로 규칙(`/api/**`는 사장·정비사만, E3)으로만 확인하고 각 API 테스트는 미검증. 43~52는 P1이라 미구현 |
+| X17 | A 토큰으로 08 `{B 고객}` 차량 추가 → 404, 저장 안 됨 (P0-핵심, D-63 B11) | 통과 |
 | X18 | 사장·정비사 토큰으로 `/api/admin/**` → 403 (D-63 B10) | 통과 (경로 규칙, `EndpointGuardTest` E4). P1의 31~35 각 API는 그 이슈에서 다시 확인 |
 | X19 | 비활성화 전에 받은 정비사 토큰 → 403 `ACCOUNT_INACTIVE` (P1, D-62) | 미구현 |
 | X20 | 첫 비밀번호 변경 전 03·24 밖 → 403 `PASSWORD_CHANGE_REQUIRED` (P1, D-60) | 미구현 |
@@ -179,13 +182,14 @@ B 정비소 예약이 필요한 X3·X12·X14는 시연 시드가 아니라 테�
 서버 검증을 거치지 않고 SQL로 직접 넣어 DB 제약이 막는지 본다. B-3(V1) PR에서 확인하고 결과를 PR 본문에 적는다.
 
 테스트: `chagok-backend` `V1InitMigrationTest` (`@Tag("db")`, 14개). 근거 실행: chagok-backend#5 head `4f5bc9b` → CI run 45134308683, develop 머지 `f4c69fb` → CI run 45136171490. 두 실행 모두 14/14 통과, SKIPPED 0 (테스트 결과 XML `db-test-report`).
+2026-11-27 근거: V2(chagok-backend#31, PR #92) 머지 뒤 같은 테스트가 빈 DB에 **V1→V2**를 적용해 확인한다(V1-1 테이블 11개·Entity가 생겨 `validate`까지 확인, V1-2 FK 복합 10 + 단일 13, V1-8은 V2에서 `IN_PROGRESS`·`NO_SHOW` 저장 성공·허용 밖 값 3819, V1-12는 "V2에 P0-나머지 표·칼럼이 있고 P1 표·칼럼은 없음"). V2 검사 6개(`inspect_result` CHECK, `maintenance_record_revision` UNIQUE, `reservation_revision` CHECK, `updated_at`·`version` 기본값, `shop.brn`·`shop_address` 기본값, 이력 표 복합 FK — 07 6.4)가 더해져 20개이고, develop `753cd3c` CI run 45957852545 db-test 리포트에서 20개 모두 통과, SKIPPED 0이다.
 
 | ID | 내용 | 상태 |
 |---|---|---|
 | V1-1·V1-2 | 빈 DB에 V1 적용·앱 기동(`validate`), FK 목록(복합 8 + 단일 9, 담당 정비사 복합 FK 2개 `fk_reservation_assignee_staff`·`fk_maintenance_record_staff` 포함), `staff`의 `UNIQUE(shop_id, id)` | 통과 (chagok-backend#5, CI db-test). V1-1의 `validate`는 Entity가 아직 없어 "Flyway 적용 + 앱 기동"까지만 확인 — JPA Entity 매핑 검증은 Entity 이슈에서 |
 | V1-3~V1-5 | 다른 정비소 부모를 가리키는 vehicle·maintenance_record·reservation·reservation_item INSERT 실패. **담당 FK**: A 정비소 예약의 `assignee_staff_id`·A 정비소 기록의 `staff_id`에 B 정비소 정비사를 넣으면 실패(1452), 같은 정비소 정비사는 저장. `assignee_staff_id` 필수(1364·1048) | 통과 (chagok-backend#5, CI db-test) |
 | V1-6~V1-10 | CHECK(30분·초, EXTERNAL↔출처, `IN_PROGRESS`·`NO_SHOW` 없음)·UNIQUE·차량번호 중복 허용 | 통과 (chagok-backend#5, CI db-test) |
-| V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용, 07 7.5 기대값 | 미구현 (별도 시드 이슈) |
+| V1-11 | 시연 시드(`run-demo-seed.sh`)를 V1 위에 적용, 07 7.5 기대값 | 통과 (`DemoSeedTest`(db)·`DemoSeedFileTest`(DB 없음), develop `753cd3c` CI run 45957852545. V1→V2 위에 적용) |
 | V1-12 | 이후 단계 칼럼 없음(`IN_PROGRESS`·`updated_at`·revision 표·`status`·`active`는 V1에 없음, `reservation.assignee_staff_id`는 V1에 있음) | 통과 (chagok-backend#5, CI db-test) |
 | V1-13 | 타임스탬프 칼럼에 DB 기본값 없음 (빼고 INSERT 실패) | 통과 (chagok-backend#5, CI db-test) |
 
@@ -207,7 +211,7 @@ B 정비소 예약이 필요한 X3·X12·X14는 시연 시드가 아니라 테�
 | 방문 완료 후 S-08에서 저장 실패·이탈 → 예약은 방문 완료 유지, 입력값 유지, 자동 재전송 없음, S-07에서 나중에 기록 가능 | 05 POL-95 | P0-핵심 |
 | 회귀: P0-핵심 흐름 전체 다시 확인 | 00 7장 | P0-나머지부터 매 릴리스 |
 | 홈 오늘 예약 목록에 취소 예약이 "취소" 라벨로 보이고 "오늘 예약 N건"에는 세지 않음 | 04 F-RSV-02, D-63 B05 | P0-나머지(취소가 생긴 뒤) |
-| 주 보기 08:00 전·20:00 이후 시작 예약이 표 위·아래 영역에 보임(누락 없음) | 09 S-02, D-63 B08 | P0-나머지 |
+| 주 보기 08:00 전·20:00 이후 시작 예약이 가로 타임라인의 맨 앞·맨 뒤 열에 보임(누락 없음) | 09 S-02, D-63 B08 | P0-나머지 |
 | 예약 패널 점검 주기 요약이 `sortOrder` 순이고 목적 항목은 강조만 | 09 S-02 패널, D-63 B02 | P0-핵심 |
 | 목록 연락처 마스킹(010·02·지역번호·8자리 대표번호)에서 가운데가 드러나지 않고, 상세·문자 초안은 전체 번호 | 08 0.5, D-63 B07 | P0-나머지 |
 | S-01 비밀번호 변경: 입력 전 도움말, blur 때 빨간 테두리 + 문구(색만이 아님), 고치면 바로 해제, 확인 불일치, 버튼 비활성 4조건, 표시/숨김 토글 키보드·스크린리더 | 09 S-01, D-60 | P1 |

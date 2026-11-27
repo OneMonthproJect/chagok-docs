@@ -27,7 +27,7 @@ description: 차곡 GitHub 이슈 번호나 이슈 본문을 받아, CONVENTIONS
 
 **4단계 — 구현**: 승인된 범위만, CONVENTIONS 2~7장대로. 테스트를 같이 쓴다(4장). 관련 없는 리팩터링, 임시방편(CONVENTIONS 12장)은 하지 않는다. 계획과 달라져야 하면 멈추고 다시 보고한다.
 
-**5단계 — 검증**: 5장 자체 점검 + 등급별 실행(`ai-rules.md` 「작업 등급」). 바뀐 레포만: 백엔드 `./gradlew build`(ArchitectureTest 포함), 프론트 `npm run lint && npm run build`. `./gradlew dbTest`는 L2·L3에서 DB 테스트에 닿을 때(Entity·Repository·마이그레이션·시드·설정), L3는 대상별 고위험 검증까지. 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있으면 `chagok-contract-checker`, L2·L3는 이어서 `chagok-pr-reviewer`(Claude Code) 또는 `chagok-spec-sync` 모드 C·`chagok-pr-review`(claude.ai). L1은 pr-reviewer 선택. **실행하지 못한 검증은 이유와 함께 "미검증"으로 적는다. 실행 결과 없이 "통과"라고 쓰지 않는다.**
+**5단계 — 검증**: 5장 자체 점검 + 등급별 실행(`ai-rules.md` 「작업 등급」). 바뀐 레포만: 백엔드 `./gradlew build`(ArchitectureTest 포함), 프론트 `npm run lint && npm test && npm run build`. `./gradlew dbTest`는 L2·L3에서 DB 테스트에 닿을 때(Entity·Repository·마이그레이션·시드·설정), L3는 대상별 고위험 검증까지. 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있으면 `chagok-contract-checker`, L2·L3는 이어서 `chagok-pr-reviewer`(Claude Code) 또는 `chagok-spec-sync` 모드 C·`chagok-pr-review`(claude.ai). L1은 pr-reviewer 선택. **실행하지 못한 검증은 이유와 함께 "미검증"으로 적는다. 실행 결과 없이 "통과"라고 쓰지 않는다.**
 
 **6단계 — 결과 보고**: L2·L3는 6장 형식, L1은 변경 파일·검증 결과·남은 일만. 빌드·테스트 결과가 없으면 "구현 완료(미검증)"이지 "완료"가 아니다.
 

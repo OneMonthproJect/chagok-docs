@@ -38,14 +38,15 @@
 | 협업 | GitHub Organization `OneMonthproJect`, 공개 레포 3개, GitHub Free 운영 |
 | AI | Claude Code(로컬, 스킬 + 에이전트), claude.ai(스킬만) |
 
-**지금 단계 (2026-11-24)**
+**지금 단계 (2026-11-27)**
 
 | 마일스톤 | 상태 |
 |---|---|
 | M1 설계 확정 | **통과** (2026-11-23, 태그 `v0.1-m1-design`, chagok-docs#46) |
 | 공통 기반 B-0~B-3 | develop에 있음 (backend#11·#4·#9·#12, frontend#10) — 조건부 통과, 남은 조건은 [STARTER 00](STARTER/00_현재_개발현황.md) |
-| M2 통합 검증 | 진행 전. P0-핵심 기능 이슈를 만들고 구현하는 단계 |
-| M3 · M4 · M5 | 대기. 날짜는 D-15(PM 결정 대기) |
+| M2 통합 검증 | **통과** (2026-11-26, 세 레포 태그 `v0.5-m2-integration`) |
+| P0-나머지 | 구현 이슈 모두 닫힘(2026-11-27) |
+| M3 · M4 · M5 | 대기. M2 이후 순서는 결정 이슈 chagok-docs#192, 결정 전 통과 조건은 00 8장 그대로 |
 
 **한눈에 보는 작업 흐름**: 팀원은 모두 각 레포의 `develop`에 PR로 올리고, `main`에는 형상관리자만 정해진 네 번(M2 · M3 · M4 · M5) 세 레포를 함께 올립니다.
 
@@ -635,7 +636,7 @@ chagok-issue-writer로 12 백로그 4장 4번(F-CUS-01~05 백엔드)과 5번(프
 | 결과 | ① 등급(L0~L3) + 계획 보고(범위·파일·책임 배치·의존·재사용·DB·API 영향·테스트·위험·결정 필요) ② 승인 후 코드·테스트 ③ 결과 보고(상태·빌드·테스트 결과·문서 동기화·PR 전 점검·브랜치·커밋·PR 본문·AI 기록) |
 | 선행 · 연계 | 선행 이슈가 열려 있으면 알림. P2·Non-goal 이슈면 멈추고 scope-guard(D-70). 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/` → contract-checker, L2·L3 → pr-reviewer |
 | 읽기 · 쓰기 | 승인된 범위의 코드·테스트만. 문서는 고치지 않고 문서 PR 초안만 |
-| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
+| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm test && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
 | 금지 · 주의 | 관련 없는 리팩터링·임시방편 금지. 계획과 달라지면 멈추고 다시 보고. 도메인 3개 이상 내부 수정·표 밖 의존이면 멈춤. 테스트 ID는 04·08 표기 그대로(**번호 범위는 원본에서 확인** — PR #76 반영). 결과 없이 "통과" 금지 → "구현 완료(미검증)" |
 
 ```text
@@ -654,7 +655,7 @@ chagok-backend#<번호> 이슈를 chagok-issue-coder로 구현해줘. 먼저 작
 | 결과 | 버그(실제/기대 + 근거) · 원인(파일:줄) · 수정 · 재발 방지 테스트 · **같은 패턴이 남은 곳(고치지 않음)** · PR 전 점검 · `fix/` 브랜치·커밋·PR 본문 · 트러블슈팅 기록 후보 · AI 기록 |
 | 선행 · 연계 | 명세에 없거나 기준 문서끼리 다르면 버그가 아니라 결정 문제 → spec-sync 모드 A + 결정 이슈. 시드 원인 → seed-data. 동결 후 사실상 기능 추가 → scope-guard |
 | 읽기 · 쓰기 | 원인 한 곳만. 여러 파일·도메인·API·DB에 걸치면 **고치기 전에 계획 보고 → 승인** |
-| 승인 · 검증 | 재현 테스트 통과 + 바뀐 레포 build(또는 lint·build), dbTest·L3 검증은 등급대로(격리·인증·DB 버그는 L3). 못 돌렸으면 "미검증(이유)" |
+| 승인 · 검증 | 재현 테스트 통과 + 바뀐 레포 build(또는 lint·test·build), dbTest·L3 검증은 등급대로(격리·인증·DB 버그는 L3). 못 돌렸으면 "미검증(이유)" |
 | 금지 · 주의 | 테스트를 통과시키려고 검증을 지우거나 예외를 삼키지 않음. 테스트 ID 번호 범위는 원본에서 확인(PR #76 반영) |
 
 ```text
@@ -751,7 +752,7 @@ chagok-release-check로 M2 통합 검증(v0.5-m2-integration) 릴리스 가능 �
 | `chagok-scope-keeper` | Read · Grep · Glob · Bash | 없음 (읽기 전용) | `gh issue create`는 ask |
 | `chagok-seed-builder` | Read · Grep · Glob · **Edit · Write** · Bash | **`chagok-backend/db/seed/demo_seed.sql`만** | **이 파일로만 제한하는 설정은 없음** — 지시문으로만 제한. 결과 diff를 사람이 확인 |
 
-세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)`, `Bash(gh issue delete *)`, `gh api`의 DELETE(`-X DELETE`·`-XDELETE`·`--method DELETE`·`--method=DELETE` 글자 그대로. 소문자·따옴표 변형과 graphql 삭제 mutation은 아래 ask로만 걸림) (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: `.env.development`·`.env.test`, Bash로 파일 읽기, upstream이 develop인 상태의 `git push`, `git push origin HEAD:develop`, `git push origin <브랜치> --force`(이 push들은 아래 ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`, 그리고 #73에서 더한 `git branch -d·-D·--delete·-m·-M·--move`, `git worktree remove·prune`, `git stash drop·clear`, `git fetch`·`git pull`의 prune 옵션(`--prune`·`-p`), `git remote prune`, `gh pr close·reopen·edit·ready`, `gh issue close·reopen·edit·transfer`, `gh label create·edit·delete·clone`, `gh api`의 `-X`·`--method`·`graphql … mutation`. 일반 `git fetch`·`git pull`은 절차(issue-coder·pr-review)가 쓰므로 묻지 않습니다. **패턴 밖이라 확인 없이 실행될 수 있는 것**(명령 문자열 매칭의 한계, 예시이며 전체 목록이 아님): ① 위에 없는 `gh` 쓰기 — `gh repo delete·archive·rename·edit`, `gh release delete·edit`, `gh secret·variable set·delete`, `gh workflow disable·run`, `gh run cancel·delete`, `gh issue lock·pin` ② 작업 내용을 지울 수 있는 git 명령 — `git restore`, `git checkout -- <경로>`·`-f`, `git switch -f·-C`, `git branch -f·-C`, `git reset`(`--hard` 외), `git update-ref -d`, `git reflog expire`, `git gc --prune`, `git remote remove·set-url`, `git config` ③ 옵션 순서·묶음 — `git -C <경로> …`처럼 앞에 옵션을 붙인 형태, `git branch -dr`·`-q -D`, `git fetch -P` ④ `-X` 없이 `-f`·`-F`·`--field`·`--raw-field`·`--input`만 준 `gh api`(POST가 됨), `gh api graphql -F query=@파일`(mutation이 파일 안에 있음) ⑤ 셸 별칭·스크립트 안의 명령. 이것들은 지시문으로 금지합니다(읽기 전용 스킬·에이전트, ai-rules).
+세 레포 공통으로 settings.json이 **실제로 막는 것(deny, 명령 문자열 패턴)**: Read 도구로 `./.env`·`**/.env`·`**/.env.local`·`**/.env.*.local`·`**/.env.production`·`**/.env.development`·`**/.env.test`·`secrets/**`·`**/*.pem` 읽기, `Bash(git push --force*)`·`Bash(git push -f*)`·`Bash(git push origin main*)`·`Bash(git push origin develop*)`, 대상이 `main`·`develop`인 push(`git push *:main*`·`*:develop*`·`*:refs/heads/main*`·`*:refs/heads/develop*`), `git push * --force*`(`--force-with-lease`도 포함)·`* -f *`·`* -f`·`* +*`(앞에 다른 인자가 있어도), `Bash(gh issue delete *)`와 옵션을 앞세운 `Bash(gh issue -* delete *)`(`gh issue -R <저장소> delete …`), `gh repo delete·archive`, `gh release delete`, `gh secret·variable set·delete`, `gh api`의 DELETE(`-X DELETE`·`-XDELETE`·`--method DELETE`·`--method=DELETE` 글자 그대로. 소문자·따옴표 변형과 graphql 삭제 mutation은 아래 ask로만 걸림) (코드 레포는 + `.claude/rules·skills·agents` Edit). 패턴 밖은 막히지 않습니다 — 예: Bash로 파일 읽기, upstream이 develop인 상태의 인자 없는 `git push`(ask만 받음). **확인을 묻는 것(ask)**: `git commit`·`push`·`reset --hard`·`clean`·`rebase`·`tag`, `gh pr create`·`merge`·`review`·`comment`, `gh issue create`·`comment`, `gh release create`, 그리고 #145 안 A(#178)에서 더한 `gh repo rename·edit`, `gh release edit`, `gh workflow run·disable·enable`, `gh run cancel·delete`, `gh issue lock·unlock·pin·unpin`, `git restore`, `git checkout -- <경로>`·`-f`, `git switch -f·-C·--discard-changes`, `git branch -f·-C`, `git reset`(전체), `git update-ref -d`, `git reflog expire`, `git gc --prune`, `git remote remove·rm·set-url`, 앞에 옵션을 붙인 `git -C <경로> push·commit·tag·reset·clean·rebase·branch -…`(`git * <동사> *`), 그리고 #73에서 더한 `git branch -d·-D·--delete·-m·-M·--move`, `git worktree remove·prune`, `git stash drop·clear`, `git fetch`·`git pull`의 prune 옵션(`--prune`·`-p`), `git remote prune`, `gh pr close·reopen·edit·ready`, `gh issue close·reopen·edit·transfer`, `gh label create·edit·delete·clone`, `gh api`의 `-X`·`--method`·`graphql … mutation`. 일반 `git fetch`·`git pull`은 절차(issue-coder·pr-review)가 쓰므로 묻지 않습니다. **deny가 아니라 ask만 받는 것**: `git -C <경로> push origin develop`, `git push -u origin develop`처럼 위 deny 형태 밖의 push(앞 옵션이 붙으면 `git * push *` ask만 받음). **알려진 오탐(읽기인데 묻는 것)**: `git -C <경로> branch --show-current`·`-vv`·`-a`(`git * branch -*`), `git stash push`, 단어 `push`·`commit`·`tag`·`reset`·`clean`·`rebase`가 인자로 들어간 `git log --grep …`. **패턴 밖이라 확인 없이 실행될 수 있는 것**(명령 문자열 매칭의 한계, 예시이며 전체 목록이 아님): ① `git config` 쓰기 ② 옵션 순서·묶음 — 위 동사 밖의 `git -C <경로> …`, `git branch -dr`·`-q -D`, `git fetch -P` ③ `-X` 없이 `-f`·`-F`·`--field`·`--raw-field`·`--input`만 준 `gh api`(POST가 됨), `gh api graphql -F query=@파일`(mutation이 파일 안에 있음) ④ 셸 별칭·스크립트 안의 명령, `bash -c`·`env`·절대 경로로 부른 명령 ⑤ PowerShell 도구가 켜진 환경(`Bash(…)` 규칙이 적용되지 않을 수 있음, A-0 확인 전). 이것들은 지시문으로 금지합니다(읽기 전용 스킬·에이전트, ai-rules).
 
 ### 19.2 에이전트별 상세
 
@@ -828,7 +829,7 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 | 스킬 | 없음 | 해당하면 `issue-coder`·`bug-fix` | `issue-coder`, 명세가 바뀌면 `spec-sync` | L2 + 시드면 `seed-data` |
 | 필수 에이전트 | 없음 | 없음 | `pr-reviewer` **필수**, API·`types.ts`·`mocks/`면 `contract-checker` | L2와 같음 |
 | 선택 에이전트 | 없음 | `pr-reviewer` | — | — |
-| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
+| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm test && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
 | CI | 모든 PR에서 pr-check, backend-ci(build + dbTest), frontend-ci(lint·test·build) — 등급과 무관 | 같음 | 같음 | 같음 |
 | 담당 리뷰 | — | CODEOWNERS 자동 요청 | 남의 패키지 `api`·공용 파일이면 주인 리뷰 | + 마이그레이션·시드는 DB관리, settings.json·CI는 형상관리 |
 | 결과 보고 | 한두 줄 | 변경 파일·검증 결과·남은 일 | 6단계 전부(변경·기능·테스트 결과·영향·남은 위험·문서 변경 필요·후속) | L2 + 위험·되돌리기 |
@@ -1143,7 +1144,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 | 비밀 파일 | `.env`·`secrets/`·키 파일을 AI가 읽거나 출력하지 않음. 설정은 "있음/없음"까지만 | Read 도구의 `.env`류·`secrets/**`·`*.pem` 패턴은 settings.json deny, 그 밖(다른 `.env.*`, Bash 경유)은 ai-rules 지시문 |
 | Git 보호 | force push, `main`·`develop` 직접 push 금지 | AI: `git push origin main/develop…`·`git push --force/-f…` 형태는 settings.json deny, 그 밖의 push는 ask(확인 창에서 거절) / 사람: 팀 규칙 |
 | 사람 확인 | 커밋·push·PR 생성·머지·리뷰·코멘트·이슈 생성·태그·Release, 브랜치·worktree·stash 삭제, 원격 ref prune, PR·이슈·라벨 상태 변경, `gh api` 쓰기(#73) | settings.json ask + 팀 규칙. `gh issue delete`·`gh api` DELETE는 deny |
-| 설정 패턴 밖 | 예: `gh repo delete` 등 목록에 없는 `gh` 쓰기, `git restore`·`git checkout -f` 등, `-X` 없이 `-f`·`-F`만 준 `gh api`, `git -C <경로> …`처럼 앞에 옵션을 붙인 형태, 셸 별칭·스크립트 (전체 목록 아님, 19.1) | 확인 없이 실행될 수 있음(명령 문자열 매칭의 한계). 지시문으로 금지 유지 |
+| 설정 패턴 밖 | 예: `-X` 없이 `-f`·`-F`만 준 `gh api`, `bash -c`·셸 별칭·스크립트·`env`·절대 경로로 부른 명령, `git config` 쓰기, PowerShell 도구가 켜진 환경 (전체 목록 아님, 19.1) | 확인 없이 실행될 수 있음(명령 문자열 매칭의 한계). 지시문으로 금지 유지 |
 | 복사본 | 코드 레포 `.claude/rules·skills·agents`를 고치지 않음 | 코드 레포 settings.json deny(Edit) + 동기화 때 덮어씀 |
 | DB | DB를 직접 실행·변경하지 않음. Flyway를 거치지 않는 스키마·데이터 변경 금지. 시연 데이터는 `db/seed/`에만 | 지시문 + pr-check |
 | 범위 | 이슈 범위 밖, 차례가 오지 않은 단계, Non-goal을 빈 화면·버튼·API·테이블로 미리 만들지 않음 | 지시문 + 리뷰 |
@@ -1274,7 +1275,7 @@ L1~L3는 구현 전 계획 승인이 필요합니다. L0만 한 줄 알리고 �
 16장 표. `.skill`은 claude.ai에서 스킬을 쓸 때만 필요하고, 스킬이 바뀌면 다시 받아 덮어씁니다.
 
 **Q. AI가 자동으로 GitHub에 push하거나 merge해도 되나요?**
-안 됩니다. push·PR 생성은 사람이 확인한 뒤이고(settings.json이 확인을 묻습니다), `git push origin main/develop…`·`git push --force/-f…` 형태는 deny로 막혀 있습니다. 그 밖의 push는 확인 창이 뜨므로 대상 브랜치를 보고 승인·거절합니다. 머지는 사람만 합니다.
+안 됩니다. push·PR 생성은 사람이 확인한 뒤이고(settings.json이 확인을 묻습니다), `git push origin main/develop…`·`:main`·`:develop` 대상·`git push --force/-f/+refspec…` 형태는 deny로 막혀 있습니다. 그 밖의 push는 확인 창이 뜨므로 대상 브랜치를 보고 승인·거절합니다. 머지는 사람만 합니다.
 
 **Q. CI와 에이전트 리뷰가 통과하면 바로 머지해도 되나요?**
 아닙니다. 팀원이 직접 실행해 확인하고, 완료 정의를 확인한 뒤 `done-verified`를 붙이고 사람이 머지합니다(22장). 에이전트 결과는 제안입니다.
