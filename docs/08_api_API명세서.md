@@ -608,12 +608,32 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 }
 ```
 
-P0-나머지부터 `records[]`에 `source`, `inspectResult`, `version`(수정 확인용 번호), `edited`(수정 이력 있음, F-MNT-04), `staff { staffId, name }`(그 기록의 담당 정비사)이 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). `version`·`edited`·`staff`의 표·예시는 F-MNT-04 착수 PR에서 확정한다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜).
+P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 세 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
 
-P0-나머지 `records[]` 예: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). `version`·`edited`·`staff`는 F-MNT-04 확정 전이라 적지 않았다.
+| 응답 records[] | 타입 | 설명 |
+|---|---|---|
+| version | number | 수정 확인용 번호. 기록을 저장할 때(12) 0이고 수정(37)마다 +1(07 3.7). 화면은 수정 요청에 이 값을 그대로 보낸다 |
+| edited | boolean | 수정 이력(38)이 한 건이라도 있으면 `true`. 이력 내용은 38에서 받는다 |
+| staff | object | 그 기록의 담당 정비사 `{ staffId, name }`. `name`은 그 계정의 현재 이름(38·41과 같음). 37로 담당을 바꾸면 이 값이 바뀐다 |
+
+P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). 수정한 적이 없어 `version`은 0, `edited`는 `false`다. 담당 `staff` 값은 예시 값이다.
 
 ```json
-{ "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null, "source": "CUSTOMER_STATEMENT", "inspectResult": null }
+{
+  "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null,
+  "source": "CUSTOMER_STATEMENT", "inspectResult": null,
+  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }
+}
+```
+
+예 2: 37·38 예시의 기록 16을 두 번 수정한 뒤의 모양이다(`version` 2, `edited` `true`, 수정한 내용은 38 예시와 같다).
+
+```json
+{
+  "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "INSPECT", "date": "2026-10-24", "memo": "합성유 사용",
+  "source": "SHOP", "inspectResult": "CAUTION",
+  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }
+}
 ```
 
 ### 12 POST `/api/vehicles/{vehicleId}/visits` — 방문·정비 기록 저장
@@ -1270,7 +1290,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
         {
           "revisionNo": 2,
           "changedAt": "2026-11-26T09:30:00",
-          "changedBy": { "staffId": 2, "name": "김정비" },
+          "changedBy": { "staffId": 1, "name": "박사장" },
           "reason": null,
           "changes": [
             { "field": "type", "before": "REPLACE", "after": "INSPECT" },
