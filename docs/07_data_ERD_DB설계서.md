@@ -221,6 +221,8 @@ erDiagram
 
 ## 4. 나중에 추가할 것 (지금 만들지 않음)
 
+아래 표의 P0-나머지(V2) 행은 V2 머지(chagok-backend#31, PR #92, 2026-11-26)로 이미 만들어졌다. 아직 만들지 않은 것은 P1(V3 이후)과 P2 행이다.
+
 | 단계 (마이그레이션) | 추가 | 내용 |
 |---|---|---|
 | P0-나머지 (V2) | `maintenance_record.inspect_result` | 3.7 |
@@ -368,7 +370,7 @@ erDiagram
 | `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, D-73, #122). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
 
-V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
+D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한 뒤 머지됐다(chagok-backend#4, PR #5, 2026-11-23). V2도 `develop`에 머지됐다(chagok-backend#31, PR #92, 2026-11-26). 이미 머지된 마이그레이션은 고치지 않고, 바꿀 것은 다음 버전 파일로 더한다.
 
 마이그레이션은 `chagok-backend/src/main/resources/db/migration/`에만 두고 DB 담당자가 작성한다. 시연 데이터는 마이그레이션이 아니다(7장). 운영용 기본 기준표는 정비소를 만들 때 서버가 넣는다(P1, F-ADM-01).
 
