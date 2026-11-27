@@ -113,7 +113,7 @@
 | `RETENTION_NOT_REACHED` | 409 | 보관 5년이 지나지 않음 (D-56) | P1 |
 | `ACCOUNT_INACTIVE` | 403 | 비활성 정비사 계정 로그인(D-57), 비활성화 전에 받은 토큰으로 정비소 API 호출(D-62) | P1 |
 
-`message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다.
+`message`는 화면에 그대로 보여 줄 수 있는 한국어 문장. 405·406·415 같은 표준 예외도 `INVALID_INPUT`으로 감싼다. 406은 요청의 `Accept`로 응답 형식을 맞출 수 없을 때이며, 오류 응답은 `Accept`와 관계없이 JSON 공통 응답으로 나간다. 코드가 던진 `ResponseStatusException`은 상태를 지켜 401·403·404는 각각 `AUTH_REQUIRED`·`FORBIDDEN`·`NOT_FOUND`, 그 밖 4xx는 `INVALID_INPUT`, 5xx는 `INTERNAL_ERROR`로 감싼다.
 
 DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 있는 유일 제약 위반(P1 아이디 중복 등)에만 쓴다. 복합 FK·CHECK 위반은 서버 검증이 먼저 막아야 하는 것이므로, 실제로 나면 서버 버그로 보고 500 `INTERNAL_ERROR`(트랜잭션 롤백, 내부 정보 미노출)로 응답한다. `DataIntegrityViolationException`을 모두 `CONFLICT`로 바꾸지 않는다. JPA `@Version` 충돌(`OptimisticLockException`)은 `CONCURRENT_MODIFICATION`이다.
 
