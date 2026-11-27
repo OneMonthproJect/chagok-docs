@@ -1,6 +1,7 @@
 # 04 Claude 스킬·에이전트 사용안내
 
 > 기준: 2026-11-24, chagok-docs develop `c81e120`(공용 `.claude/` 원본 `cf9ef3f`, 그 뒤 변경 없음). 규칙의 원본은 `.claude/rules/ai-rules.md`·`CONTRIBUTING.md`·각 `SKILL.md`·에이전트 파일이고, 이 문서는 개발 착수용 **빠른 사용 설명서**다. 세부 정책·전체 명령어는 **[GUIDE 총정리본](../GUIDE_레포구조_협업규칙_AI스킬안내.md)**(이하 GUIDE)에 있다. 두 문서가 다르면 원본 → GUIDE 순으로 확인한다.
+> 이후 현황(2026-11-27): 이 문서가 다룬 P0 작업(12 4·5장 이슈)은 모두 끝났다 — M2 통합 검증 통과(2026-11-26, `v0.5-m2-integration`), P0-나머지 구현 이슈 모두 닫힘. 아래는 2026-11-24 착수 당시 기록이다. 지금 단계는 [README](../../../README.md)·[GUIDE](../GUIDE_레포구조_협업규칙_AI스킬안내.md) 「지금 단계」, 규칙은 원본(CONTRIBUTING·`.claude/rules/ai-rules.md`)을 따른다.
 > 표기: **확정** / **결정 대기**(정책 아님) / **미구현**(사용 불가) / **미검증**(실행 근거 없음).
 
 ## 1. 시작 전 체크리스트
@@ -161,7 +162,7 @@ chagok-spec-sync 모드 C로 API 05·06의 08 명세, 백엔드 DTO, 프론트 t
 | 등급 | 대상 (예) | 계획·승인 | 에이전트 | AI가 직접 돌리는 검증 |
 |---|---|---|---|---|
 | L0 | 오타·주석·링크 | 한 줄 알리고 진행 | 없음 | 바뀐 종류만 |
-| L1 | 화면 문구·배치, README·가이드, 국소 코드 | 3~5줄 요약 → **승인** | `pr-reviewer` 선택 | BE `./gradlew build` / FE `npm run lint && npm run build` |
+| L1 | 화면 문구·배치, README·가이드, 국소 코드 | 3~5줄 요약 → **승인** | `pr-reviewer` 선택 | BE `./gradlew build` / FE `npm run lint && npm test && npm run build` |
 | L2 | Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`·`cycle`·Entity·Service 업무 규칙, 기준 문서 정책, 스킬 호출 조건·절차 | 전체 계획 → **승인** | `pr-reviewer` **필수**, API면 `contract-checker` | `build` + `dbTest`(DB에 닿으면) + 관련 T·R·X |
 | L3 | `db/migration`·`db/seed`, 인증(`global/auth`·`SecurityConfig`·토큰), 권한(403), 개인정보(마스킹·로그), 정비소 격리(`getOwned`·`shopId`), CI·`scripts`·`.github/`, `settings.json` | L2 + 위험·되돌리기 → **승인** | L2와 같음 + 담당 리뷰(DB는 DB관리, CI·settings는 형상관리) | L2 + 대상별 고위험 검증(GUIDE 20.2) |
 
