@@ -344,8 +344,9 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
         "plateNumber": "90마0005",
         "customerId": 5,
         "customerName": "정우성",
-        "phone": "010-0000-0005",
-        "purposeSummary": "엔진오일"
+        "phone": "010-****-0005",
+        "purposeSummary": "엔진오일",
+        "assignee": { "staffId": 2, "name": "김정비", "colorIndex": 1 }
       },
       {
         "reservationId": 1,
@@ -357,8 +358,9 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
         "plateNumber": "78라0004",
         "customerId": 4,
         "customerName": "최지은",
-        "phone": "010-0000-0004",
-        "purposeSummary": "엔진오일"
+        "phone": "010-****-0004",
+        "purposeSummary": "엔진오일",
+        "assignee": { "staffId": 2, "name": "김정비", "colorIndex": 1 }
       },
       {
         "reservationId": 2,
@@ -370,8 +372,9 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
         "plateNumber": "22사0007",
         "customerId": 7,
         "customerName": "서민준",
-        "phone": "010-0000-0007",
-        "purposeSummary": "기타"
+        "phone": "010-****-0007",
+        "purposeSummary": "기타",
+        "assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }
       }
     ]
   },
@@ -379,7 +382,7 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
 }
 ```
 
-P0-나머지부터는 `todayReservations[]`의 각 항목에 `assignee`가 더해진다(위 표). 예: `"assignee": { "staffId": 1, "name": "박사장", "colorIndex": 0 }`
+위 예시는 **P0-나머지 모양**이다(`assignee` 포함, `phone` 마스킹 0.5, 07 7.3 시드 3건). P0-핵심에서는 `assignee`가 없고 `phone`은 전체 번호(`010-0000-0005`)다.
 
 ## 4. 고객·차량
 
@@ -621,7 +624,7 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 }
 ```
 
-P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 네 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
+P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 네 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록 중 **가장 늦은 날짜**(외부만 있으면 그 날짜)다. 한 방문 안의 기록 날짜가 서로 달라질 수 있어서다(37로 기록 하나의 방문일을 고쳤을 때). 묶음의 `staffName`은 바꾸지 않는다.
 
 | 응답 records[] | 타입 | 설명 |
 |---|---|---|
@@ -885,7 +888,7 @@ P0-나머지 요청·응답 예시(`assigneeId` 추가, 응답에 `assignee`):
 }
 ```
 
-서버가 확인하는 순서: 차량 소유(`getOwned`, 아니면 404) → 입력 검증(30분 단위·항목, P0-나머지부터 `assigneeId` 포함, 400) → 날짜 ≥ 오늘(400) → 같은 차량 유효 예약 1건(`RESERVED` + 날짜 ≥ 오늘, 또는 `IN_PROGRESS`, 409) → (P0-나머지) 담당 중복(같은 담당 + 같은 시작 시각의 유효 예약, 409). 소요 시간이 없어 10:00 예약은 10:30 예약을 막지 않는다(시작 시각만 비교). 같은 시각 다른 담당은 허용한다. 예약 행과 예약 목적 행은 한 트랜잭션으로 저장하고 `version`은 0에서 시작한다.
+서버가 확인하는 순서: 형식(필수 누락·타입, 400, 18~23·37·39·40과 같은 공통 순서) → 차량 소유(`getOwned`, 아니면 404) → 입력 검증(30분 단위·항목, P0-나머지부터 `assigneeId` 포함, 400) → 날짜 ≥ 오늘(400) → 같은 차량 유효 예약 1건(`RESERVED` + 날짜 ≥ 오늘, 또는 `IN_PROGRESS`, 409) → (P0-나머지) 담당 중복(같은 담당 + 같은 시작 시각의 유효 예약, 409). 소요 시간이 없어 10:00 예약은 10:30 예약을 막지 않는다(시작 시각만 비교). 같은 시각 다른 담당은 허용한다. 예약 행과 예약 목적 행은 한 트랜잭션으로 저장하고 `version`은 0에서 시작한다.
 
 에러: `NOT_FOUND` (X4), `INVALID_INPUT` (R1, 항목 X11, P0-나머지부터 `assigneeId` 누락·없음·남의 것·비활성 X13), `RESERVATION_PAST_DATE` (R2), `RESERVATION_ACTIVE_EXISTS` (R3), `MECHANIC_SLOT_CONFLICT` (P0-나머지, R15)
 
