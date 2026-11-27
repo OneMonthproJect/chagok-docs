@@ -162,7 +162,7 @@ chagok-spec-sync 모드 C로 API 05·06의 08 명세, 백엔드 DTO, 프론트 t
 | 등급 | 대상 (예) | 계획·승인 | 에이전트 | AI가 직접 돌리는 검증 |
 |---|---|---|---|---|
 | L0 | 오타·주석·링크 | 한 줄 알리고 진행 | 없음 | 바뀐 종류만 |
-| L1 | 화면 문구·배치, README·가이드, 국소 코드 | 3~5줄 요약 → **승인** | `pr-reviewer` 선택 | BE `./gradlew build` / FE `npm run lint && npm run build` |
+| L1 | 화면 문구·배치, README·가이드, 국소 코드 | 3~5줄 요약 → **승인** | `pr-reviewer` 선택 | BE `./gradlew build` / FE `npm run lint && npm test && npm run build` |
 | L2 | Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`·`cycle`·Entity·Service 업무 규칙, 기준 문서 정책, 스킬 호출 조건·절차 | 전체 계획 → **승인** | `pr-reviewer` **필수**, API면 `contract-checker` | `build` + `dbTest`(DB에 닿으면) + 관련 T·R·X |
 | L3 | `db/migration`·`db/seed`, 인증(`global/auth`·`SecurityConfig`·토큰), 권한(403), 개인정보(마스킹·로그), 정비소 격리(`getOwned`·`shopId`), CI·`scripts`·`.github/`, `settings.json` | L2 + 위험·되돌리기 → **승인** | L2와 같음 + 담당 리뷰(DB는 DB관리, CI·settings는 형상관리) | L2 + 대상별 고위험 검증(GUIDE 20.2) |
 

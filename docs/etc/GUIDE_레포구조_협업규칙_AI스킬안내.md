@@ -635,7 +635,7 @@ chagok-issue-writer로 12 백로그 4장 4번(F-CUS-01~05 백엔드)과 5번(프
 | 결과 | ① 등급(L0~L3) + 계획 보고(범위·파일·책임 배치·의존·재사용·DB·API 영향·테스트·위험·결정 필요) ② 승인 후 코드·테스트 ③ 결과 보고(상태·빌드·테스트 결과·문서 동기화·PR 전 점검·브랜치·커밋·PR 본문·AI 기록) |
 | 선행 · 연계 | 선행 이슈가 열려 있으면 알림. P2·Non-goal 이슈면 멈추고 scope-guard(D-70). 에이전트: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/` → contract-checker, L2·L3 → pr-reviewer |
 | 읽기 · 쓰기 | 승인된 범위의 코드·테스트만. 문서는 고치지 않고 문서 PR 초안만 |
-| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
+| 승인 · 검증 | **사람이 "진행"이라고 할 때까지 코드를 쓰지 않음**(L0만 한 줄 알리고 진행). 검증: BE `./gradlew build`, FE `npm run lint && npm test && npm run build`, L2·L3에서 DB에 닿으면 `./gradlew dbTest`, L3 대상별 검증 |
 | 금지 · 주의 | 관련 없는 리팩터링·임시방편 금지. 계획과 달라지면 멈추고 다시 보고. 도메인 3개 이상 내부 수정·표 밖 의존이면 멈춤. 테스트 ID는 04·08 표기 그대로(**번호 범위는 원본에서 확인** — PR #76 반영). 결과 없이 "통과" 금지 → "구현 완료(미검증)" |
 
 ```text
@@ -828,7 +828,7 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 | 스킬 | 없음 | 해당하면 `issue-coder`·`bug-fix` | `issue-coder`, 명세가 바뀌면 `spec-sync` | L2 + 시드면 `seed-data` |
 | 필수 에이전트 | 없음 | 없음 | `pr-reviewer` **필수**, API·`types.ts`·`mocks/`면 `contract-checker` | L2와 같음 |
 | 선택 에이전트 | 없음 | `pr-reviewer` | — | — |
-| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
+| AI가 직접 돌리는 검증 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음) | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm test && npm run build` (dbTest는 CI) | `build` + `dbTest`(DB 테스트에 닿으면) + 관련 T·R·X | L2 + 변경 대상의 고위험 검증(아래) |
 | CI | 모든 PR에서 pr-check, backend-ci(build + dbTest), frontend-ci(lint·test·build) — 등급과 무관 | 같음 | 같음 | 같음 |
 | 담당 리뷰 | — | CODEOWNERS 자동 요청 | 남의 패키지 `api`·공용 파일이면 주인 리뷰 | + 마이그레이션·시드는 DB관리, settings.json·CI는 형상관리 |
 | 결과 보고 | 한두 줄 | 변경 파일·검증 결과·남은 일 | 6단계 전부(변경·기능·테스트 결과·영향·남은 위험·문서 변경 필요·후속) | L2 + 위험·되돌리기 |

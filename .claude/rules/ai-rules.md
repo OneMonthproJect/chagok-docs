@@ -49,7 +49,7 @@ chagok/
 | 등급 | 계획·승인 | 스킬 | 에이전트 | AI가 직접 돌리는 검증 | 결과 보고 |
 |---|---|---|---|---|---|
 | L0 | 한 줄로 알리고 진행 | 없음 | 없음 | 바뀐 종류만(코드 주석이면 컴파일, 문서는 없음 — CI가 봄) | 한두 줄 |
-| L1 | 3~5줄 요약 → 승인 | 해당하면 `issue-coder`·`bug-fix` | `chagok-pr-reviewer` 선택 | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm run build`. dbTest는 CI에 맡김 | 변경 파일·검증 결과·남은 일 |
+| L1 | 3~5줄 요약 → 승인 | 해당하면 `issue-coder`·`bug-fix` | `chagok-pr-reviewer` 선택 | 바뀐 레포만: BE `./gradlew build`, FE `npm run lint && npm test && npm run build`(frontend-ci와 같은 순서). dbTest는 CI에 맡김 | 변경 파일·검증 결과·남은 일 |
 | L2 | 위 표 2단계 형식 → 승인 | `issue-coder`, 명세가 바뀌면 `spec-sync` | API·`types.ts`·`mocks/`를 건드렸으면 `chagok-contract-checker`, PR 전 `chagok-pr-reviewer` **필수** | `build` + `dbTest`(DB 테스트에 닿으면), 관련 T·R·X | 위 표 6단계 전부 |
 | L3 | L2 + 위험·되돌리는 방법 | L2 + 시드를 건드리면 `seed-data` | L2와 같음(`pr-reviewer` 필수) + 담당 리뷰(마이그레이션·시드는 DB관리, `.claude/settings.json`·CI는 형상관리) | L2 + **변경 대상의 고위험 검증**(아래) | L2 + 위험·되돌리기 |
 

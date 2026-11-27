@@ -222,14 +222,23 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
   ]}]},
 },
 {
-  files: ['src/pages/**', 'src/features/*/components/**'],
+  files: ['src/pages/**'],
   rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['**/mocks/**', '**/mocks'], message: 'Mock은 api.ts에서만 고릅니다 (CONVENTIONS 7장 Mock)' },
+  ]}]},
+},
+{
+  // flat config는 같은 규칙을 나중 설정이 덮어쓴다. components에는 위 features 경계 패턴을 함께 둬야 feature 경계가 꺼지지 않는다.
+  files: ['src/features/*/components/**'],
+  rules: { 'no-restricted-imports': ['error', { patterns: [
+    { group: ['@/pages/*'], message: 'features는 pages를 import하지 않습니다' },
+    { group: ['@/features/*'], message: '다른 feature가 필요하면 pages에서 조합하세요 (같은 feature 안은 상대 경로)' },
     { group: ['**/mocks/**', '**/mocks'], message: 'Mock은 api.ts에서만 고릅니다 (CONVENTIONS 7장 Mock)' },
   ]}]},
 },
 ```
 
-`api.ts`의 동적 `import()`는 이 규칙에 걸리지 않는다(정적 import만 막음). 위 규칙은 화면 쪽의 정적 import를 막는 장치다.
+`api.ts`의 동적 `import()`는 이 규칙에 걸리지 않는다(정적 import만 막음). 위 규칙은 화면 쪽의 정적 import를 막는 장치다. 실제 설정은 chagok-frontend `eslint.config.js`(같은 규칙, 패턴을 상수로 묶음).
 
 ---
 
