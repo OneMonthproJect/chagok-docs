@@ -111,7 +111,7 @@ erDiagram
 
 - UNIQUE(shop_id, id): 복합 FK 부모 키 (vehicle이 참조, 5.1). 정비소별 최근 등록순 목록(05 API)에도 쓰인다.
 - 인덱스: (shop_id, phone), (shop_id, name) 💡
-- **P1(V3)에 추가 (D-56)**: `status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK IN ('ACTIVE','INACTIVE','ANONYMIZED')`, `anonymized_at DATETIME NULL`. 익명화하면 이름 "(삭제된 고객)", `phone` 빈 문자열 `''`, `consent` 해제, `anonymized_at` 기록(1장).
+- **P1에 추가 (D-56, V3가 아니라 05 POL-46 검토 뒤의 별도 마이그레이션 버전)**: `status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK IN ('ACTIVE','INACTIVE','ANONYMIZED')`, `anonymized_at DATETIME NULL`. 익명화하면 이름 "(삭제된 고객)", `phone` 빈 문자열 `''`, `consent` 해제, `anonymized_at` 기록(1장).
 
 ### 3.5 `vehicle` — 차량 (고객 1:N)
 
@@ -129,7 +129,7 @@ erDiagram
 
 - UNIQUE(shop_id, id): 복합 FK 부모 키 (maintenance_record·reservation이 참조)
 - 인덱스: (shop_id, plate_number), (shop_id, customer_id) — 뒤의 것은 복합 FK 인덱스이자 고객의 차량 목록 조회용 (이전 `(customer_id)` 대체)
-- **P1(V3)에 추가 (D-56)**: `active BOOLEAN NOT NULL DEFAULT TRUE` — 차량은 영구 보존이라 비활성화만 있다(이력 없는 차량은 이력 없는 고객 삭제 때 함께만 삭제).
+- **P1에 추가 (D-56, V3가 아니라 05 POL-46 검토 뒤의 별도 마이그레이션 버전)**: `active BOOLEAN NOT NULL DEFAULT TRUE` — 차량은 영구 보존이라 비활성화만 있다(이력 없는 차량은 이력 없는 고객 삭제 때 함께만 삭제).
 
 ### 3.6 `service_item` — 정비 항목·주기 (정비소별)
 
@@ -231,7 +231,8 @@ erDiagram
 | P0-나머지 (V2) | `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision` | 정비 기록 수정 이력 (D-55), 4.1 |
 | P0-나머지 (V2) | `reservation_revision` | 지난 예약 정정·담당 재배정 이력 (D-53), 4.2 |
 | P0-나머지 (V2) | `shop.brn`·`shop.shop_address` | 서비스 관리자 화면(S-10)에서 정비소를 만들 때 입력하는 사업자등록번호·정비소 주소. 쓰는 화면·API는 P1, 칼럼만 V2에 먼저 (D-73, #122), 3.2 |
-| P1 (V3) | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active` | 고객·차량 비활성화·익명화, 정비사 비활성화 (D-56·D-57) |
+| P1 (V3) | `staff.active` | 정비사 비활성화 (D-57) |
+| P1 (D-56 별도 버전, 05 POL-46 이후) | `customer.status`·`anonymized_at`, `vehicle.active` | 고객·차량 비활성화·익명화 (D-56). 머지된 버전은 고치지 않으므로 V3에 넣지 않는다 |
 | P1 (V3) | 연락 기록 표 💡 `contact_log` | 4.3. F-CON-02 착수 때 |
 | P1 (V3 또는 별도 버전, **DB 담당자 결정**) | 약관 동의 기록 표 💡 `terms_agreement` | 4.4 초안. F-AUTH-04 착수 전 DB 담당자 검토 (D-61) |
 | P2 | 방문 테이블 분리, 동의 이력, 노쇼 관리, **정비 기록 무효 처리** 등 | 상세 기획안 13장 |
@@ -368,7 +369,8 @@ erDiagram
 |---|---|---|
 | `V1__init.sql` | P0-핵심 (`기반` 이슈 B-3) | 9개 테이블, 제약, 인덱스 (6.1~6.3). `staff` UNIQUE(shop_id, id), `reservation.assignee_staff_id NOT NULL` + 복합 FK + 인덱스, `maintenance_record.staff_id` 복합 FK 포함(D-51·D-57) |
 | `V2__p0_remaining.sql` | P0-나머지 | `inspect_result`(+ CHECK 2개), `reservation.status` CHECK에 `IN_PROGRESS`·`NO_SHOW`(`ck_reservation_status`를 지우고 다시 만듦), `customer.version`·`vehicle.version`(`INT NOT NULL DEFAULT 0`), `maintenance_record.updated_at`·`version`·`UNIQUE(shop_id, id)`, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(`NOT NULL DEFAULT ''`, D-73, #122). **한 파일로**, DB 담당자가 P0-나머지 착수 때(M2 통합 검증 통과 후) 기능 이슈(12 백로그 19·24)보다 먼저 만든다 |
-| `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, 연락 기록 `contact_log` 등. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 |
+| `V3__…` | P1 | `staff.active`, 연락 기록 `contact_log`. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 (chagok-backend#134) |
+| (D-56 별도 버전) | P1 | `customer.status`·`anonymized_at`, `vehicle.active`. 05 POL-46(법적 근거 검토, 담당 PM, 미완료) 뒤에 연다. V3를 먼저 머지하므로 같은 버전에 넣지 않는다 |
 
 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한 뒤 머지됐다(chagok-backend#4, PR #5, 2026-11-23). V2도 `develop`에 머지됐다(chagok-backend#31, PR #92, 2026-11-26). 이미 머지된 마이그레이션은 고치지 않고, 바꿀 것은 다음 버전 파일로 더한다.
 
