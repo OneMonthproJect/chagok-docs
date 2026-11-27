@@ -589,7 +589,7 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 |---|---|---|
 | visitKey | string | UUID 36자 (07 3.7) |
 | visitDate | date | 아래 설명 |
-| mileage | number/null | 방문 주행거리. 비어 있을 수 있음(07 3.7) |
+| mileage | number/null | 방문 주행거리. 그 묶음에서 외부가 아닌 기록(외부만 있으면 외부 기록)을 `recordId` 오름차순으로 보아 처음 나오는 비어 있지 않은 `records[].mileage`, 없으면 null(07 3.7). 기록별 값은 아래 `records[].mileage` |
 | staffName | string | 기록 담당 정비사 이름 |
 | records[] | array | `{ recordId, itemId, itemName, type, date, memo }`. `type`은 0.4의 4개 값, `memo`는 null 가능 |
 | records[].source | enum | P0-나머지부터. `SHOP`·`CUSTOMER_STATEMENT`(0.4). 외부(`EXTERNAL`)면 `CUSTOMER_STATEMENT`, 그 밖은 `SHOP`(07 3.7 CHECK) |
@@ -621,13 +621,14 @@ P0-나머지부터 `items[]`마다 `lastDecline`·`lastCaution`이 붙는다(해
 }
 ```
 
-P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 세 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
+P0-나머지부터 `records[]`에 아래 필드가 붙는다. `source`·`inspectResult`는 위 표와 같다(F-MNT-02·03). 아래 네 필드는 F-MNT-04(정비 기록 수정, 37·38)가 쓰고, **모든 기록에 항상** 붙는다(수정한 적이 없어도). 17 `recentVisits[].records[]`도 같은 모양이다. `visitDate`는 그 묶음에서 외부가 아닌 기록의 날짜(외부만 있으면 그 날짜). 묶음의 `staffName`은 바꾸지 않는다.
 
 | 응답 records[] | 타입 | 설명 |
 |---|---|---|
 | version | number | 수정 확인용 번호. 기록을 저장할 때(12) 0이고 수정(37)마다 +1(07 3.7). 화면은 수정 요청에 이 값을 그대로 보낸다 |
 | edited | boolean | 수정 이력(38)이 한 건이라도 있으면 `true`. 이력 내용은 38에서 받는다 |
 | staff | object | 그 기록의 담당 정비사 `{ staffId, name }`. `name`은 그 계정의 현재 이름(38·41과 같음). 37로 담당을 바꾸면 이 값이 바뀐다 |
+| mileage | number/null | 그 기록 행의 주행거리(07 3.7 `maintenance_record.mileage`). 외부 기록은 고객이 말한 주행거리라 확인되지 않았으면 null이다. null은 0이 아니라 "알 수 없음"이다. 37로 고치면 이 값이 바뀌고, 방문 `mileage`는 위 규칙대로 다시 정해진다 |
 
 P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기록(고객 진술, D-1M). 수정한 적이 없어 `version`은 0, `edited`는 `false`다. 담당 `staff` 값은 예시 값이다.
 
@@ -635,7 +636,7 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 {
   "recordId": 9, "itemId": 3, "itemName": "에어컨필터", "type": "EXTERNAL", "date": "2026-10-24", "memo": null,
   "source": "CUSTOMER_STATEMENT", "inspectResult": null,
-  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }
+  "version": 0, "edited": false, "staff": { "staffId": 2, "name": "김정비" }, "mileage": null
 }
 ```
 
@@ -645,7 +646,7 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 {
   "recordId": 16, "itemId": 1, "itemName": "엔진오일", "type": "INSPECT", "date": "2026-10-24", "memo": "합성유 사용",
   "source": "SHOP", "inspectResult": "CAUTION",
-  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }
+  "version": 2, "edited": true, "staff": { "staffId": 2, "name": "김정비" }, "mileage": 52000
 }
 ```
 
@@ -1144,7 +1145,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 | 22 | PATCH `/api/customers/{customerId}` | 고객명·연락처·동의 수정 (F-CUS-06). 보낸 필드만 | 사장·정비사. 남의 고객 404 (X12) | 요청에 `version` 필수, 다르면 409 `CONCURRENT_MODIFICATION` (POL-124) | V2: `customer.version` |
 | 23 | PATCH `/api/vehicles/{vehicleId}` | 차량번호·차종·연식·최근 주행거리 수정 (F-CUS-06). 고객은 바꾸지 않음 | 사장·정비사. 남의 차량 404 (X12) | 22와 같음 | V2: `vehicle.version` |
 | 12 확장 | POST `/api/vehicles/{vehicleId}/visits` | 외부·거절·점검 결과 입력 (F-MNT-02·03), 담당 `mechanicId` (D-51) | 같음. 남의 정비사 id 400 (X13) | — (기록은 추가만) | V2: `inspect_result` |
-| 10·11·14·17 확장 | 기존 경로 | `lastDecline`·`lastCaution`(10·14·17), `source`·`inspectResult`·`version`·`edited`·`staff`(11·17 `recentVisits`) (F-CYC-02, F-MNT-04) | 같음 | — | V2: `inspect_result`, `maintenance_record.version` |
+| 10·11·14·17 확장 | 기존 경로 | `lastDecline`·`lastCaution`(10·14·17), `source`·`inspectResult`·`version`·`edited`·`staff`·`mileage`(11·17 `recentVisits`) (F-CYC-02, F-MNT-04) | 같음 | — | V2: `inspect_result`, `maintenance_record.version` |
 | 04·05·14·15 확장 | 기존 경로 | 목록 `phone` 마스킹 (F-CUS-07) | 같음 | — | 없음 |
 | 04·15·17 확장 | 기존 경로 | `assignee`(담당 이름·색), 15 쿼리 `assigneeId`, 상태 `IN_PROGRESS` (D-51·D-52) | 같음 | — | V2: `IN_PROGRESS` |
 | 15 (캘린더) | 기존 경로 | 홈 캘린더 월·주 보기는 같은 기간 조회(일 보기 없음, D-54). 월 보기 건수는 42 (F-RSV-05) | 같음 | — | 없음 |
