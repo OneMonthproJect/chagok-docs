@@ -665,7 +665,7 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 | records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1). `EXTERNAL`일 때만 보낼 수 있다 |
 | records[].inspectResult | enum | | P0-나머지. `INSPECT`일 때만 `GOOD`·`CAUTION` |
 
-P0-나머지 세 필드는 그 구분일 때만 보낼 수 있다. 구분과 맞지 않는 값을 보내면(외부가 아닌 기록의 `externalDate`·`externalMileage`, 점검이 아닌 기록의 `inspectResult`) 무시하지 않고 400 `INVALID_INPUT`이고, `fieldErrors`의 필드는 그 기록의 그 값(`records[i].externalDate`·`records[i].externalMileage`·`records[i].inspectResult`)이다. 외부 정비일이 미래면 `records[i].externalDate`, 외부인데 정비일이 없으면 `records[i].externalDate`(필수)다. 37 수정의 `inspectResult`와 같은 규칙이다.
+P0-나머지 세 필드는 그 구분일 때만 보낼 수 있다(값이 `null`이면 보내지 않은 것으로 본다). 구분과 맞지 않는 값을 보내면(외부가 아닌 기록의 `externalDate`·`externalMileage`, 점검이 아닌 기록의 `inspectResult`) 무시하지 않고 400 `INVALID_INPUT`이고, `fieldErrors`의 필드는 그 기록의 그 값(`records[i].externalDate`·`records[i].externalMileage`·`records[i].inspectResult`, `i`는 요청 `records` 배열에서 0부터 센 순서)이다. 외부 정비일이 미래면 `records[i].externalDate`, 외부인데 정비일이 없으면 `records[i].externalDate`(필수)다. 37 수정의 `inspectResult`와 같은 규칙이다.
 
 P0-핵심 요청 예시:
 
