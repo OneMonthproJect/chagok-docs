@@ -661,9 +661,11 @@ P0-나머지 `records[]` 예 1: 07 7.2 시드 22사0007(차량 7)의 외부 기�
 | records[].itemId | number | ○ | 그 정비소의 쓰는 항목 |
 | records[].type | enum | ○ | P0-핵심 `REPLACE`·`INSPECT` / P0-나머지 `EXTERNAL`·`DECLINE` |
 | records[].memo | string | | ~200자 |
-| records[].externalDate | date | 외부면 ○ | P0-나머지. 오늘 이전 |
-| records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1) |
+| records[].externalDate | date | 외부면 ○ | P0-나머지. 오늘 이전·오늘. `EXTERNAL`일 때만 보낼 수 있다 |
+| records[].externalMileage | number | | P0-나머지. 정수 0~2,000,000 (0.1). `EXTERNAL`일 때만 보낼 수 있다 |
 | records[].inspectResult | enum | | P0-나머지. `INSPECT`일 때만 `GOOD`·`CAUTION` |
+
+P0-나머지 세 필드는 그 구분일 때만 보낼 수 있다. 구분과 맞지 않는 값을 보내면(외부가 아닌 기록의 `externalDate`·`externalMileage`, 점검이 아닌 기록의 `inspectResult`) 무시하지 않고 400 `INVALID_INPUT`이고, `fieldErrors`의 필드는 그 기록의 그 값(`records[i].externalDate`·`records[i].externalMileage`·`records[i].inspectResult`)이다. 외부 정비일이 미래면 `records[i].externalDate`, 외부인데 정비일이 없으면 `records[i].externalDate`(필수)다. 37 수정의 `inspectResult`와 같은 규칙이다.
 
 P0-핵심 요청 예시:
 
@@ -702,7 +704,7 @@ P0-나머지 요청 예시:
 }
 ```
 
-담당 정비사는 P0-핵심에서는 저장한 계정이다. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13)
+담당 정비사는 P0-핵심에서는 저장한 계정이다. P0-나머지부터 `mechanicId`로 고르고(정비사도 다른 정비사를 지정할 수 있음), 화면의 기본값은 예약 완료 뒤 이동이면 그 예약의 담당, 아니면 로그인 계정이다(04 F-MNT-01). 차량의 연식·최근 주행거리가 비어 있고 요청에 교체·점검 항목이 있으면 `vehicle.modelYear`와 `mileage`를 반드시 보내야 하고(없으면 400 `INVALID_INPUT`) 같은 트랜잭션에서 차량에 반영한다. 주행거리가 차량의 최근 주행거리보다 크면 갱신. 저장한 기록의 수정은 12가 아니라 37이다(삭제는 없음). P1부터 비활성 고객·차량이면 400 `INVALID_INPUT`. `visitKey`는 서버가 이 요청 하나마다 새로 만든다(요청으로 받지 않음, 07 3.7). 기록 행 저장과 최근 주행거리 갱신은 한 트랜잭션 — 하나라도 실패하면 아무것도 저장하지 않는다. 예약과는 데이터로 잇지 않는다(방문 완료 18과 별도 요청, 05 POL-95). 에러: `NOT_FOUND` (X5), `INVALID_INPUT` (방문일 미래, 기록 0개, 같은 항목 중복, `itemId`가 그 정비소의 쓰는 항목이 아님 X11, P0-핵심에서 `EXTERNAL`·`DECLINE`·`inspectResult`·`mechanicId`, 차량에 비어 있는 연식·주행거리를 보내지 않음, P0-나머지부터 `mechanicId`가 없음·남의 것·비활성 X13, P0-나머지부터 외부 정비일 없음·미래, 구분과 맞지 않는 `externalDate`·`externalMileage`·`inspectResult`)
 
 ### 13 GET `/api/items` — 정비 항목·주기
 
