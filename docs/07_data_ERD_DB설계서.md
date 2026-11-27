@@ -221,6 +221,8 @@ erDiagram
 
 ## 4. 나중에 추가할 것 (지금 만들지 않음)
 
+아래 표의 P0-나머지(V2) 행은 V2 머지(chagok-backend#31, PR #92, 2026-11-26)로 이미 만들어졌다. 아직 만들지 않은 것은 P1(V3 이후)과 P2 행이다.
+
 | 단계 (마이그레이션) | 추가 | 내용 |
 |---|---|---|
 | P0-나머지 (V2) | `maintenance_record.inspect_result` | 3.7 |
@@ -370,7 +372,7 @@ erDiagram
 | `V3__…` | P1 | `staff.active`, 연락 기록 `contact_log`. 약관 동의 기록(4.4)을 여기 넣을지 별도 버전으로 둘지는 DB 담당자 결정 (chagok-backend#134) |
 | (D-56 별도 버전) | P1 | `customer.status`·`anonymized_at`, `vehicle.active`. 05 POL-46(법적 근거 검토, 담당 PM, 미완료) 뒤에 연다. V3를 먼저 머지하므로 같은 버전에 넣지 않는다 |
 
-V1은 아직 `develop`에 머지되지 않았으므로 D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한다. 그 전에 V1 PR이 머지되면 같은 변경을 V2로 옮긴다(이미 머지된 마이그레이션은 고치지 않는다).
+D-51·D-57·D-58의 V1 변경은 V1 파일 자체에 반영한 뒤 머지됐다(chagok-backend#4, PR #5, 2026-11-23). V2도 `develop`에 머지됐다(chagok-backend#31, PR #92, 2026-11-26). 이미 머지된 마이그레이션은 고치지 않고, 바꿀 것은 다음 버전 파일로 더한다.
 
 마이그레이션은 `chagok-backend/src/main/resources/db/migration/`에만 두고 DB 담당자가 작성한다. 시연 데이터는 마이그레이션이 아니다(7장). 운영용 기본 기준표는 정비소를 만들 때 서버가 넣는다(P1, F-ADM-01).
 

@@ -2,7 +2,7 @@
 
 > 기능 ID ↔ 요구사항 ↔ 테이블 ↔ API ↔ 화면 ↔ 테스트
 
-상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 반영, 2026-11-23 D-60~D-63 반영(chagok-docs#65)
+상태: 작성됨 (2026-11-22 · 최은정(eunjung01230)), 2026-11-23 D-51~D-59 반영, 2026-11-23 D-60~D-63 반영(chagok-docs#65), 2026-11-27 구현 대조 반영(chagok-docs#195)
 근거: 03(REQ), 04(F·T·R·H·K·L), 07(테이블·V1 검증), 08(API·X), 09(S·M), M1 결정 A~D(4장), 결정 D-51~D-63
 ID가 바뀌면 원본 문서를 먼저 고치고 이 표를 맞춘다. 이 표와 원본이 다르면 원본이 맞다.
 
@@ -82,12 +82,12 @@ X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 �
 | global | 인증 필터, 공통 응답, 오류 | 전부 |
 | domain/account | F-AUTH-01·02·03·04, F-STF-01 (담당 후보 36 포함), 계정 상태 확인(08 0.6, 11 3.3) | 01, 02, 03, 24~26, 36, 50~52 |
 | domain/shop | F-ADM-01·02 | 31~35 |
-| domain/customer | F-CUS-01~04·06·07·09~11 | 05~09, 22, 23, 43~49 |
+| domain/customer | F-CUS-01~04·06·07·09~11 | 05, 06, 08, 09, 22, 23, 43~49 (07 고객 상세는 `screen/visit`이 조립, #96) |
 | domain/item | F-ITEM-01 | 13, 27 |
 | domain/maintenance | F-MNT-01~04, 이력 조회 | 11, 12, 37, 38 |
 | domain/reservation | F-RSV-01·02·04~10 | 15, 16, 18~21, 39~42 |
 | domain/cycle | F-CYC-01·02·03 | (다른 패키지가 호출) |
-| screen/visit | F-VIS-01, F-CUS-05 항목 상태 | 10 |
+| screen/visit | F-VIS-01, F-CUS-05 항목 상태, F-CUS-04 고객 상세(차량별 `dueCount`·`soonCount`, D-63 B01·#96) | 07, 10 |
 | screen/target | F-TGT-01, F-HOME-01 | 04, 14 |
 | screen/booking | F-RSV-03 | 17 |
 | (P1) domain/contact | F-CON-01·02 | 28, 29 |
@@ -110,5 +110,5 @@ X16(서비스 관리자 토큰으로 36~52 → 403)은 36~52를 쓰는 모든 �
 | 버전 | 단계 | 담는 것 (07 6장) | 쓰는 기능 |
 |---|---|---|---|
 | `V1__init.sql` | P0-핵심 (B-3) | 9개 테이블, 복합 FK 8개(+ `reservation`·`maintenance_record`의 담당 정비사 → `staff`), 부모 UNIQUE(shop_id, id) 5개(`staff` 추가), `reservation.assignee_staff_id`, CHECK·인덱스 | P0-핵심 전부 |
-| `V2__…` | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73) | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06, F-ADM-01(P1, 칼럼만 먼저) |
+| `V2__p0_remaining.sql` (07 6.4) | P0-나머지 (12 백로그 V2) | `inspect_result`, `NO_SHOW`, `IN_PROGRESS`, `customer.version`, `vehicle.version`, `maintenance_record.updated_at`·`version`·UNIQUE, `maintenance_record_revision`, `reservation_revision`, `shop.brn`·`shop.shop_address`(D-73) | F-MNT-03·04, F-CYC-02, F-RSV-08·09·10, F-CUS-06, F-ADM-01(P1, 칼럼만 먼저) |
 | `V3__…` | P1 | `customer.status`·`anonymized_at`, `vehicle.active`, `staff.active`, `contact_log` 등. 약관 동의 기록(07 4.4)은 V3 또는 별도 버전 — DB 담당자 결정 | F-CUS-10·11, F-STF-01, F-CON-02, F-AUTH-04 등 |

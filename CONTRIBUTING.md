@@ -146,7 +146,7 @@ GitHub 기본 브랜치는 `main`, 팀원 PR이 모이는 통합 브랜치는 `d
 | 기준 문서 변경인데 13 changelog 없음, 공용 AI 설정·규칙 변경 → 경고 | docs | PR 생성·수정 |
 | 패키지 주인에게 리뷰 요청 (CODEOWNERS) | 세 레포 | PR 생성 |
 | Gradle Wrapper 확인·검증 → 빌드 + DB 없는 테스트(ArchitectureTest 등) → DB 테스트(빈 MySQL에 Flyway 적용·앱 기동). 결과는 작업 요약과 리포트 파일로 남김. 검사 대상이 아직 없는 규칙은 "건너뜀(검증 안 됨)"으로 따로 표시 | backend | 모든 PR, develop·main push (❌) |
-| `npm ci`·lint(ESLint 경계 규칙)·빌드(타입 검사 포함) | frontend | 모든 PR, develop·main push (❌) |
+| `npm ci`·lint(ESLint 경계 규칙)·테스트(Vitest, `npm test`)·빌드(타입 검사 포함) | frontend | 모든 PR, develop·main push (❌) |
 | 영역 라벨(`backend`/`frontend`/`db`/`docs`/`ci`), 유형 라벨(`feature`/`fix`) | 세 레포 | PR 생성 |
 | `review-me` 라벨 (표시용, 자동 리뷰 없음) | 코드 레포 | backend: cycle·global·마이그레이션, frontend: `src/app`·`src/shared/api` 변경 |
 | `release` 라벨 → CodeRabbit 자동 리뷰 1회 | 코드 레포 | develop → main PR |
