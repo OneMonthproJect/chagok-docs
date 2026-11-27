@@ -331,9 +331,22 @@ P1부터(D-60·D-61) 01 응답의 `staff`와 이 응답에 계정 상태 필드�
   "success": true,
   "data": {
     "date": "2026-11-24",
-    "todayReservationCount": 2,
+    "todayReservationCount": 3,
     "todayContactCount": 5,
     "todayReservations": [
+      {
+        "reservationId": 5,
+        "reservedAt": "2026-11-24T09:00:00",
+        "status": "IN_PROGRESS",
+        "needsAction": false,
+        "version": 0,
+        "vehicleId": 5,
+        "plateNumber": "90마0005",
+        "customerId": 5,
+        "customerName": "정우성",
+        "phone": "010-0000-0005",
+        "purposeSummary": "엔진오일"
+      },
       {
         "reservationId": 1,
         "reservedAt": "2026-11-24T10:00:00",
