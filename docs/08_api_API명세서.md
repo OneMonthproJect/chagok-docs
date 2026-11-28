@@ -204,7 +204,7 @@ DB 제약 위반의 처리 (M1 결정 A): `CONFLICT`는 사용자가 고칠 수 
 | 33 | POST | `/api/admin/shops/{shopId}/suspend` | F-ADM-02 | P1 | 서비스 관리자 |
 | 34 | POST | `/api/admin/shops/{shopId}/resume` | F-ADM-02 | P1 | 서비스 관리자 |
 | 35 | POST | `/api/admin/shops/{shopId}/owner-password-reset` | F-ADM-02 | P1 | 서비스 관리자 |
-| 36 | GET | `/api/staff/assignees` | F-RSV-01·06 (담당 후보: id·이름·역할·`colorIndex`, 활성만) | P0-나머지 | 사장·정비사 |
+| 36 | GET | `/api/staff/assignees` | F-RSV-01·06, F-MNT-01·04 (담당 후보: id·이름·역할·`colorIndex`, 활성만) | P0-나머지 | 사장·정비사 |
 | 37 | PATCH | `/api/records/{recordId}` | F-MNT-04 | P0-나머지 | 사장·정비사(조건) |
 | 38 | GET | `/api/records/{recordId}/revisions` | F-MNT-04 | P0-나머지 | 사장·정비사 |
 | 39 | POST | `/api/reservations/{reservationId}/start` | F-RSV-09 | P0-나머지 | 사장·정비사 |
@@ -1153,7 +1153,7 @@ P0-나머지 담당 재배정 예시(예약 3의 담당을 김정비에서 박�
 | 04·15·17 확장 | 기존 경로 | `assignee`(담당 이름·색), 15 쿼리 `assigneeId`, 상태 `IN_PROGRESS` (D-51·D-52) | 같음 | — | V2: `IN_PROGRESS` |
 | 15 (캘린더) | 기존 경로 | 홈 캘린더 월·주 보기는 같은 기간 조회(일 보기 없음, D-54). 월 보기 건수는 42 (F-RSV-05) | 같음 | — | 없음 |
 | 16·19 확장 | 기존 경로 | 16 `assigneeId`(필수)·`MECHANIC_SLOT_CONFLICT`, 19 `assigneeId` 재배정·`reassignReason`·`ASSIGNEE_CHANGE_CLOSED` (D-51·D-53) | 같음. 남의 정비사 id 400 (X13) | 19는 `RESERVED`만 (재배정 마감 규칙은 19) | V2: `reservation_revision` (재배정 이력) |
-| 36 | GET `/api/staff/assignees` | 담당 후보 목록 (F-RSV-01·06): 활성 사장·정비사 | 사장·정비사. 그 정비소 직원만 | — | 없음 (`staff` UNIQUE(shop_id, id)는 V1) |
+| 36 | GET `/api/staff/assignees` | 담당 후보 목록 (F-RSV-01·06, F-MNT-01·04): 활성 사장·정비사 | 사장·정비사. 그 정비소 직원만 | — | 없음 (`staff` UNIQUE(shop_id, id)는 V1) |
 | 37 | PATCH `/api/records/{recordId}` | 정비 기록 수정 (F-MNT-04). 보낸 필드만. 삭제 없음 | 사장은 전체, 정비사는 본인 담당·방문일 기준 3일 이내. 남의 기록 404 (X14) | 요청에 `version` 필수, 다르면 409 `CONCURRENT_MODIFICATION` | V2: `maintenance_record.updated_at·version`, `maintenance_record_revision` |
 | 38 | GET `/api/records/{recordId}/revisions` | 정비 기록 수정 이력 (F-MNT-04) | 사장·정비사. 남의 기록 404 (X14) | — | V2: 37과 같음 |
 | 39 | POST `/api/reservations/{reservationId}/start` | 방문 접수 (F-RSV-09). 차량 도착 | 사장·정비사. 남의 예약 404 (X14) | `RESERVED` → `IN_PROGRESS`, 시각 전·후. 요청에 `version` 필수. 6장 공통 | V2: status CHECK `IN_PROGRESS` |
