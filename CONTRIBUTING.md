@@ -250,6 +250,32 @@ M4 기능 동결 이후에는 `FEATURE_FREEZE=true`로 바꾼다(Organization �
 
 영향 범위가 헷갈리면 `chagok-spec-sync` 스킬을 쓴다. 프론트와 백엔드가 처음 연결될 때·기능 묶음이 끝났을 때는 같은 스킬의 모드 C(API 계약 점검: 08 ↔ Controller·DTO ↔ `features/*/api.ts`·`types.ts`)를 돌린다. 세 레포가 작업 폴더에 함께 있어야 한다. 시드는 `chagok-seed-data`로 07 시드표에 맞춰 만든다. 코드 쪽 규칙(어느 패키지에 무엇을 두나)은 `CONVENTIONS.md`.
 
+### 변경 유형별 문서 확인 (모든 PR, chagok-docs#214)
+
+PR을 올릴 때 **바뀐 것의 종류만** 보고 아래 문서를 확인한다. 해당 없는 줄의 문서는 읽지 않고, 세 레포 문서 전체를 다시 보지 않는다. 문서 최신화 기준은 이 표 한 곳이고, PR 템플릿·GUIDE는 이 표를 가리키기만 한다.
+
+| 바뀐 것 | 함께 확인할 문서 |
+|---|---|
+| 기능 추가·변경 | 04 기능명세 · 08 API · 09 화면 |
+| 서비스 정책 | 05 정책 · 관련 04 · 13 changelog (M1 이후는 위 1~4 절차) |
+| 인증·인가·권한 | 06 권한 · 08 0.1·9장(X) · CONVENTIONS 8장 |
+| DB (마이그레이션·시드) | 07 ERD · backend `db/seed/README.md` |
+| API 요청·응답·에러 코드 | 08 표·JSON 예시 · 09 해당 화면 · 10 연결표 |
+| 기술 스택·실행 방법·환경변수 | 그 레포 README |
+| 패키지·아키텍처 | 11 아키텍처 · CONVENTIONS · 그 레포 README |
+| 디자인 | frontend `design/README.md`·`design/CHANGELOG.md` |
+| 중요한 오류 해결 | `docs/etc/DEV_REVIEW_트러블슈팅.md` |
+| CodeRabbit 지적 처리 | `docs/etc/DEV_REVIEW_CodeRabbit.md` (6장 「CodeRabbit 지적 분류」) |
+| AI 설정·스킬·에이전트 | GUIDE · STARTER 04 · 영향받는 PERSONAL |
+| 통합검증 | `docs/etc/TEST_테스트명세서.md` 7.1 |
+| 마일스톤 통과 | 00 8장 · README 「지금 단계」 · TEST 7.1 |
+| 확정된 결정 | 관련 기준 문서 · 13 changelog |
+| AI 사용 | PR 본문 「AI 사용」 칸만 (5장 「AI 사용 기록」, docs 반영은 하루 단위 통합) |
+
+- 고쳐야 할 문서가 있으면 docs 레포 PR은 같은 PR에서, 코드 레포 PR은 「문서 PR」 칸에 문서 PR 링크를 단다. 바로 고치지 못하면 후속 이슈 링크를 남긴다. 해당 없으면 PR 템플릿의 「관련 없음」에 체크한다.
+- 문서 변경이 필요한데 링크·후속 이슈 없이 `Closes` 최종 PR을 완료 처리하지 않는다. 문서와 관계없는 PR에 문서 PR을 요구하지 않는다.
+- 기록 문서(트러블슈팅·CodeRabbit·TEST)에는 오타·사소한 화면 수정·중요하지 않은 지적을 적지 않는다. 이슈·PR에 근거가 충분하면 핵심과 링크만 적는다.
+
 ## 8. 패키지 주인 (CODEOWNERS)
 
 **도메인 패키지 하나 = 주인 1명.** 주인은 그 패키지의 `api` 계약을 관리하고, 다른 사람이 그 패키지를 건드리는 PR을 리뷰한다. 레포마다 `.github/CODEOWNERS`에 적어 두면 GitHub이 자동으로 주인에게 리뷰를 요청한다.
