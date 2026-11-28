@@ -146,18 +146,27 @@ for t in "${targets[@]}"; do
     for f in "${remove[@]+"${remove[@]}"}"; do rm -f "$work/stage/$f"; done
     for s in "${SUBS[@]}"; do find "$work/stage/$s" -mindepth 1 -type d -empty -delete 2>/dev/null || true; done
     mkdir -p "$C"
-    moved=(); ok=1
+    placed=(); ok=1
     for s in "${SUBS[@]}"; do
       if [ -e "$C/$s" ]; then mv "$C/$s" "$work/old/$s" || { ok=0; break; }; fi
-      moved+=("$s")
       mv "$work/stage/$s" "$C/$s" || { ok=0; break; }
+      placed+=("$s")
     done
     if [ $ok -eq 0 ]; then
-      for s in "${moved[@]+"${moved[@]}"}"; do
-        [ -e "$work/old/$s" ] || continue
-        rm -rf "${C:?}/$s"; mv "$work/old/$s" "$C/$s"
+      rbfail=0
+      for s in "${placed[@]+"${placed[@]}"}"; do   # 새로 넣은 폴더를 먼저 뺀다
+        if ! rm -rf "${C:?}/$s"; then rbfail=1; fi
       done
-      echo "실패: $name — 폴더를 바꾸지 못해 원래대로 되돌렸습니다(열려 있는 Claude 세션·편집기를 닫고 다시 실행). 남은 임시 폴더: $work" >&2
+      for s in "${SUBS[@]}"; do                     # 옮겨 둔 원래 폴더를 되돌린다
+        if [ -e "$work/old/$s" ]; then
+          if ! mv "$work/old/$s" "$C/$s"; then rbfail=1; fi
+        fi
+      done
+      if [ $rbfail -eq 0 ]; then
+        echo "실패: $name — 폴더를 바꾸지 못해 원래대로 되돌렸습니다(열려 있는 Claude 세션·편집기를 닫고 다시 실행). 임시 폴더는 지워도 됩니다: $work" >&2
+      else
+        echo "실패: $name — 되돌리기도 끝나지 못했습니다. 원래 파일이 $work/old/ 에 있으니 지우지 말고 $C/ 로 옮기세요(형상관리자에게 문의)." >&2
+      fi
       rc=1; continue
     fi
     rm -rf "$work"; rmdir "$WS/.claude-sync-work" 2>/dev/null || true

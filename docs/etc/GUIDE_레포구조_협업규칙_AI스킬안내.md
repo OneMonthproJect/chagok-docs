@@ -496,7 +496,7 @@ bash chagok-docs/scripts/update-workspace.sh            # 적용
 bash chagok-docs/scripts/update-workspace.sh --check    # 먼저 보기만(읽기 전용, fetch도 안 함)
 ```
 
-PowerShell에서는 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`(작업 폴더에서). 두 방식 모두 2026-11-28 시험 환경에서 확인했습니다.
+PowerShell에서는 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`(작업 폴더에서). 2026-11-28 확인 범위: Git Bash는 적용·`--check` 모두 시험 환경에서, PowerShell 5.1은 `--check`만(적용 모드는 미검증 — 같은 bash를 부르므로 동작은 같을 것으로 봄).
 
 **처음 한 번만**(내 `chagok-docs`에 이 스크립트가 아직 없을 때): docs를 develop 최신으로 받은 뒤 위 명령을 씁니다.
 
@@ -549,7 +549,7 @@ bash chagok-docs/scripts/sync-claude.sh --check chagok-backend chagok-frontend  
 | `--check` | 파일·Git 상태를 바꾸지 않고 `최신` / `갱신 필요` / `손댄 사본`만 보여 줌 |
 | `--force` | 손으로 고친 사본이 있어도 진행. 고친 파일은 작업 폴더 `.claude-sync-backup/`에 보관 |
 
-- `update-workspace.sh`도 같은 `--ref`·`--check`를 받습니다.
+- `update-workspace.sh`도 같은 `--ref`·`--check`·`--force`를 받습니다.
 - `chagok-docs`에서는 동기화하지 않습니다(원본이 그 레포에 있음).
 
 **처음 온 팀원이 함께 읽을 것**: `CONTRIBUTING.md`(협업, 0장부터), `CONVENTIONS.md`(백엔드 1~6장, 프론트 7장 — 내가 주인이 될 패키지 위치 확인), 내 코드 레포의 `CLAUDE.md`와 `.claude/rules/ai-rules.md`, 내 [개인 가이드](STARTER/PERSONAL/). 지금은 배정된 이슈로 21장 절차를 바로 따릅니다.
@@ -1213,7 +1213,7 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 
 | 대상 | 상태 | 근거 |
 |---|---|---|
-| Claude Code 공용 원본 | docs `origin/main`·`origin/develop`의 `.claude` 내용 같음(`1b563ff`·`a1ef976`). #208 PR A(규칙)는 develop 머지 후 릴리스 대기 | `git diff origin/main origin/develop -- .claude` |
+| Claude Code 공용 원본 | 배포 중 = docs `origin/main` `1b563ff`. develop `6db1cec`에 #208 PR A(ai-rules·에이전트 2개)가 들어가 main과 다름 — 릴리스 대기 | `git diff origin/main origin/develop -- .claude` |
 | 작성자 PC 복사본 (backend·frontend) | **확인함** — `.synced-from` `a1ef976 (develop)`, `update-workspace.sh --check` 결과 `최신`(새 스크립트, 읽기 전용) | #208 PR B 본문 |
 | 다른 팀원 PC | **미확인** | 릴리스 공지 후 각자 15장 결과 회신 |
 | claude.ai `.skill` | #208은 스킬 본문을 바꾸지 않아 재배포 대상 아님. 이전 재배포(issue-coder·bug-fix)는 **미확인** | 형상관리자 확인 필요 |
@@ -1289,18 +1289,19 @@ L1~L3는 구현 전 계획 승인이 필요합니다. L0만 한 줄 알리고 �
 | `건너뜀: … (chagok-backend·chagok-frontend에서만 복사합니다)` | 코드 레포 루트에서 실행했는지, 일괄이면 작업 폴더에서 레포 이름을 정확히 줬는지 |
 | `중단: chagok-docs에서 '…'를 찾지 못했습니다` | `git -C chagok-docs fetch origin` 뒤 다시 실행. 아무것도 바뀌지 않은 상태 |
 | `중단: … 머지되지 않은 커밋입니다` | `--ref`에 미머지 커밋을 줌. 형상관리자가 공지한 승인 커밋을 씀 |
-| `건너뜀: … 사본을 손으로 고친 파일이 있습니다` | 고친 내용이 필요하면 `chagok-docs` 원본으로 PR. 버려도 되면 `--force`(작업 폴더 `.claude-sync-backup/`에 백업) |
-| `실패: … 원래대로 되돌렸습니다` | 그 레포 파일을 연 Claude 세션·편집기를 닫고 다시 실행. 남은 `.claude-sync-work/`는 지워도 됨 |
+| `건너뜀: … 사본을 손으로 고친 파일이 있습니다` | 고친 내용이 필요하면 `chagok-docs` 원본으로 PR. 버려도 되면 `bash chagok-docs/scripts/update-workspace.sh --force`(작업 폴더 `.claude-sync-backup/`에 백업) |
+| `실패: … 원래대로 되돌렸습니다. 임시 폴더는 지워도 됩니다` | 그 레포 파일을 연 Claude 세션·편집기를 닫고 다시 실행. 안내된 `.claude-sync-work/…`는 지워도 됨 |
+| `실패: … 되돌리기도 끝나지 못했습니다` | **임시 폴더를 지우지 않습니다.** 원래 파일이 `.claude-sync-work/…/old/`에 있습니다. 안내대로 `.claude/`로 옮기거나 형상관리자에게 문의 |
 | `No such file or directory` (`../chagok-docs`) | 세 레포가 한 폴더에 나란히 있는지 |
 | `bash: command not found` (PowerShell) | `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/…` |
-| 새 설정에 문제가 있음(되돌리기) | 형상관리자가 공지한 이전 승인 커밋으로 `bash chagok-docs/scripts/update-workspace.sh --ref <커밋>`. 외부 스킬은 `ai-tools.sh remove <이름>`, RTK는 `winget uninstall --id rtk-ai.rtk -e` |
+| 새 설정에 문제가 있음(되돌리기) | 형상관리자가 공지한 이전 승인 커밋으로 `bash chagok-docs/scripts/update-workspace.sh --ref <커밋>`. 외부 스킬은 `ai-tools.sh remove <이름>`, RTK는 `winget uninstall --id rtk-ai.rtk -e`(미검증) |
 | 외부 도구 설치 실패 | 아무것도 바뀌지 않은 상태로 끝납니다. 도구 없이 차곡 절차로 계속합니다 |
 
 **Q. 토큰을 아끼려면?**
 `ai-rules.md` 「검증 재사용」대로 같은 검증을 두 번 돌리지 않고, 24.1 「토큰을 아끼는 요청 습관」을 따릅니다. 외부 도구는 필요할 때만(11.1). GUIDE·개인 가이드는 필요한 장만 읽게 합니다(매 세션 자동으로 읽히는 것은 `CLAUDE.md`·`.claude/rules/`와 스킬·에이전트 설명뿐).
 
 **Q. 같은 파일을 다른 팀원·세션이 고치고 있으면?**
-원격 GitHub이 기준입니다(CONTRIBUTING 5장, [STARTER 08](STARTER/08_구현_파일_소유_충돌방지.md)). 시작 전에 열린 PR·브랜치를 다시 보고, 충돌하면 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존합니다. force push·`reset --hard`·임의 revert는 하지 않습니다.
+충돌은 PR 올린 사람이 해결합니다(CONTRIBUTING 5장). 진행 중인 브랜치에 develop이 필요하면 `git merge origin/develop`으로 받고 rebase·reset·force push는 하지 않습니다(STARTER 05 6장 「최신 develop 받기」, force push는 settings.json deny). 그 밖의 안전 권장(정책 아님)은 [STARTER 08](STARTER/08_구현_파일_소유_충돌방지.md) 3장 끝.
 
 **Q. Claude Code와 claude.ai는 무엇이 다른가요? `.skill`은 언제 필요한가요?**
 16장 표. `.skill`은 claude.ai에서 스킬을 쓸 때만 필요하고, 스킬이 바뀌면 다시 받아 덮어씁니다.

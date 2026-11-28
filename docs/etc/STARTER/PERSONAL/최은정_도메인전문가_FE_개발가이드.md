@@ -7,21 +7,10 @@
 
 > 이 절만 새로 더했다. 아래 1장부터의 P0 기록은 그대로다. 자세한 것은 [GUIDE](../../GUIDE_레포구조_협업규칙_AI스킬안내.md) 11.1(외부 도구)·13~15장(최신화·확인)·29장(복구), 규칙 원본은 `.claude/rules/ai-rules.md`.
 
-**공통 — 적용 순서**
-1. 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
-2. 지금 작업은 커밋·push하고 Claude 세션을 끝낸 **안전한 때** 작업 폴더(`chagok/`)에서:
-   ```bash
-   bash chagok-docs/scripts/update-workspace.sh --check   # 먼저 보기만
-   bash chagok-docs/scripts/update-workspace.sh           # 적용 (작업 중인 레포는 건너뛰고 알려 줌)
-   ```
-   PowerShell은 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`. 처음 한 번은 `git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop`으로 스크립트를 받는다.
-3. Claude Code를 **새 세션**으로 시작한다(코드 레포 루트에서 `claude`). `/chagok` 스킬 8개, `/agents` 에이전트 4개 확인.
-
-**공통 — 쓰는 습관**
-- 필요한 스킬·에이전트만 부른다. 필수(L2·L3 `pr-reviewer`, API diff면 `contract-checker`)는 그대로.
-- 이미 돌린 빌드·테스트·CI 결과는 재사용하고, 에이전트에는 그 결과를 넘겨 다시 돌리지 않게 한다.
-- 충돌은 내 작업 브랜치에서 원격 변경을 살려 양쪽을 보존한다. force push·`reset --hard` 하지 않는다.
-- 외부 도구는 **선택**이다. 없어도 개발에 지장이 없다. 설치는 `bash chagok-docs/scripts/ai-tools.sh`로 상태를 보고 필요한 것만.
+**공통** — 순서·명령의 원본은 [STARTER 03](../03_공통_클론_개발환경.md) 3장과 GUIDE 13~15장이다.
+- 형상관리자(김동윤)의 릴리스·배포 공지를 받은 뒤 적용한다. 공지 전에는 기존 환경 그대로 일한다.
+- 작업을 커밋·push하고 세션을 끝낸 안전한 때, 작업 폴더에서 `bash chagok-docs/scripts/update-workspace.sh`(먼저 `--check`) → Claude Code **새 세션**.
+- 필요한 스킬만 부르고 이미 돌린 결과는 재사용(GUIDE 24.1), 충돌은 내 작업 브랜치에서 `git merge origin/develop`([05](../05_공통_협업_개발절차.md) 6장), 외부 도구는 선택(GUIDE 11.1).
 
 **역할별 — 도메인전문가 · FE (서브 형상관리)**
 - **문서·코드·API 정합성**: 문서끼리는 `chagok-spec-sync` 모드 B를 직접, 코드 대조는 `contract-checker`. 이미 끝난 대조(예: #195)는 다시 전수 대조하지 않고 바뀐 곳만 본다.

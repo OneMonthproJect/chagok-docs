@@ -4,6 +4,7 @@
 #   bash chagok-docs/scripts/update-workspace.sh                 # 적용 (AI 설정은 승인·릴리스된 docs origin/main 기준)
 #   bash chagok-docs/scripts/update-workspace.sh --check         # 읽기 전용(fetch도 하지 않음, 아무것도 바꾸지 않음)
 #   bash chagok-docs/scripts/update-workspace.sh --ref <커밋>    # 형상관리자가 공지한 승인 버전(또는 origin/develop)으로 동기화·복구
+#   --force: 손으로 고친 AI 설정 사본이 있어도 동기화(고친 파일은 작업 폴더 .claude-sync-backup/에 백업)
 #   PowerShell: & "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh
 #
 # 하는 일: ① 레포별 브랜치·미커밋·미푸시 확인 ② git fetch origin ③ develop에 있고, 커밋 안 한 변경이 없고,
@@ -25,7 +26,8 @@ while [ $# -gt 0 ]; do
     --check) MODE=check; SYNC_ARGS+=(--check) ;;
     --ref) shift; REF="${1:?--ref 뒤에 커밋이 필요합니다}" ;;
     --ref=*) REF="${1#--ref=}" ;;
-    -h|--help) sed -n '2,15p' "$CHAGOK_DOCS/scripts/update-workspace.sh" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --force) SYNC_ARGS+=(--force) ;;
+    -h|--help) sed -n '2,16p' "$CHAGOK_DOCS/scripts/update-workspace.sh" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "모르는 옵션: $1 (--help)" >&2; exit 2 ;;
   esac
   shift
