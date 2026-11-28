@@ -125,8 +125,8 @@ chagok-backend/                          chagok-frontend/
 ├── src/main/java/…/                     ├── src/
 │   global/ domain/ screen/              │   ├── app/ shared/
 ├── src/main/resources/db/migration/     │   └── features/ pages/
-│   V*.sql (Flyway)                      │
-├── db/seed/  demo_seed.sql, 실행기       │
+│   V*.sql (Flyway)                      ├── design/  디자인 자료 v1.0~v3.0·프로토타입·CHANGELOG
+├── db/seed/  demo_seed.sql, 실행기       │   (기준 자료, 구현 여부는 README)
 ├── .github/  기능·버그 템플릿, PR 템플릿, backend-ci / frontend-ci, pr-check, issue-close, 라벨, CODEOWNERS
 ├── .claude/settings.json   (rules·skills·agents·.synced-from은 복사본, .gitignore)
 ├── .coderabbit.yaml
