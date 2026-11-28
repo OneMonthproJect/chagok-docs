@@ -87,8 +87,7 @@ L3 검증은 대상에 맞는 것만 고른다. 관련 없는 고비용 검증�
 - develop 대상 PR: Assignee는 비워 둔다(작성자를 다시 지정하지 않음). 본문 첫 줄은 이슈 전체 완료면 `Closes #n`, 일부만 끝내면 `Refs #n`, PR 자체가 미완이면 Draft로 제안한다. `done-verified`는 `Closes` 최종 PR에만 안내한다(`CONTRIBUTING.md` 5장, D-71).
 - `.env`·`secrets/`·키 파일은 읽거나 출력하지 않는다. 설정은 "있음/없음"까지만 확인한다.
 - 코드를 썼으면 `CONVENTIONS.md` 1장 7개를 스스로 점검한다. 보고는 PR 템플릿 「구조」 칸을 채우는 것으로 한다(L2·L3는 항목별, L1은 "위반 없음" 한 줄). 같은 점검을 별도 표로 다시 쓰지 않는다.
-- 의미 있는 작업은 `chagok-docs/docs/etc/AI_USAGE_AI활용기록.md`에 넣을 한 줄을 제안한다: `| 날짜 | 이슈 | 스킬·에이전트 | 한 일 | 사람이 바꾼 것 |`. 이슈는 `chagok-backend#12`처럼 레포 이름을 붙인다.
-- 그 한 줄의 제출 위치(chagok-docs#60): **PR 본문 「AI 사용」 칸에 반드시 남긴다.** PR이 없는 작업(이슈만 만든 조사·결정 이슈 초안·읽기 전용 점검)은 그 작업이 남긴 이슈 본문 또는 대상 이슈·PR 댓글에 같은 형식으로 남기고, 후속 PR은 이미 통합된 줄을 다시 쓰지 않고 참조만 남긴다(D-67, chagok-docs#74). docs `AI_USAGE`에는 하루 단위로 통합 담당이 모아 올린다(`CONTRIBUTING.md` 5장 「AI 사용 기록」). AI는 작업마다 AI_USAGE 전용 이슈·PR을 따로 만들지 않는다. 사용자가 통합 PR을 요청하면 그날 머지된 PR의 줄과, `CONTRIBUTING.md` 5장 누락 방지 ⑤로 찾은 이슈·댓글의 줄을 모아 만든다.
+- 의미 있는 작업은 AI 사용 기록 한 줄 `| 날짜 | 이슈 | 스킬·에이전트 | 한 일 | 사람이 바꾼 것 |`(이슈는 `chagok-backend#12`처럼 레포 이름을 붙임)을 **PR 본문 「AI 사용」 칸에 반드시 남긴다**(chagok-docs#60). PR이 없는 작업은 그 작업이 남긴 이슈 본문 또는 대상 이슈·PR 댓글에 남기고, 후속 PR은 이미 통합된 줄을 참조만 한다(D-67). AI는 작업마다 AI_USAGE 전용 이슈·PR을 만들지 않는다. 하루 단위 통합·누락 방지는 `CONTRIBUTING.md` 5장 「AI 사용 기록」.
 
 ## AI는 도구다 — 협업자·공동 작성자로 올리지 않는다
 
@@ -96,33 +95,31 @@ L3 검증은 대상에 맞는 것만 고른다. 관련 없는 고비용 검증�
 - Claude·AI 계정을 Collaborator·Assignee·Reviewer·CODEOWNERS로 지정하지 않는다. `git config user.name`·`user.email`을 바꾸지 않는다.
 - 리뷰·승인·머지는 사람이 한다. AI가 쓴 코드도 담당자가 설명할 수 있어야 하고, 담당자가 책임진다.
 
-## 스킬 (`.claude/skills/`)
+## 에이전트 — 스킬 8개·에이전트 4개의 흐름과 맡기는 조건
 
-| 스킬 | 언제 | 주로 | 주로 쓰는 레포 |
-|---|---|---|---|
-| `chagok-scope-guard` | 새 기능·범위 추가 의견, P2 착수 판단 | PM | docs |
-| `chagok-issue-writer` | 기능 ID로 이슈를 만들 때 (패키지 단위로 쪼개 레포별로) | PM·담당 | docs |
-| `chagok-issue-coder` | 이슈를 구현할 때 | 구현 담당 | backend·frontend |
-| `chagok-bug-fix` | 명세와 다른 동작을 고칠 때 (동결 후에도) | 구현 담당 | backend·frontend |
-| `chagok-pr-review` | develop 대상 PR을 확인할 때, 작성자 자가 점검 | 확인하는 팀원 | 세 레포 |
-| `chagok-spec-sync` | 명세를 바꾸기 전(A), 문서·코드 대조(B), API 계약 점검(C) | 도메인관리·담당 | 세 레포 |
-| `chagok-seed-data` | 시연·테스트 시드를 만들거나 고칠 때 | DB관리 | backend |
-| `chagok-release-check` | develop → main 릴리스 전 (세 레포 함께) | 형상관리 | 세 레포 |
+호출 조건은 각 스킬·에이전트 description이 원본이다(매 세션 로드). 사람용 상세는 GUIDE 18·19장.
 
-흐름: scope-guard → issue-writer → issue-coder / bug-fix → pr-review → (spec-sync C · seed-data) → release-check
+- 흐름: scope-guard → issue-writer → issue-coder / bug-fix → pr-review → (spec-sync C · seed-data) → release-check
+- 에이전트(Claude Code 전용)는 스킬을 싣고 별도 맥락·최소 권한으로 결과만 돌려준다(`seed-builder`만 `demo_seed.sql`을 쓰고 나머지는 읽기 전용). 조건에 맞을 때만 맡기고 작은 일은 메인 대화가 직접 한다. `pr-reviewer`는 L2·L3 PR 직전 **필수**(L1 선택, L0 안 씀), `contract-checker`는 diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있거나 프론트·백 연결 직후·릴리스 점검 전(문서끼리 대조는 `spec-sync` 모드 B를 직접).
+- 순서: 구현 → 메인 대화가 검증 실행 → (조건) contract-checker → (L2·L3) pr-reviewer → 결과를 사람에게.
+- 에이전트 결과는 제안이다. 고칠지, 커밋·머지할지는 사람이 정한다. 에이전트도 이 규칙과 `settings.json` 제한을 그대로 받는다. AI 사용 기록에는 `이름 (에이전트)`로 적는다.
 
-## 에이전트 (`.claude/agents/`, Claude Code 전용)
+## 검증 재사용 — 같은 검증을 두 번 돌리지 않는다
 
-스킬이 "어떻게 하는가"(절차의 원본)라면, 에이전트는 그 스킬을 미리 싣고 **별도 맥락·최소 권한**으로 일을 맡아 결과만 돌려주는 담당자다. 아래 조건에 맞을 때만 맡긴다. 조건에 맞지 않는 작은 일은 메인 대화가 직접 한다(작업 등급 표).
+작업 등급별 필수 검증·CI·contract-checker·pr-reviewer·L3 검증·마일스톤 통합 검증(`release-check`)은 그대로이고, 줄이는 것은 **반복**뿐이다(`CONTRIBUTING.md` 5장 「검증 재사용」).
 
-| 에이전트 | 맡기는 때 (조건) | 싣는 스킬 | 도구 | 쓰기 |
-|---|---|---|---|---|
-| `chagok-contract-checker` | diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있을 때, 프론트·백 연결 직후, 릴리스 점검 전. 코드가 없는 문서끼리 대조는 `spec-sync` 모드 B를 직접 | `chagok-spec-sync` (모드 C) | Read·Grep·Glob·Bash | 없음 |
-| `chagok-pr-reviewer` | L2·L3 PR을 올리기 직전(필수), L1은 선택, L0은 쓰지 않음. 확인하는 팀원이 PR을 볼 때 | `chagok-pr-review` | Read·Grep·Glob·Bash | 없음 |
-| `chagok-scope-keeper` | 12 백로그에 없는 기능·범위 추가 의견, 지금 단계 밖(P0-나머지·P1·P2) 이슈를 새로 만들기 전. 백로그 행을 그대로 이슈로 옮길 때는 쓰지 않음 | `chagok-scope-guard` | Read·Grep·Glob·Bash | 없음 |
-| `chagok-seed-builder` | 시드를 만들거나 고칠 때, M2 통합 검증·M3 MVP 검증·M5 최종 시연 전 | `chagok-seed-data` | + Edit·Write | `db/seed/demo_seed.sql`만 |
+- 검증은 메인 대화가 한 번 실행한다. 에이전트에는 범위·diff·커밋 SHA·명령과 결과(실패면 오류 요지·종료 코드)·미검증 항목을 넘기고, 에이전트는 다시 실행하지 않는다.
+- 같은 커밋·환경·범위의 결과는 재사용한다. 다른 커밋의 결과는 그사이 diff가 관련 코드·계약·환경을 건드리지 않았을 때만. 고친 뒤에는 영향 범위만 다시 돌린다. 실패한 명령은 원인을 보기 전에 되풀이하지 않는다.
+- `chagok-docs`의 문서·규칙만 바꿨거나 읽기 전용 조사면 앱 빌드·테스트를 돌리지 않는다(코드 레포는 README 수정도 등급 표대로). 등급 표가 요구하지 않는 다른 레포 전체 테스트는 돌리지 않는다.
+- 이미 읽은 문서·Git 상태는 바뀌었을 수 있을 때(push·머지·다른 사람 작업 후)만 다시 본다. 근거가 모이면 탐색을 멈춘다.
+- 보고는 「실행」(명령·결과)·「재사용」(근거 PR·커밋·CI)·「미검증」(이유)으로 나눈다.
 
-- 구현을 끝낸 메인 대화는 작업 등급에 따라 PR 본문을 만들기 전에 `chagok-contract-checker`(조건에 맞을 때)와 `chagok-pr-reviewer`(L2·L3)를 차례로 돌리고, 결과를 사람에게 보여 준다.
-- 같은 세션에서 이미 읽은 문서·Git 상태는 그사이에 바뀌었을 수 있는 경우(push·머지·다른 사람 작업 후)에만 다시 확인한다.
-- 에이전트 결과는 제안이다. 고칠지, 커밋·머지할지는 사람이 정한다. 에이전트도 이 규칙과 `.claude/settings.json`의 제한을 그대로 받는다.
-- 에이전트를 쓴 작업은 AI 사용 기록의 「스킬·에이전트」 칸에 `에이전트 이름 (에이전트)`로 적는다.
+## 외부 도구 — 선택, 필요할 때만
+
+RTK·Ponytail·Context7·Caveman·React Best Practices·Web Design Guidelines·`/security-review` 등은 개인 선택 설치다. 도구별 호출 조건·설치·제거는 GUIDE 11장(쓸 때 그 절만 읽는다).
+
+- **없거나 실패해도 차곡 절차로 그대로 진행한다.** 차곡 규칙·기준 문서·CONVENTIONS가 외부 스킬보다 우선한다. 설치, 훅 등록(`rtk init` 등), 상시 모드·텔레메트리 켜기는 사람이 따로 승인한다.
+- RTK는 긴 `git log`·`git diff`처럼 줄어드는 읽기 출력에만 붙인다(lint·test·`--stat`은 실측상 오히려 늘어남). 상태를 바꾸는 명령에 붙이면 settings의 ask·deny를 비켜 가므로 붙이지 않는다. 실패 이름·개수·종료 코드가 빠지면 원래 명령으로 다시 본다.
+- 요약·최소 변경 도구(Caveman·Ponytail)로 정책·명세·보안 근거·검증 결과를 줄이거나, 입력 검증·격리·책임 분리·테스트를 빼지 않는다.
+- React Best Practices의 `server-*`·RSC·Next.js 전용 규칙은 적용하지 않는다(Vite SPA). Context7 등 외부 질의에는 코드·개인정보를 넣지 않고, 레포의 실제 라이브러리 버전이 우선이다.
+- `/security-review`는 L3 검증·pr-reviewer·CODEOWNER 리뷰를 대신하지 않는다.
