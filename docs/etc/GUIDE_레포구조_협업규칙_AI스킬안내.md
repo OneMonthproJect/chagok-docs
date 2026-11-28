@@ -111,7 +111,7 @@ chagok-docs/
 │   ├── rules/            ai-rules.md · source-of-truth.md   ← 세 레포 공용 원본
 │   ├── skills/           스킬 8개                            ← 세 레포 공용 원본
 │   └── agents/           에이전트 4개                         ← 세 레포 공용 원본
-├── scripts/              setup-workspace.sh · sync-claude.sh · setup-labels.sh
+├── scripts/              setup-workspace.sh · update-workspace.sh · sync-claude.sh · ai-tools.sh · setup-labels.sh
 ├── README.md             프로젝트 소개, 레포 3개, 마일스톤 표, 팀 역할
 ├── CONTRIBUTING.md       협업 규칙 (세 레포 공통)
 ├── CONVENTIONS.md        코드 구조 규칙 (백엔드·프론트)
@@ -125,8 +125,8 @@ chagok-backend/                          chagok-frontend/
 ├── src/main/java/…/                     ├── src/
 │   global/ domain/ screen/              │   ├── app/ shared/
 ├── src/main/resources/db/migration/     │   └── features/ pages/
-│   V*.sql (Flyway)                      │
-├── db/seed/  demo_seed.sql, 실행기       │
+│   V*.sql (Flyway)                      ├── design/  디자인 자료 v1.0~v3.0·프로토타입·CHANGELOG
+├── db/seed/  demo_seed.sql, 실행기       │   (기준 자료, 구현 여부는 README)
 ├── .github/  기능·버그 템플릿, PR 템플릿, backend-ci / frontend-ci, pr-check, issue-close, 라벨, CODEOWNERS
 ├── .claude/settings.json   (rules·skills·agents·.synced-from은 복사본, .gitignore)
 ├── .coderabbit.yaml
@@ -146,7 +146,9 @@ chagok-backend/                          chagok-frontend/
 | `docs/13_changelog` | 기획이 왜 바뀌었는지 + 그 결정이 깨지는 상황. 문서끼리 어긋날 때 가장 먼저 보는 결정 기록 | 전원 |
 | `docs/etc/` | AI 활용 기록, CodeRabbit 기록, 트러블슈팅, 테스트 명세, 이 안내서, STARTER(개발 착수 자료) | 전원 |
 | `scripts/setup-workspace.sh` | 작업 폴더 준비: 빠진 레포 clone, 세 레포 develop 전환, AI 설정 복사 (처음 한 번) | 전원 |
-| `scripts/sync-claude.sh` | `chagok-docs`의 공용 AI 설정을 코드 레포 `.claude/`로 복사 | Claude Code 쓰는 팀원 |
+| `scripts/update-workspace.sh` | 이미 클론한 뒤 한 번에 적용: 안전한 최신화 → AI 설정 동기화 → 외부 도구 확인 (13장) | 전원 |
+| `scripts/sync-claude.sh` | `chagok-docs`의 승인된 공용 AI 설정(기본 `origin/main`)을 코드 레포 `.claude/`로 복사 (14장) | Claude Code 쓰는 팀원 |
+| `scripts/ai-tools.sh` | 외부 AI 도구(선택) 상태 확인, 고정 버전 스킬 설치·제거 (11.1) | 필요한 사람 |
 | `scripts/setup-labels.sh` | 세 레포 라벨 한 번에 생성 | 형상관리 |
 | 레포마다 `.github/CODEOWNERS` | 패키지 주인. PR이 그 경로를 건드리면 주인에게 자동 리뷰 요청. docs는 D-14로 기입됨, **코드 레포 두 곳은 아직 전부 주석(미기입)** — 영역별 담당이 정해지면 채움 | 형상관리 |
 | 레포마다 `.github/ISSUE_TEMPLATE/` | docs: 문서 · 결정 / 코드 레포: 기능(짝 이슈 칸 포함) · 버그 | 전원 |
@@ -438,6 +440,35 @@ M1 설계 확정 이후 명세를 바꾸는 순서 (CONTRIBUTING 7장, **확정*
 
 **인증은 두 가지가 따로입니다.** GitHub 인증(`gh auth login`, Git 자격 증명)은 레포 접근용이고, Claude 인증(Claude Code 첫 실행 때 로그인)은 AI 사용용입니다. 하나가 된다고 다른 하나가 되지 않습니다.
 
+### 11.1 외부 AI 도구 (모두 선택, chagok-docs#208)
+
+**설치하지 않아도 차곡 개발은 그대로 됩니다.** 차곡 스킬 8개·에이전트 4개가 기본이고, 아래 도구는 필요한 사람만 개인 폴더에 설치합니다. 지킬 것(차곡 규칙 우선, 상태 바꾸는 명령에 RTK 금지, 보안 근거 축약 금지 등)은 `ai-rules.md` 「외부 도구」가 원본입니다.
+
+설치 상태 확인(읽기 전용)과 스킬 설치·제거는 `scripts/ai-tools.sh`로 합니다. 스킬은 **검토한 커밋에 고정**해 `~/.claude/skills/`에 파일만 복사하고, 훅·settings·권한은 건드리지 않습니다. 이미 있으면 건너뜁니다.
+
+```bash
+# 작업 폴더(chagok/)에서
+bash chagok-docs/scripts/ai-tools.sh                       # 상태만 확인
+bash chagok-docs/scripts/ai-tools.sh install ponytail      # 고른 것만 설치 (caveman · react-best-practices도 같은 방식)
+bash chagok-docs/scripts/ai-tools.sh remove ponytail       # 이 스크립트로 설치한 것만 제거
+```
+
+| 도구 | 언제 부르나 (필요할 때만) | 출처 · 고정 버전 · 라이선스 | 설치 | 제거 |
+|---|---|---|---|---|
+| RTK | 긴 `git log`·`git diff` 출력 요약. lint·test·`--stat`은 실측상 오히려 늘어 쓰지 않음 | [rtk-ai/rtk](https://github.com/rtk-ai/rtk) 1.2.1, Apache-2.0(엔진 일부 BUSL-1.1) | `winget install --id rtk-ai.rtk -e --version 1.2.1` (패키지·버전은 `winget show`로 확인, 설치 자체는 기존 설치본이라 재실행 안 함). **`rtk init`(훅)·`rtk telemetry enable`은 하지 않음** | `winget uninstall --id rtk-ai.rtk -e` (미실행) |
+| Ponytail | 일반 구현·기존 코드 재사용·국소 버그 수정에서 `/ponytail lite` | [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) `ebd8654`, MIT | `ai-tools.sh install ponytail` (스킬만. 공식 플러그인판은 매 세션 켜져 쓰지 않음) | `ai-tools.sh remove ponytail` |
+| Caveman | 진행 상황·인계·결과 보고를 짧게 `/caveman`. 정책·보안 근거·검증 결과는 줄이지 않음 | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) `e74a11c`, Apache-2.0 | `ai-tools.sh install caveman` (스킬만. 플러그인·CLI판은 훅·상시 모드·텔레메트리가 켜져 쓰지 않음) | `ai-tools.sh remove caveman` |
+| React Best Practices | React 구조·Hook·렌더링·데이터 요청·성능 변경. `server-*`·RSC·Next.js 전용 규칙은 적용 안 함 | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) `5a37a63`, MIT(SKILL.md 표기) | `ai-tools.sh install react-best-practices` (폴더 이름 `vercel-react-best-practices`) | `ai-tools.sh remove react-best-practices` |
+| Context7 | 라이브러리 버전 차이·새 API·불확실한 기술 정보. 레포의 실제 버전 우선, 질의에 코드·개인정보 넣지 않음 | [upstash/context7](https://github.com/upstash/context7) `ctx7` 0.13.1, MIT. **외부 서버로 질의, OAuth·API 키** | `npx ctx7@0.13.1 setup --claude` (공식 명령. **이 PR에서 실행해 보지 않음 — 미검증**) | `npx ctx7@0.13.1 remove` (미검증) |
+| Playwright MCP | UI·사용자 흐름 변경의 브라우저 확인(이미 쓰는 것). worktree마다 자기 포트·브라우저 | Claude Code 공식 플러그인 `playwright@claude-plugins-official` | `/plugin`에서 설치 | `/plugin`에서 끔 |
+| `/security-review` | L3 인증·권한·개인정보·격리 변경의 **추가** 검토. L3 검증·pr-reviewer·CODEOWNER 리뷰를 대신하지 않음 | Claude Code 기본 명령 | 없음 | — |
+| skill-creator | 차곡 스킬을 만들거나 고칠 때만(원본은 `chagok-docs/.claude/skills/`) | claude.ai 기본 스킬 | 없음 | — |
+| Web Design Guidelines | **보류** — 출처 레포·스킬에 라이선스 표기가 없음. 표기가 생기면 다시 검토 | vercel-labs/agent-skills | — | — |
+| webapp-testing | **쓰지 않음** — Playwright MCP와 중복, Python 의존, Windows에서 하위 서버 프로세스가 남는 문제 | anthropics/skills | — | — |
+
+- 외부 도구가 없거나 실패하면 그 도구 없이 차곡 절차대로 진행합니다. 도구 때문에 작업을 멈추지 않습니다.
+- 고정 버전을 바꾸려면 출처를 다시 검토한 뒤 `ai-tools.sh`의 커밋 값을 고치는 docs PR(L3, `scripts/`)로 합니다.
+
 ## 12. 최초 클론과 환경 설정 (처음 한 번)
 
 **Git Bash에서, 작업 폴더를 만들 위치(예: 문서 폴더)에서** 실행합니다.
@@ -456,99 +487,89 @@ bash chagok-docs/scripts/setup-workspace.sh OneMonthproJect
 
 PowerShell에서는 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/setup-workspace.sh OneMonthproJect`처럼 Git Bash로 부릅니다. 백엔드·프론트 실행·테스트 명령은 [STARTER 03](STARTER/03_공통_클론_개발환경.md)(원본: 각 레포 README)에 있습니다.
 
-## 13. 이미 클론한 팀원의 최신화 (다시 clone하지 않음)
+## 13. 이미 클론한 팀원의 최신화 — 한 명령 (chagok-docs#208)
 
-이미 세 레포가 있으면 **다시 clone하지 않습니다.** 진행 중인 작업을 덮어쓰지 않도록 상태부터 봅니다. Git Bash, 작업 폴더(`chagok/`)에서:
-
-```bash
-# 1) 지금 브랜치와 커밋하지 않은 변경 확인
-for r in chagok-docs chagok-backend chagok-frontend; do
-  echo "== $r ($(git -C "$r" branch --show-current))"; git -C "$r" status --short
-done
-```
-
-- 변경이 보이면 먼저 **내 작업 브랜치에 커밋**합니다(또는 그 레포는 최신화를 미룹니다). `git stash`·`git reset --hard`·`git clean`으로 지우지 않습니다.
+이미 세 레포가 있으면 **다시 clone하지 않습니다.** Git Bash, 작업 폴더(`chagok/`)에서 아래 한 줄이면 됩니다. 진행 중인 작업은 건드리지 않습니다.
 
 ```bash
-# 2) 커밋하지 않은 변경이 없는 레포만 develop 최신화 (변경이 있으면 건너뜀)
-for r in chagok-docs chagok-backend chagok-frontend; do
-  if [ -n "$(git -C "$r" status --porcelain --untracked-files=no)" ]; then
-    echo "건너뜀: $r 에 커밋하지 않은 변경이 있습니다"; continue
-  fi
-  git -C "$r" fetch origin && git -C "$r" switch develop && git -C "$r" pull --ff-only origin develop
-done
+bash chagok-docs/scripts/update-workspace.sh            # 적용
+bash chagok-docs/scripts/update-workspace.sh --check    # 먼저 보기만(읽기 전용, fetch도 안 함)
 ```
 
-- `pull --ff-only`가 실패하면(내 로컬 develop에 원격에 없는 커밋이 있음) 강제로 맞추지 말고 형상관리자에게 문의합니다.
-- 작업 중이던 브랜치는 그대로 남아 있습니다. 돌아가려면 `git -C chagok-backend switch feature/#번호-이름`.
-- 그다음 14장 동기화를 실행합니다.
+PowerShell에서는 `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/update-workspace.sh`(작업 폴더에서). 2026-11-28 확인 범위: Git Bash는 적용·`--check` 모두 시험 환경에서, PowerShell 5.1은 `--check`만(적용 모드는 미검증 — 같은 bash를 부르므로 동작은 같을 것으로 봄).
+
+**처음 한 번만**(내 `chagok-docs`에 이 스크립트가 아직 없을 때): docs를 develop 최신으로 받은 뒤 위 명령을 씁니다.
+
+```bash
+git -C chagok-docs status --short          # 비어 있어야 함(있으면 먼저 내 브랜치에 커밋)
+git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop
+```
+
+| 스크립트가 하는 일 | 하지 않는 일 |
+|---|---|
+| ① 세 레포의 브랜치·커밋 안 한 변경·push 안 한 커밋 확인 ② `git fetch origin` ③ **develop에 있고, 커밋 안 한 변경이 없고, 원격과 갈라지지 않은 레포만** fast-forward ④ `sync-claude.sh`로 AI 설정 동기화(14장) ⑤ `ai-tools.sh`로 외부 도구 상태 확인(11.1, 설치 안 함) | 브랜치 전환, `stash`·`reset`·`clean`, push, 브랜치 삭제, 외부 도구 설치, 권한 설정 변경 |
+
+| 화면에 나오는 말 | 뜻과 할 일 |
+|---|---|
+| `작업 브랜치라 전환하지 않음` | 내 `feature/…` 작업은 그대로 둡니다. 작업을 커밋·push하고 안전한 때 develop으로 돌아와 다시 실행 |
+| `건너뜀: 커밋하지 않은 변경 n개` | 그 레포만 건너뜀. 내 작업 브랜치에 커밋한 뒤 다시 실행(`stash`·`reset`으로 지우지 않음) |
+| `건너뜀: 로컬 develop에 원격에 없는 커밋` | 갈라진 상태. 강제로 맞추지 말고 형상관리자에게 문의 |
+| `최신화: 커밋 n개 반영` / `최신` | 정상 |
+
+- 안전하지 않은 레포만 건너뛰고 나머지는 계속합니다(종료 코드 1). 문제를 정리한 뒤 같은 명령을 다시 실행하면 그 레포만 처리됩니다.
+- **Claude 세션을 쓰는 중이면** 그 세션은 기존 설정으로 마무리하고, 끝난 뒤 실행합니다. 적용은 **새 세션부터**입니다(14장).
+- 브랜치를 새로 만들 때의 develop 최신화는 21장 4단계 그대로입니다.
 
 ## 14. Claude 설정 동기화
 
 | 원칙 | 내용 |
 |---|---|
 | 원본 | `chagok-docs/.claude/rules·skills·agents` 한 곳 |
+| 배포 기준 | **승인·릴리스된 docs `origin/main`**(형상관리자가 머지한 버전). develop에만 있는 변경, 내 docs 작업 트리·작업 브랜치·미커밋 내용은 배포되지 않음 |
 | 복사본 | `chagok-backend`·`chagok-frontend`의 `.claude/rules·skills·agents`(+ `.synced-from`). `.gitignore`로 커밋되지 않음 |
-| 복사본 수정 | **하지 않습니다.** 코드 레포 settings.json이 AI의 복사본 Edit을 막고, 다음 동기화 때 덮어써집니다 |
-| `settings.json` | 레포마다 커밋된 파일. **동기화 대상이 아닙니다**(스크립트는 rules·skills·agents만 복사) |
-| 스크립트 동작 | 대상 레포의 `.claude/rules`·`skills`·`agents` 폴더를 **지우고 원본으로 다시 복사**. `chagok-backend`·`chagok-frontend`가 아닌 폴더는 건너뜀. docs가 develop이 아니면 경고하고 **그 브랜치의 설정을 복사** |
+| 복사본 수정 | **하지 않습니다.** 코드 레포 settings.json이 AI의 복사본 Edit을 막습니다. 손으로 고친 파일이 있으면 동기화가 그 레포를 건너뛰고 알려 줍니다 |
+| `settings.json` | 레포마다 커밋된 파일. **동기화 대상이 아닙니다** |
+| 같은 버전 | rules·skills·agents **내용**이 같으면 복사하지 않습니다(docs에 다른 문서만 머지돼도 다시 복사하지 않음) |
+| 개인 파일 | 복사본 폴더에 있는 관리 대상이 아닌 파일, `~/.claude/` 개인 스킬·설정은 건드리지 않습니다 |
+| 실패 | 원본을 확인하지 못하면 아무것도 바꾸지 않고 멈춥니다. 폴더 교체 중 실패하면 원래대로 되돌립니다 |
 
 **왜 복사인가**: Claude Code는 다른 폴더의 에이전트를 불러오지 않고, 스킬도 Claude Code를 실행한 레포의 `.claude/`에서 불러옵니다. 복사본은 커밋되지 않으므로 원본은 여전히 하나입니다.
 
-**먼저 docs를 최신 develop으로** (13장 2단계와 같음, docs만):
+보통은 13장 한 명령이 동기화까지 합니다. 동기화만 따로 할 때(작업 폴더 `chagok/`에서, 먼저 `git -C chagok-docs fetch origin`):
 
 ```bash
-git -C chagok-docs status --short      # 비어 있어야 함
-git -C chagok-docs switch develop && git -C chagok-docs pull --ff-only origin develop
+bash chagok-docs/scripts/sync-claude.sh chagok-backend chagok-frontend            # 두 레포
+cd chagok-backend && bash ../chagok-docs/scripts/sync-claude.sh                    # 코드 레포 루트에서 그 레포만
+bash chagok-docs/scripts/sync-claude.sh --check chagok-backend chagok-frontend    # 읽기 전용 확인
 ```
 
-**방법 A — 코드 레포별 개별 동기화** (그 코드 레포 루트에서)
+| 옵션 | 쓰는 때 |
+|---|---|
+| `--ref <커밋>` | 형상관리자가 공지한 **승인 버전**으로 맞추거나, 문제가 생겨 **이전 승인 버전으로 되돌릴 때**. `origin/develop`·`origin/main`에 머지된 커밋만 받습니다(미머지 커밋은 거부). 형상관리자가 릴리스 전 develop 설정을 미리 확인할 때는 `--ref origin/develop` |
+| `--check` | 파일·Git 상태를 바꾸지 않고 `최신` / `갱신 필요` / `손댄 사본`만 보여 줌 |
+| `--force` | 손으로 고친 사본이 있어도 진행. 고친 파일은 작업 폴더 `.claude-sync-backup/`에 보관 |
 
-```bash
-cd chagok-backend      # 또는 chagok-frontend
-bash ../chagok-docs/scripts/sync-claude.sh
-```
-
-**방법 B — 두 레포 일괄 동기화** (작업 폴더 `chagok/`에서)
-
-```bash
-bash chagok-docs/scripts/sync-claude.sh chagok-backend chagok-frontend
-```
-
-주의:
-- 복사본 폴더를 통째로 바꾸므로, 복사본에 손으로 넣은 파일이 있으면 사라집니다(넣지 않는 것이 규칙).
-- docs가 내 작업 브랜치(`docs/…`, `chore/…`)에 있는 채로 실행하면 **아직 머지되지 않은 설정**이 복사됩니다. 경고 문구가 나오면 docs를 develop으로 돌린 뒤 다시 실행합니다.
+- `update-workspace.sh`도 같은 `--ref`·`--check`·`--force`를 받습니다.
 - `chagok-docs`에서는 동기화하지 않습니다(원본이 그 레포에 있음).
 
-**처음 온 팀원이 함께 읽을 것**: `CONTRIBUTING.md`(협업, 0장부터), `CONVENTIONS.md`(백엔드 1~6장, 프론트 7장 — 내가 주인이 될 패키지 위치 확인), 내 코드 레포의 `CLAUDE.md`와 `.claude/rules/ai-rules.md`. 이전 판의 "첫 docs PR 연습" 대신, 지금은 배정된 이슈로 21장 절차를 바로 따릅니다.
+**처음 온 팀원이 함께 읽을 것**: `CONTRIBUTING.md`(협업, 0장부터), `CONVENTIONS.md`(백엔드 1~6장, 프론트 7장 — 내가 주인이 될 패키지 위치 확인), 내 코드 레포의 `CLAUDE.md`와 `.claude/rules/ai-rules.md`, 내 [개인 가이드](STARTER/PERSONAL/). 지금은 배정된 이슈로 21장 절차를 바로 따릅니다.
 
-## 15. 최신 버전 확인 방법
-
-`.claude/.synced-from`에는 **복사할 때의 docs 커밋과 브랜치**가 적힙니다(예: `cf9ef3f (develop)`). docs에 다른 문서만 머지되면 docs develop SHA는 바뀌어도 `.claude` 내용은 같을 수 있으므로, **원본과의 diff로 최신 여부를 판단**합니다.
+## 15. 적용 버전 확인 (읽기 전용)
 
 ```bash
-# 작업 폴더(chagok/)에서. 먼저 docs를 develop 최신으로 받아 둔다
-git -C chagok-docs log -1 --format='docs: %h (%D)'
-for r in chagok-backend chagok-frontend; do
-  echo "== $r: $(cat "$r/.claude/.synced-from" 2>/dev/null || echo '동기화 기록 없음')"
-  echo "   스킬 $(ls -d "$r"/.claude/skills/*/ 2>/dev/null | wc -l)개 · 에이전트 $(ls "$r"/.claude/agents/*.md 2>/dev/null | wc -l)개"
-  if diff -rq chagok-docs/.claude/rules "$r/.claude/rules" >/dev/null && diff -rq chagok-docs/.claude/skills "$r/.claude/skills" >/dev/null && diff -rq chagok-docs/.claude/agents "$r/.claude/agents" >/dev/null; then echo "   원본과 같음"; else echo "   원본과 다름 → 동기화 다시 실행"; fi
-done
-grep -l "번호 범위는 외워 쓰지 말고" chagok-backend/.claude/skills/chagok-issue-coder/SKILL.md chagok-backend/.claude/skills/chagok-bug-fix/SKILL.md
-ls ~/.claude/skills 2>/dev/null | grep chagok || echo "개인 스킬 폴더에 chagok-* 없음 (정상)"
+bash chagok-docs/scripts/update-workspace.sh --check
 ```
-
-기대 결과 (2026-11-24 기준):
 
 | 항목 | 기대값 |
 |---|---|
-| `.synced-from` | `cf9ef3f (develop)` 이후의 develop 커밋 (`.claude`가 마지막으로 바뀐 커밋이 `cf9ef3f`) |
-| 개수 | 스킬 8개 · 에이전트 4개 |
-| 원본 diff | "원본과 같음" (두 레포 모두) |
-| 최근 수정 스킬 반영 | `grep -l`이 issue-coder·bug-fix 두 파일을 모두 출력 (PR #76 문장) |
-| 개인 폴더 | `chagok-*` 없음. 있으면 지웁니다 — 같은 이름이면 개인 폴더(`~/.claude/skills/`)가 레포보다 우선해 옛 버전이 쓰입니다 |
+| 1. 레포 상태 | 세 레포 `최신`(작업 브랜치면 그 안내) |
+| 2. 공용 AI 설정 | 두 레포 `최신 … → <커밋> (origin/main)` |
+| 3. 외부 도구 | 필요한 것만 `있음`. 없어도 정상(선택) |
+| 개인 폴더 경고 | `~/.claude/skills/`에 `chagok-*`가 있으면 경고가 나옵니다. 지웁니다 — 같은 이름이면 개인 폴더가 레포보다 우선해 옛 버전이 쓰입니다 |
 
-**Claude Code 안에서 확인** (코드 레포 루트에서 `claude` 실행 → 처음 뜨는 작업 공간 신뢰 확인 수락):
+`.claude/.synced-from`에는 `<커밋> (<기준>)`, `sha <전체 커밋>`, `tree <rules·skills·agents 내용 해시>`가 적힙니다. **정상 동기화한 때에만** 바뀝니다. 옛 형식(`a1ef976 (develop)` 한 줄)은 다음 동기화 때 새 형식으로 바뀝니다(파일이 같으면 기록만).
+
+**Claude Code 안에서 확인** — 열려 있던 세션은 끝내고 **새 세션**으로(코드 레포 루트에서 `claude` → 처음 뜨는 작업 공간 신뢰 확인 수락):
 - 입력창에 `/chagok`을 치면 스킬 8개가 보여야 합니다.
 - `/agents`를 열면 프로젝트 에이전트 4개(`chagok-contract-checker`·`chagok-pr-reviewer`·`chagok-scope-keeper`·`chagok-seed-builder`)가 보여야 합니다.
 - 안 보이면 29장 FAQ "스킬이 목록에 보이지 않으면".
@@ -877,9 +898,9 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 7. **구현 계획 보고**를 받습니다.
 8. **사람이 승인**합니다("진행"). 범위가 다르면 고쳐서 다시 받습니다.
 9. **승인된 범위만 구현**.
-10. **자체 검증**: BE `./gradlew build`(+ DB에 닿으면 빈 테스트 DB로 `dbTest`), FE `npm run lint && npm test && npm run build`. 결과(명령·통과·실패·SKIPPED)를 기록.
+10. **자체 검증**: BE `./gradlew build`(+ DB에 닿으면 빈 테스트 DB로 `dbTest`), FE `npm run lint && npm test && npm run build`. 결과(명령·통과·실패·SKIPPED)와 커밋 SHA를 기록. 실패하면 원인을 본 뒤 관련 범위만 고쳐 그 범위만 다시 돌립니다(`ai-rules.md` 「검증 재사용」).
 11. **contract-checker**: diff에 Controller·DTO·ErrorCode·`api.ts`·`types.ts`·`mocks/`가 있으면.
-12. **pr-reviewer**: L2·L3는 필수, L1은 선택.
+12. **pr-reviewer**: L2·L3는 필수, L1은 선택. 10단계 실행 기록을 넘겨 에이전트가 빌드·테스트를 다시 돌리지 않게 합니다.
 13. **문서 변경 필요 여부**: 07·08·09가 바뀌어야 하면 chagok-docs `결정` 이슈 → 문서 PR 먼저(10장).
 14. **결과 보고**를 받고 미검증 항목을 확인합니다.
 15. **사람이 확인한 뒤** 커밋 → push → PR(base `develop`, 제목 `[#번호] …`, 본문 첫 줄 `Closes #번호` 또는 일부 완료면 `Refs #번호`, 「문서 PR」, 「AI 사용」).
@@ -899,6 +920,7 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 | SKIPPED | 검사 대상이 없어 건너뜀(예: ArchitectureTest 19개 중 18개). **통과로 세지 않음** |
 | 미실행 | 돌리지 않음 |
 | 미검증 | 확인할 근거가 없음. 반드시 이유를 함께 적음 |
+| 재사용 | 같은 커밋·환경·범위의 앞선 실행(PR·CI·실행 기록)을 근거로 씀. 근거 링크를 적음. 그사이 관련 코드·계약·환경이 바뀌었으면 쓰지 않음(CONTRIBUTING 5장 「검증 재사용」) |
 | 조건부 (CONDITIONAL) | 막는 항목은 없지만 사람 판단·후속 조건이 남음. 남은 조건을 적음 |
 | 머지 가능 | CI ✅ + 팀원 확인(직접 실행) + 완료 정의 + `done-verified`. **AI·에이전트 판정만으로는 머지 가능이 아님** |
 
@@ -926,7 +948,9 @@ chagok-seed-builder 에이전트로 07 시드표에 맞는 시연 시드를 점�
 
 ### 24.1 공통
 
-**최초 클론** → 12장, **기존 클론 최신화** → 13장, **동기화** → 14장, **확인** → 15장 명령을 그대로 씁니다.
+**최초 클론** → 12장, **기존 클론 최신화·동기화** → 13장 한 명령(`update-workspace.sh`), **확인** → 15장(`--check`), **외부 도구** → 11.1.
+
+**토큰을 아끼는 요청 습관** (`ai-rules.md` 「검증 재사용」·「외부 도구」가 원본): 이슈 번호·파일·범위를 처음에 좁혀 주기, 이미 돌린 명령 결과는 붙여 주고 "다시 돌리지 마" 하기, 작은 일에 에이전트를 부르지 않기, 긴 문서는 필요한 장만 읽게 하기, 끝나면 "변경·검증 근거·남은 일만" 보고받기.
 
 ```text
 이 레포의 CLAUDE.md와 .claude/rules/ai-rules.md 기준으로, 지금 쓸 수 있는 chagok 스킬과 에이전트 목록을 보여 주고 각각 언제 쓰는지 한 줄로 알려 줘. 파일은 고치지 마.
@@ -938,7 +962,7 @@ chagok-backend#<번호> 이슈를 시작하려고 해. 이슈 본문·선행 이
 이 이슈(#<번호>)를 ai-rules 「작업 등급」 기준으로 L0~L3 중 무엇인지 판정하고, 그 근거가 된 대상과 필요한 에이전트·검증을 표로 보여 줘.
 ```
 ```text
-PR 올리기 전 점검을 해줘: 실행한 빌드·테스트 결과를 PASS·FAIL·SKIPPED·미실행으로 나누고, 조건에 맞으면 chagok-contract-checker와 chagok-pr-reviewer를 차례로 돌려 결과를 보여 줘. 커밋·push는 하지 마.
+PR 올리기 전 점검을 해줘: 실행한 빌드·테스트 결과를 PASS·FAIL·SKIPPED·미실행으로 나누고, 조건에 맞으면 chagok-contract-checker와 chagok-pr-reviewer를 차례로 돌려 결과를 보여 줘. 에이전트에는 방금 실행 결과와 커밋 SHA를 넘겨 다시 돌리지 않게 해. 커밋·push는 하지 마.
 ```
 ```text
 이번 작업의 AI 사용 기록 한 줄을 | 날짜 | 레포#이슈 | 스킬·에이전트 | 한 일 | 사람이 바꾼 것 | 형식으로 써 줘. 사람이 바꾼 것 칸은 내가 채울 수 있게 비워 둬.
@@ -1052,7 +1076,7 @@ chagok-backend PR #<번호>가 머지 조건(CI ✅, 팀원 확인, 완료 정�
 chagok-release-check로 M2 통합 검증 릴리스 준비 상태를 점검해줘. 판정·막는 것·확인 필요와 릴리스 PR 본문 초안까지. PR·태그 생성은 하지 마.
 ```
 ```text
-chagok-docs의 .claude/ 변경 PR #<번호>가 머지됐어. 팀 공지문(chagok-docs pull → sync-claude.sh → 15장 확인 명령 → 회신 양식)과 .skill 재배포가 필요한 스킬 목록을 만들어줘.
+chagok-docs의 .claude/ 변경이 main에 릴리스됐어(릴리스 PR #<번호>). 팀 공지문(update-workspace.sh 한 명령 → 15장 --check 결과 → 새 세션 → 회신 양식, 28.1)과 .skill 재배포가 필요한 스킬 목록을 만들어줘. 공지 게시는 하지 마.
 ```
 
 브랜치 점검이 필요하면: `chagok-branch-audit`는 **미구현**입니다. 지금은 아래 **읽기 전용 조회**만 씁니다(삭제·`fetch --prune`·worktree 정리 없음).
@@ -1179,36 +1203,33 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 ### 28.1 스킬·규칙을 고칠 때와 배포 (형상관리 소유)
 
 1. `chagok-docs`에서 `chore/#번호-update-skills` 브랜치와 PR로 고칩니다(`.claude/`는 형상관리 CODEOWNERS, 등급은 20장 — 스킬 호출 조건·절차는 L2, settings.json은 L3). 코드 레포의 복사본은 고치지 않습니다.
-2. 머지 후 팀에 공지합니다(docs PR 템플릿·pr-check 경고가 작성자에게 안내. `.claude/` 주인인 형상관리가 확인): "chagok-docs develop pull → `sync-claude.sh` 다시 실행 → 확인 명령 결과 회신".
-3. **claude.ai `.skill` 재배포**: 바뀐 스킬 폴더(`chagok-docs/.claude/skills/<이름>/`)로 `.skill` 파일을 다시 만들어 배포하고, claude.ai 사용자는 같은 이름으로 덮어써 등록합니다.
-4. 재배포를 실제로 했으면 공지에 "어떤 스킬을, 어느 커밋 기준으로" 적습니다. 하지 않았으면 미완료로 남깁니다.
+2. **develop 머지만으로는 팀원에게 배포되지 않습니다.** 동기화 기본 기준이 docs `origin/main`이므로, 형상관리자가 develop → main 릴리스 PR을 승인·머지한 뒤에 배포됩니다(14장). 릴리스 전 미리 보려면 `--ref origin/develop`(형상관리·작성자 확인용).
+3. 릴리스 머지 후 형상관리자가 팀에 공지합니다: "작업을 마친 뒤 `bash chagok-docs/scripts/update-workspace.sh` → `--check` 결과 회신(28.3) → Claude Code 새 세션". 공지에 적용 커밋(`origin/main` SHA)을 적으면 팀원이 15장 결과와 맞춰 볼 수 있습니다.
+4. 문제가 생기면 형상관리자가 이전 승인 커밋을 공지하고, 팀원은 `bash chagok-docs/scripts/update-workspace.sh --ref <이전 커밋>`으로 되돌립니다(29장 「복구」).
+5. **claude.ai `.skill` 재배포**: 스킬 폴더가 바뀐 릴리스만. 바뀐 스킬 폴더(`chagok-docs/.claude/skills/<이름>/`)로 `.skill` 파일을 다시 만들어 배포하고, claude.ai 사용자는 같은 이름으로 덮어써 등록합니다. 규칙(`rules/`)·에이전트만 바뀌었으면 필요 없습니다.
+6. 재배포를 실제로 했으면 공지에 "어떤 스킬을, 어느 커밋 기준으로" 적습니다. 하지 않았으면 미완료로 남깁니다.
 
-### 28.2 현재 동기화·재배포 현황 (2026-11-24)
+### 28.2 현재 동기화·재배포 현황 (2026-11-28)
 
 | 대상 | 상태 | 근거 |
 |---|---|---|
-| Claude Code 공용 원본 | 최신 = `cf9ef3f` 이후 변경 없음 | `git log -- .claude` |
-| 작성자 PC 복사본 (backend·frontend) | **확인함** — `.synced-from` `cf9ef3f (develop)`, 원본과 diff 없음, 스킬 8·에이전트 4, PR #76 문장 반영 | 15장 명령 실행 결과 |
-| 다른 팀원 PC | **미확인** | 각자 15장 실행 후 회신 |
-| claude.ai `.skill` (특히 issue-coder·bug-fix) | **미확인** — 재배포 근거 없음 | 형상관리자 확인 필요 |
+| Claude Code 공용 원본 | 배포 중 = docs `origin/main` `1b563ff`. develop `6db1cec`에 #208 PR A(ai-rules·에이전트 2개)가 들어가 main과 다름 — 릴리스 대기 | `git diff origin/main origin/develop -- .claude` |
+| 작성자 PC 복사본 (backend·frontend) | **확인함** — `.synced-from` `a1ef976 (develop)`, `update-workspace.sh --check` 결과 `최신`(새 스크립트, 읽기 전용) | #208 PR B 본문 |
+| 다른 팀원 PC | **미확인** | 릴리스 공지 후 각자 15장 결과 회신 |
+| claude.ai `.skill` | #208은 스킬 본문을 바꾸지 않아 재배포 대상 아님. 이전 재배포(issue-coder·bug-fix)는 **미확인** | 형상관리자 확인 필요 |
 
 ### 28.3 팀원 확인 회신 양식
 
-15장 확인 명령 결과를 보고 아래를 채워 팀 채팅이나 형상관리자에게 보냅니다.
+15장 `--check` 결과를 보고 아래를 채워 팀 채팅이나 형상관리자에게 보냅니다.
 
 ```text
 [차곡 Claude 설정 확인] 이름:
-- [ ] 세 레포 clone (chagok-docs·chagok-backend·chagok-frontend가 한 폴더에 나란히)
-- [ ] GitHub 접근 (gh auth status 또는 push 권한 확인) / 미사용
-- [ ] 세 레포 develop 최신 (pull --ff-only 성공)
-- [ ] Claude Code 설치(claude --version: ____) · 로그인
-- [ ] 동기화 실행 (sync-claude.sh)
-- [ ] .synced-from: backend ______ / frontend ______
-- [ ] 스킬 8개 · 에이전트 4개, "원본과 같음" (두 레포)
-- [ ] issue-coder·bug-fix에 PR #76 문장 반영 (grep 두 파일 출력)
-- [ ] 개인 폴더 ~/.claude/skills에 chagok-* 없음
-- [ ] Claude Code에서 /chagok 스킬 8개, /agents 에이전트 4개 보임
-- [ ] (claude.ai 사용 시) 최신 chagok-*.skill 8개 등록 / 미사용
+- [ ] update-workspace.sh 실행 (건너뛴 레포: 없음 / ______ — 이유: ______)
+- [ ] 2. 공용 AI 설정: backend ______ / frontend ______ (최신 … → <커밋> (origin/main))
+- [ ] 3. 외부 도구: 설치한 것 ______ / 없음 (선택)
+- [ ] 개인 폴더 ~/.claude/skills에 chagok-* 없음 (경고 없음)
+- [ ] Claude Code 새 세션에서 /chagok 스킬 8개, /agents 에이전트 4개 보임
+- [ ] (claude.ai 사용 시) 공지된 chagok-*.skill 등록 / 미사용
 문제:
 ```
 
@@ -1230,13 +1251,13 @@ chagok-pr-review로 다른 팀원의 PR #<번호>를 리뷰하고, 내가 직접
 작업 폴더를 만들 상위 폴더에서 Git Bash로 12장 명령을 실행합니다. 결과적으로 `chagok/` 안에 세 레포가 나란히 생깁니다.
 
 **Q. 이미 클론했다면 다시 클론해야 하나요?**
-아니요. 13장(상태 확인 → 최신화)과 14장(동기화)만 합니다. 빠진 레포가 있으면 `setup-workspace.sh`를 다시 실행해도 됩니다(없는 레포만 clone, 다만 세 레포를 develop으로 전환하므로 먼저 13장으로 미커밋 변경을 확인).
+아니요. 13장 한 명령(`update-workspace.sh`)만 합니다. 빠진 레포가 있으면 `setup-workspace.sh`를 다시 실행해도 됩니다(없는 레포만 clone, 다만 세 레포를 develop으로 전환하므로 먼저 `update-workspace.sh --check`로 미커밋 변경을 확인).
 
 **Q. 어느 레포에서 Claude를 실행하나요?**
 작업할 코드 레포 루트입니다(`cd chagok-backend && claude`). 문서·결정·스킬 원본 작업은 `chagok-docs`에서. 작업 폴더(`chagok/`)는 레포가 아니라 설정이 적용되지 않습니다.
 
 **Q. 스킬은 따로 설치해야 하나요? ZIP이 필요한가요?**
-Claude Code는 설치·ZIP이 필요 없습니다. `setup-workspace.sh`(처음) 또는 `sync-claude.sh`(이후)로 복사됩니다. `.skill` 파일은 **claude.ai에서 쓸 때만** 필요합니다(16장).
+차곡 스킬 8개는 설치·ZIP이 필요 없습니다. `setup-workspace.sh`(처음) 또는 `update-workspace.sh`(이후)로 복사됩니다. `.skill` 파일은 **claude.ai에서 쓸 때만** 필요합니다(16장). 외부 스킬(Ponytail 등)은 선택이고 11.1의 `ai-tools.sh`로 설치합니다.
 
 **Q. 스킬이 목록에 보이지 않으면?**
 ① 코드 레포 루트에서 실행했는지 ② `ls .claude/skills`가 비어 있지 않은지(비면 동기화) ③ 15장 확인 명령 ④ 작업 공간 신뢰 확인을 수락했는지 ⑤ Claude Code를 다시 시작. 그래도 안 되면 결과를 형상관리자에게 보냅니다.
@@ -1260,16 +1281,27 @@ L1~L3는 구현 전 계획 승인이 필요합니다. L0만 한 줄 알리고 �
 안 됩니다. 복사본이라 다음 동기화 때 덮어써지고, AI의 Edit도 막혀 있습니다. `chagok-docs/.claude/`에서 PR로 고칩니다(28.1).
 
 **Q. 스킬 최신 버전은 어떻게 확인하나요? `.synced-from`은 무엇인가요?**
-`.synced-from`은 복사할 때의 docs 커밋·브랜치 기록입니다. 최신 여부는 15장 명령의 "원본과 같음"으로 판단합니다.
+`.synced-from`은 마지막으로 정상 동기화한 docs 커밋·기준·내용 해시 기록입니다. 최신 여부는 15장 `--check`의 `최신`으로 판단합니다.
 
-**Q. 동기화에 실패하면?**
+**Q. 동기화에 실패하면? / 복구는?**
 | 증상 | 해결 |
 |---|---|
 | `건너뜀: … (chagok-backend·chagok-frontend에서만 복사합니다)` | 코드 레포 루트에서 실행했는지, 일괄이면 작업 폴더에서 레포 이름을 정확히 줬는지 |
-| `주의: chagok-docs가 develop이 아니라 …` | docs를 develop으로 돌리고(14장) 다시 실행 |
+| `중단: chagok-docs에서 '…'를 찾지 못했습니다` | `git -C chagok-docs fetch origin` 뒤 다시 실행. 아무것도 바뀌지 않은 상태 |
+| `중단: … 머지되지 않은 커밋입니다` | `--ref`에 미머지 커밋을 줌. 형상관리자가 공지한 승인 커밋을 씀 |
+| `건너뜀: … 사본을 손으로 고친 파일이 있습니다` | 고친 내용이 필요하면 `chagok-docs` 원본으로 PR. 버려도 되면 `bash chagok-docs/scripts/update-workspace.sh --force`(작업 폴더 `.claude-sync-backup/`에 백업) |
+| `실패: … 원래대로 되돌렸습니다. 임시 폴더는 지워도 됩니다` | 그 레포 파일을 연 Claude 세션·편집기를 닫고 다시 실행. 안내된 `.claude-sync-work/…`는 지워도 됨 |
+| `실패: … 되돌리기도 끝나지 못했습니다` | **임시 폴더를 지우지 않습니다.** 원래 파일이 `.claude-sync-work/…/old/`에 있습니다. 안내대로 `.claude/`로 옮기거나 형상관리자에게 문의 |
 | `No such file or directory` (`../chagok-docs`) | 세 레포가 한 폴더에 나란히 있는지 |
-| `bash: command not found` (PowerShell) | Git Bash에서 실행하거나 `& "C:\Program Files\Git\bin\bash.exe" …` |
-| 실행 후에도 "원본과 다름" | docs가 develop 최신인지 확인 후 다시 실행 |
+| `bash: command not found` (PowerShell) | `& "C:\Program Files\Git\bin\bash.exe" chagok-docs/scripts/…` |
+| 새 설정에 문제가 있음(되돌리기) | 형상관리자가 공지한 이전 승인 커밋으로 `bash chagok-docs/scripts/update-workspace.sh --ref <커밋>`. 외부 스킬은 `ai-tools.sh remove <이름>`, RTK는 `winget uninstall --id rtk-ai.rtk -e`(미검증) |
+| 외부 도구 설치 실패 | 아무것도 바뀌지 않은 상태로 끝납니다. 도구 없이 차곡 절차로 계속합니다 |
+
+**Q. 토큰을 아끼려면?**
+`ai-rules.md` 「검증 재사용」대로 같은 검증을 두 번 돌리지 않고, 24.1 「토큰을 아끼는 요청 습관」을 따릅니다. 외부 도구는 필요할 때만(11.1). GUIDE·개인 가이드는 필요한 장만 읽게 합니다(매 세션 자동으로 읽히는 것은 `CLAUDE.md`·`.claude/rules/`와 스킬·에이전트 설명뿐).
+
+**Q. 같은 파일을 다른 팀원·세션이 고치고 있으면?**
+충돌은 PR 올린 사람이 해결합니다(CONTRIBUTING 5장). 진행 중인 브랜치에 develop이 필요하면 `git merge origin/develop`으로 받고 rebase·reset·force push는 하지 않습니다(STARTER 05 6장 「최신 develop 받기」, force push는 settings.json deny). 그 밖의 안전 권장(정책 아님)은 [STARTER 08](STARTER/08_구현_파일_소유_충돌방지.md) 3장 끝.
 
 **Q. Claude Code와 claude.ai는 무엇이 다른가요? `.skill`은 언제 필요한가요?**
 16장 표. `.skill`은 claude.ai에서 스킬을 쓸 때만 필요하고, 스킬이 바뀌면 다시 받아 덮어씁니다.
@@ -1297,11 +1329,12 @@ L1~L3는 구현 전 계획 승인이 필요합니다. L0만 한 줄 알리고 �
 | 문서 | 위치 |
 |---|---|
 | 빠른 사용 설명서 | [STARTER 04](STARTER/04_Claude_스킬_에이전트_사용안내.md) |
+| 개인별 빠른 안내 | [STARTER/PERSONAL](STARTER/PERSONAL/) — 각 파일 맨 앞 「AI 개발 환경 최신화 및 역할별 효율적 사용」 |
 | 개발 착수 자료 | [STARTER 00 현황](STARTER/00_현재_개발현황.md) · [01 담당 추천](STARTER/01_P0_핵심기능_담당배정.md) · [02 이슈 계획](STARTER/02_P0_개발이슈_생성계획.md) · [03 클론·환경](STARTER/03_공통_클론_개발환경.md) · [05 협업 절차](STARTER/05_공통_협업_개발절차.md) · [06 검토·배정](STARTER/06_도메인전문가_검토_배정절차.md) |
 | 협업 규칙 · 코드 규칙 | [CONTRIBUTING.md](../../CONTRIBUTING.md) · [CONVENTIONS.md](../../CONVENTIONS.md) |
 | AI 규칙 | [ai-rules.md](../../.claude/rules/ai-rules.md) · [source-of-truth.md](../../.claude/rules/source-of-truth.md) |
 | 스킬 · 에이전트 원본 | [.claude/skills/](../../.claude/skills/) · [.claude/agents/](../../.claude/agents/) |
-| 스크립트 | [setup-workspace.sh](../../scripts/setup-workspace.sh) · [sync-claude.sh](../../scripts/sync-claude.sh) |
+| 스크립트 | [setup-workspace.sh](../../scripts/setup-workspace.sh) · [update-workspace.sh](../../scripts/update-workspace.sh) · [sync-claude.sh](../../scripts/sync-claude.sh) · [ai-tools.sh](../../scripts/ai-tools.sh) |
 | 결정 기록 | [13 changelog](../13_changelog_기획변경이력.md) |
 | AI 활용 기록 | [AI_USAGE](AI_USAGE_AI활용기록.md) |
 
@@ -1309,6 +1342,7 @@ L1~L3는 구현 전 계획 승인이 필요합니다. L0만 한 줄 알리고 �
 
 | 날짜 | 레포 | 바뀐 것 |
 |---|---|---|
+| 2026-11-28 | chagok-docs#208 | AI 개발 환경 최적화: 11.1 외부 도구(선택·고정 버전·호출 조건, `ai-tools.sh`), 13장 한 명령 최신화(`update-workspace.sh`, 작업 중 레포 건너뜀), 14장 동기화 기준을 승인·릴리스된 `origin/main`으로(`--ref` 승인 버전·복구, 내용 같으면 복사 안 함, 개인 파일 보존, 실패 시 원상), 15장 `--check` 확인, 21·22·24.1 검증 재사용·토큰 습관, 28장 릴리스 후 배포·되돌리기·회신 양식, 29장 복구·토큰·충돌 FAQ, 30장 개인 가이드 링크 |
 | 2026-11-24 | chagok-docs#86 | D-66~D-68 반영(2026-11-23 팀 회의 결정, 전원 참석, 기록 최은정): 6.1 브랜치 정리를 확정 규칙(머지 후 유지·형상관리 승인 후 정리)으로, 8장 CodeRabbit 필요 판정, 25장 PR 없는 AI 작업 기록, 27장 결정 대기 → 확정(branch-audit은 계속 미구현) |
 | 2026-11-24 | chagok-docs#81 | 개발 착수용 총정리본으로 개편: 상태 표기(확정·결정 대기·미구현·미검증), 지금 단계(M1 통과·기반 머지), 팀 역할(D-14), 브랜치 정리 현행 규칙·#72 결정 대기·STARTER 00·05 불일치·안전 권장(정책 아님), Claude Code 설치·인증 구분, 최초 클론·기존 클론 최신화·개별/일괄 동기화·버전 확인 명령, Claude Code ↔ claude.ai, 스킬 8개·에이전트 4개 상세(지시문 제한 ↔ settings 강제), L0~L3(ai-rules·레포 CLAUDE.md, ErrorCode 표기 차이 ❓), 착수~머지 19단계, 검증 용어, 역할별 순서·명령어, AI 사용 기록(#60, #74 대기), 미구현·미확정, 재배포·회신 양식, FAQ. 테스트 ID는 번호 대신 04·08 원본을 가리키게 함. 「팀 회의에서 정할 것」은 확정(D-20·D-22·D-51·D-14)과 대기·미확인(D-15, 영역별 담당, 시연 DB 이름 💡, Claude Code 사용자 명단, 강사 확인)으로 나눠 1·4·5·27장에 반영. 자가 점검(chagok-pr-reviewer) 지적 반영: settings deny 패턴 범위를 정확히, 에이전트 필수/조건 구분, 보조 역할 추천안 표시 |
 | 2026-11-24 | #68 | 격리·인증 테스트 범위를 08 9장 X 전체로 (CONTRIBUTING 7장과 같음) |
