@@ -18,7 +18,7 @@
 | 1 | **다른 도메인은 그 도메인의 `api` 패키지로만 부른다.** Entity·Repository·Service를 직접 import하지 않는다 | 13개 도메인 중 9개가 Service 직접 주입으로 얽힘 → 하나 고치면 와르르 | ArchUnit 테스트 |
 | 2 | **의존 방향은 한쪽으로만.** 외래키 방향 = 코드 방향(3장 표). 거꾸로 부르거나 순환하면 빌드 실패 | 서로 import하는 순환이 생기면 어느 쪽도 혼자 못 고침 | ArchUnit 테스트 |
 | 3 | **같은 규칙은 한 곳에.** 주기 상태는 `cycle`, 정비소 소속 확인은 각 도메인의 `getOwned`, 상태 전이는 Entity 메서드 | "공개 작품" 규칙 사본이 5~6곳, 이미 서로 어긋나 있었음 | 리뷰 + CodeRabbit |
-| 4 | **여러 도메인을 읽는 화면은 `screen` 패키지에서 조립**하고, 아무도 `screen`을 import하지 않는다 | 마이페이지·관리자 화면을 업무 패키지 안에서 조립하다 순환 발생 | ArchUnit 테스트 |
+| 4 | **여러 도메인을 읽는 화면은 `screen` 패키지에서 조립**하고(여러 도메인을 묶는 판정·쓰기도 여기서, D-74), 아무도 `screen`을 import하지 않는다 | 마이페이지·관리자 화면을 업무 패키지 안에서 조립하다 순환 발생 | ArchUnit 테스트 |
 | 5 | **오류는 `BusinessException(ErrorCode)`로 던지고 전역 처리기 한 곳에서 응답.** Controller에 try/catch 금지 | Controller 38개 중 13개가 오류를 각자 처리 → 화면마다 다른 오류 | 리뷰 + CodeRabbit |
 | 6 | **상태는 저장하지 않고 조회 때 계산한다.** 미확인/여유/임박/도래는 DB 칼럼이 아니다 | (예방) 주기 규칙을 바꿀 때 데이터 마이그레이션이 필요 없게 | 07 ERD |
 | 7 | **DB 구조는 Flyway 버전 파일이 기준**, Entity는 거기에 맞춘다(`ddl-auto: validate`). `develop`에 들어간 버전 파일은 고치지 않고 새 번호를 더한다 | 테스트 420개 중 172개가 로컬 DB 스키마 차이로 계속 실패 | Flyway + 빈 DB CI + pr-check |
@@ -48,10 +48,12 @@ com.wanted.chagok
 │   ├── reservation/         reservation
 │   └── cycle/               주기 상태 계산만. 표 없음, Spring·JPA 없음. api/에 값 타입과 ItemCycleCalculator
 │
-└── screen/                  화면 조립 전용. 표 없음. 아무도 import하지 않음
+└── screen/                  화면 조립 + 여러 도메인을 묶는 판정·쓰기(D-74). 표 없음. 아무도 import하지 않음
     ├── target/              재점검 대상 목록 (시나리오 A)
     ├── visit/               방문·정비 기록 미리보기의 항목 상태·추가 점검 안내 (시나리오 B), 차량 상세의 항목 상태, 고객 상세 API 07(차량별 dueCount·soonCount, chagok-docs#96)
-    └── booking/             예약 상세 패널: 예약 + 고객·차량 + 최근 정비 이력 + 점검 주기 요약 (기획안 v9)
+    ├── booking/             예약 상세 패널: 예약 + 고객·차량 + 최근 정비 이력 + 점검 주기 요약 (기획안 v9)
+    ├── admin/               (P1) 정비소 개설 API 32: shop·사장 staff·기본 service_item을 한 트랜잭션으로 (D-74)
+    └── lifecycle/           (P1) 고객·차량·정비사 비활성화·삭제·익명화 판정 API 43~50: 정비 이력·유효 예약·마지막 방문일 확인 후 각 도메인 쓰기 (D-74)
 ```
 
 ### 도메인 하나의 안쪽
@@ -89,6 +91,7 @@ screen/booking ─┤   (booking: reservation.api·customer.api·maintenance.api
                 ├──▶ maintenance.api
                 ├──▶ reservation.api   (target: "예약 있음" 표시·홈 오늘 예약 목록, booking: 예약 상세 패널. visit은 쓰지 않음)
                 └──▶ cycle
+screen/admin·lifecycle (P1, D-74) ──▶ admin: shop.api·account.api·item.api / lifecycle: customer.api·account.api·maintenance.api·reservation.api
 
 maintenance ────┬──▶ customer.api     (차량이 우리 정비소 것인지)
                 ├──▶ item.api         (항목이 있는지)
@@ -109,6 +112,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | `cycle`은 아무것도 모른다 | 입력은 값(record), 출력도 값. `java.time`만 쓴다. 그래서 테스트에 DB가 필요 없다 |
 | "방문 완료 → 정비 기록 등록" 연결은 **화면 이동**이다 | reservation이 maintenance를 부르지 않는다. 프론트가 방문 완료 응답을 받고 정비 기록 화면으로 보낸다 |
 | shop_id는 `global/auth`의 로그인 정보에서 | 도메인들이 shop 도메인을 부를 필요가 없다 |
+| 여러 도메인을 묶는 판정·쓰기는 `screen`에서 (D-74, chagok-docs#221) | 한 도메인이 다른 도메인 값을 알아야 거절할 수 있거나(고객 삭제의 「정비 이력 있음」, 정비사 비활성화의 「담당 유효 예약 있음」) 여러 도메인 표를 한 번에 만들어야 할 때(정비소 개설), 표에 없는 방향을 더하지 않고 `screen`이 각 `api`를 읽어 판정한 뒤 각 `api`의 쓰기 메서드를 부른다. 도메인은 자기 표만 바꾼다. 자기 상태로 판단하는 규칙은 그대로 Entity에 둔다(5장) |
 
 ---
 
@@ -136,7 +140,7 @@ customer, item, shop, cycle ──▶ (다른 도메인 없음)
 | entity | 칼럼 매핑, 상태 전이와 도메인 불변식(자기 상태로 판단하는 규칙과 거절), `@Version` | public setter, 다른 도메인 Entity 참조(ID로만), 양방향 연관, cascade |
 | repository | 조회 메서드 (정비소 데이터는 shopId 조건 포함) | 업무 판단 |
 | api | interface·record·enum | 구현, Entity 노출 (예외: `cycle`의 `standard()` 한 줄 위임, 2장) |
-| screen | 여러 `api`를 읽어 화면 하나의 응답 조립, cycle 호출 | 저장·상태 변경, 표 소유 |
+| screen | 여러 `api`를 읽어 화면 하나의 응답 조립, cycle 호출, 여러 도메인을 묶는 판정과 각 `api` 쓰기 메서드 호출·`@Transactional`(D-74) | 표 소유, Repository·Entity 직접 사용, 도메인이 자기 상태로 판단하는 규칙 복사 |
 | global | 인증·오류·공통 응답·시각 같은 기술 기반 | 업무 규칙, domain·screen import(ArchitectureTest) |
 
 규칙끼리 부딪혀서 지키기 어려운 경우(예: 3장 표에 없는 방향이 꼭 필요함), 우회 코드를 만들지 말고 멈추고 설계 검토(`결정` 이슈)로 올린다.
@@ -296,9 +300,9 @@ ESLint로 고정 (`eslint.config.js`에 추가, `@/` = `src/` 별칭 전제):
 | P1 월평균 주행거리 추정 | `cycle` + `maintenance.api`에 주행거리 이력 메서드 추가 + `screen/target` | 3곳, 추가 위주 |
 | P1 연락 결과 기록 | 새 `domain/contact`(표 1개, 새 마이그레이션 V파일) + `screen/target`에 표시 한 줄 | 새 패키지 + 1줄 |
 | P1 신규·재방문 집계 | 새 `screen/stats` + 필요한 `api` 메서드 추가 | 새 패키지 |
-| P1 정비소 개설·정지 | 새 `screen/admin` 또는 `domain/shop` 내부 + `shop.api` + SecurityConfig 규칙 1줄 | shop + 1줄 |
+| P1 정비소 개설·정지 | 개설: 새 `screen/admin` + `shop.api`·`account.api`·`item.api` 생성 메서드(D-74). 정지: `domain/shop` 내부. + SecurityConfig 규칙 1줄 | 추가 위주 + 1줄 |
 | P1 정비소별 항목 설정 화면 | `item` 내부 + 화면 1개 | item만 |
-| P1 고객 비활성화·삭제·익명화 | customer 내부 + reservation.api·maintenance.api 조회 메서드 2개 | customer + 추가 2개 |
+| P1 고객·정비사 비활성화·삭제·익명화 | 새 `screen/lifecycle` + `customer.api`·`account.api` 쓰기 메서드 + `reservation.api`·`maintenance.api` 조회 메서드(D-74) | 새 패키지 + 추가 위주 |
 | P2 (이번 프로젝트에서 착수하지 않음, D-70) | 이후 별도 프로젝트용 참고: 상세 기획안 13장 「추가할 것」 기준. 새 패키지·새 마이그레이션 위주 | 해당 없음 |
 
 ---
