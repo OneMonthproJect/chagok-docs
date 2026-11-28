@@ -12,7 +12,7 @@
 |---|---|---|
 | **`chagok-docs`** (이 레포) | 기획 문서 00~13, 협업 규칙, 코드 구조 규칙, 공용 AI 설정(규칙·스킬·에이전트) | 기준 문서 · `CONTRIBUTING.md` · `CONVENTIONS.md` · `.claude/rules·skills·agents` |
 | `chagok-backend` | Spring Boot API, Flyway 마이그레이션·시드 | 백엔드 코드 |
-| `chagok-frontend` | React 화면 | 프론트 코드 |
+| `chagok-frontend` | React 화면, 디자인 자료(`design/` — v3.0 화면·프로토타입·디자인 변경 기록) | 프론트 코드 · 디자인 자료 (기획·정책·API는 이 레포가 원본) |
 
 **원본은 한 곳에만 둡니다.** 두 코드 레포는 이 레포의 문서와 규칙을 가리키기만 하고 복사해 커밋하지 않습니다. 코드 레포에서 쓰는 AI 스킬·에이전트·규칙은 `scripts/sync-claude.sh`로 복사해 쓰고, 그 복사본은 커밋되지 않습니다.
 
@@ -73,6 +73,7 @@ chagok-docs/
 | 기준 문서 | 00 PRD · 04 기능명세서 · 07 ERD · 08 API |
 | 계속 수정 | 12 백로그 · 13 변경 이력 |
 | 나머지 | 01 문제 정의 · 02 흐름 · 03 요구사항 · 05 정책 · 06 권한 · 09 화면 · 10 연결표 · 11 아키텍처 · etc/ |
+| 개발 기록 (etc/) | TEST 테스트명세서(실행 결과·통합검증) · DEV_REVIEW_CodeRabbit · DEV_REVIEW_트러블슈팅 · AI_USAGE(하루 단위 통합) |
 
 문서 간 ID(기능 F-xx, 화면 S-xx, API 번호, 테이블명)는 00·04·07·08을 기준으로 맞춥니다. 처음 보는 팀원은 `docs/etc/GUIDE_레포구조_협업규칙_AI스킬안내.md`부터 읽습니다.
 
